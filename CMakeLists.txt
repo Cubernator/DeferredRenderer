@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 
 project(DeferredRenderer CXX C)
-
-include(headers.cmake)
-include(sources.cmake)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -13,17 +12,18 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 include_directories(include)
 include_directories(${CMAKE_BINARY_DIR}/include)
-
 link_directories(${CMAKE_BINARY_DIR}/lib)
 
-add_executable(DeferredRenderer WIN32 ${HEADER_FILES} ${SOURCE_FILES})
+include(source_files)
+
+add_executable(DeferredRenderer WIN32 ${ALL_SOURCE_FILES})
 target_compile_features(DeferredRenderer PUBLIC cxx_lambdas)
 
 target_link_libraries(DeferredRenderer glew32 glfw3dll opengl32)
 
-include(externals.cmake)
+include(external_libs)
 
-if(WIN32)
+if(MSVC)
 	set(SHARED_LIB_FILES
 		${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/glfw3.dll
 		${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/glew32.dll
