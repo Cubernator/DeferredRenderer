@@ -4,6 +4,7 @@ set(HEADER_FILES
 	include/Entity.hpp
 	include/ForwardRenderEngine.hpp
 	include/glm.hpp
+	include/json_utils.hpp
 	include/Mesh.hpp
 	include/MeshRenderer.hpp
 	include/RenderEngine.hpp
@@ -18,6 +19,7 @@ set(SOURCE_FILES
 	src/Engine.cpp
 	src/Entity.cpp
 	src/ForwardRenderEngine.cpp
+	src/json_utils.cpp
 	src/main.cpp
 	src/Mesh.cpp
 	src/MeshRenderer.cpp
@@ -41,11 +43,15 @@ set(SCRIPT_FILES
 source_group("Script Files" FILES ${SCRIPT_FILES})
 
 set(CONTENT_FILES
+	content/materials/material-test.json
+	content/scenes/scene-test.json
 )
+source_group("Content Files" FILES ${CONTENT_FILES})
 
 set(ALL_SOURCE_FILES
 	${HEADER_FILES}
 	${SOURCE_FILES}
 	${CMAKE_FILES}
 	${SCRIPT_FILES}
+	${CONTENT_FILES}
 )

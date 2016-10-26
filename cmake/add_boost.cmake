@@ -89,3 +89,5 @@ ExternalProject_Add_Step(
 
 add_dependencies(DeferredRenderer boost)
 target_link_libraries(DeferredRenderer ${BOOST_LIBS})
+
+add_definitions( -DBOOST_ALL_NO_LIB )

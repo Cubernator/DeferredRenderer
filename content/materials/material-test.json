@@ -1,0 +1,12 @@
+{
+  "type": "material",
+  "name": "test",
+  "shader": "test",
+  "properties": [
+    {
+      "type": "color",
+      "name": "color",
+      "value": "#FFFFFFFF"
+    }
+  ]
+}

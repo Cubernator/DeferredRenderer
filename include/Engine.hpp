@@ -60,10 +60,12 @@ public:
 	Scene *getScene();
 	const Scene *getScene() const;
 
+	void setScene(std::unique_ptr<Scene> scene);
+
 	Entity* getEntity(const uuid& id) { return getEntityInternal(id); }
 	const Entity* getEntity(const uuid& id) const { return getEntityInternal(id); }
 
-	void addEntity(Entity *entity);
+	void addEntity(std::unique_ptr<Entity> entity);
 	void destroyEntity(const uuid& id);
 	void destroyEntity(Entity *entity);
 

@@ -1,6 +1,6 @@
 #include "Engine.hpp"
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(HIDE_CONSOLE)
 #include <windows.h>
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 #else

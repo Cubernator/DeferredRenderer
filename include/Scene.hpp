@@ -2,6 +2,7 @@
 #define SCENE_HPP
 
 #include <vector>
+#include <memory>
 
 #include "glm.hpp"
 
@@ -17,6 +18,8 @@ private:
 public:
 	Scene();
 	~Scene();
+
+	void addEntity(std::unique_ptr<Entity> entity);
 
 	const glm::vec4& getBackColor() const { return m_backColor; }
 	void setBackColor(const glm::vec4& c) { m_backColor = c; }

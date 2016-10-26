@@ -1,0 +1,14 @@
+{
+  "type": "scene",
+  "name": "test",
+  "backColor": "#2d64ad",
+  "children": [
+    {
+      "type": "entity",
+      "name": "dummy",
+      "position": [ 0, 0, 0 ],
+      "mesh": "cube",
+      "material": "test"
+    }
+  ]
+}

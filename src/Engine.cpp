@@ -3,6 +3,8 @@
 #include "Entity.hpp"
 #include "ForwardRenderEngine.hpp"
 
+#include "SceneImporter.hpp"
+
 #include "GL\glew.h"
 #include "GLFW\glfw3.h"
 
@@ -63,9 +65,17 @@ Engine::Engine() : m_error(0), m_time(0), m_deltaTime(1.0 / 60.0)
 
 	m_renderer = std::make_unique<ForwardRenderEngine>(this);
 
-	// default scene
-	m_scene = std::make_unique<Scene>();
-	m_scene->setBackColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	/*
+	auto defaultScene = std::make_unique<Scene>();
+	defaultScene->setBackColor(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	setScene(std::move(defaultScene));
+	*/
+
+	// TODO: add a "bootstrapping" json file which contains general information about the application
+
+	SceneImporter imp;
+	setScene(imp.fromFile({"content/scenes/scene-test.json"}));
 }
 
 Engine::~Engine()
@@ -108,6 +118,11 @@ const Scene * Engine::getScene() const
 	return m_scene.get();
 }
 
+void Engine::setScene(std::unique_ptr<Scene> scene)
+{
+	m_scene = std::move(scene);
+}
+
 Entity * Engine::getEntityInternal(const uuid & id) const
 {
 	auto it = m_entities.find(id);
@@ -116,9 +131,9 @@ Entity * Engine::getEntityInternal(const uuid & id) const
 	return nullptr;
 }
 
-void Engine::addEntity(Entity * entity)
+void Engine::addEntity(std::unique_ptr<Entity> entity)
 {
-	m_entities.emplace(entity->getId(), std::unique_ptr<Entity>(entity));
+	m_entities.emplace(entity->getId(), std::move(entity));
 }
 
 void Engine::destroyEntity(const uuid & id)

@@ -11,7 +11,7 @@ filters = [
 # --------------------------------------------------------------------------------------------
     ("include",     "HEADER_FILES",     "^.*\.h(pp)?$", ""              ),
     ("src",         "SOURCE_FILES",     "^.*\.c(pp)?$", ""              ),
-    ("cmake",       "CMAKE_FILES",      "^.*\.cmake$",  "CMake Files"   ),
+    ("cmake",       "CMAKE_FILES",      ".*",           "CMake Files"   ),
     ("scripts",     "SCRIPT_FILES",     ".*",           "Script Files"  ),
     ("content",     "CONTENT_FILES",    ".*",           "Content Files" )
 ]

@@ -5,10 +5,13 @@
 
 #include "boost/uuid/uuid.hpp"
 #include "boost/functional/hash.hpp"
+#include "boost/filesystem.hpp"
 
 typedef double time_type;
 typedef std::chrono::duration<time_type> duration_type;
+
 typedef boost::uuids::uuid uuid;
+typedef boost::filesystem::path path;
 
 namespace std
 {
