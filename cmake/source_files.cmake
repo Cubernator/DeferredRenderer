@@ -1,32 +1,66 @@
 set(HEADER_FILES
-	include/Component.hpp
-	include/Engine.hpp
-	include/Entity.hpp
-	include/ForwardRenderEngine.hpp
 	include/glm.hpp
-	include/json_utils.hpp
-	include/Mesh.hpp
-	include/MeshRenderer.hpp
-	include/RenderEngine.hpp
-	include/Renderer.hpp
-	include/Scene.hpp
-	include/SceneImporter.hpp
-	include/typedefs.hpp
+	include/path.hpp
+	include/uuid.hpp
+	include/core/Component.hpp
+	include/core/Content.hpp
+	include/core/Engine.hpp
+	include/core/Entity.hpp
+	include/core/Scene.hpp
+	include/core/Transform.hpp
+	include/graphics/Buffer.hpp
+	include/graphics/Camera.hpp
+	include/graphics/Effect.hpp
+	include/graphics/ForwardRenderEngine.hpp
+	include/graphics/Material.hpp
+	include/graphics/Mesh.hpp
+	include/graphics/MeshRenderer.hpp
+	include/graphics/RenderEngine.hpp
+	include/graphics/Renderer.hpp
+	include/graphics/render_state.hpp
+	include/graphics/set_uniform.hpp
+	include/graphics/Shader.hpp
+	include/graphics/ShaderProgram.hpp
+	include/graphics/shader_property.hpp
+	include/util/app_info.hpp
+	include/util/component_registry.hpp
+	include/util/import.hpp
+	include/util/json_initializable.hpp
+	include/util/json_interpreter.hpp
+	include/util/json_utils.hpp
+	include/util/keyword_helper.hpp
+	include/util/object_pool.hpp
+	include/util/property_interpreter.hpp
+	include/util/shader_preprocessor.hpp
+	include/util/type_registry.hpp
 )
 
 set(SOURCE_FILES
-	src/Component.cpp
-	src/Engine.cpp
-	src/Entity.cpp
-	src/ForwardRenderEngine.cpp
-	src/json_utils.cpp
 	src/main.cpp
-	src/Mesh.cpp
-	src/MeshRenderer.cpp
-	src/RenderEngine.cpp
-	src/Renderer.cpp
-	src/Scene.cpp
-	src/SceneImporter.cpp
+	src/core/Component.cpp
+	src/core/Content.cpp
+	src/core/Engine.cpp
+	src/core/Entity.cpp
+	src/core/Scene.cpp
+	src/core/Transform.cpp
+	src/graphics/Camera.cpp
+	src/graphics/Effect.cpp
+	src/graphics/ForwardRenderEngine.cpp
+	src/graphics/Material.cpp
+	src/graphics/Mesh.cpp
+	src/graphics/MeshRenderer.cpp
+	src/graphics/RenderEngine.cpp
+	src/graphics/Renderer.cpp
+	src/graphics/render_state.cpp
+	src/graphics/Shader.cpp
+	src/graphics/ShaderProgram.cpp
+	src/graphics/shader_property.cpp
+	src/util/app_info.cpp
+	src/util/component_registry.cpp
+	src/util/json_utils.cpp
+	src/util/object_pool.cpp
+	src/util/shader_preprocessor.cpp
+	src/util/type_registry.cpp
 )
 
 set(CMAKE_FILES
@@ -43,8 +77,16 @@ set(SCRIPT_FILES
 source_group("Script Files" FILES ${SCRIPT_FILES})
 
 set(CONTENT_FILES
+	content/appinfo.json
+	content/effects/effect-test.json
 	content/materials/material-test.json
+	content/meshes/cube.fbx
 	content/scenes/scene-test.json
+	content/shaders/common/input.glh
+	content/shaders/common/uniforms.glh
+	content/shaders/unlit/unlit.frag.glsl
+	content/shaders/unlit/unlit.vert.glsl
+	content/shaders/unlit/unlit_common.glh
 )
 source_group("Content Files" FILES ${CONTENT_FILES})
 

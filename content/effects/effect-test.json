@@ -1,0 +1,26 @@
+{
+  "type": "effect",
+  "name": "unlit",
+  "renderQueue": [ "geometry", 0 ],
+  "renderType": "opaque",
+  "properties": [
+    {"name": "color", "type": "vec4", "default": "#ffffffff"}
+  ],
+  "passes": [
+    {
+      "name": "default",
+      "lightMode": "forward",
+      "state": {
+        "cull": "back",
+        "depthTest": "less",
+        "depthWrite": true,
+        "depthOffset": [ 0, 0 ],
+        "blend": false
+      },
+      "program": {
+        "name": "unlit",
+        "shaders": ["unlit.vert", "unlit.frag"]
+      }
+    }
+  ]
+}

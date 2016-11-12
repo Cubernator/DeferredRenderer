@@ -1,0 +1,5 @@
+uniform mat4 common_mat_proj;
+uniform mat4 common_mat_view;
+uniform mat4 common_mat_world;
+
+uniform mat4 common_mat_wvp;

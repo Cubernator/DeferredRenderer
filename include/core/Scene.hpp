@@ -1,0 +1,49 @@
+#ifndef SCENE_HPP
+#define SCENE_HPP
+
+#include <vector>
+#include <memory>
+
+#include "glm.hpp"
+#include "util/import.hpp"
+#include "util/type_registry.hpp"
+#include "util/json_initializable.hpp"
+#include "util/json_interpreter.hpp"
+
+class Entity;
+
+class Scene : public json_initializable<Scene>
+{
+public:
+	Scene() = default;
+	~Scene();
+
+	Scene(Scene&& other) = default;
+	Scene& operator=(Scene&& other) = default;
+
+	void addEntity(std::unique_ptr<Entity> entity);
+
+	const glm::vec4& getBackColor() const { return m_backColor; }
+	void setBackColor(const glm::vec4& c) { m_backColor = c; }
+
+private:
+	std::vector<Entity*> m_entities;
+
+	glm::vec4 m_backColor;
+
+	static json_interpreter<Scene> s_properties;
+
+	void apply_json_impl(const nlohmann::json& json);
+
+	void extractBackColor(const nlohmann::json& json);
+	void extractEntities(const nlohmann::json& json);
+
+	Scene(const Scene& other) = delete;
+	Scene& operator=(const Scene& other) = delete;
+
+	friend struct json_initializable<Scene>;
+
+	REGISTER_OBJECT_TYPE_DECL(Scene);
+};
+
+#endif // SCENE_HPP

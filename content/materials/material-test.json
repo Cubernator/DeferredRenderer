@@ -1,12 +1,8 @@
 {
   "type": "material",
   "name": "test",
-  "shader": "test",
-  "properties": [
-    {
-      "type": "color",
-      "name": "color",
-      "value": "#FFFFFFFF"
-    }
-  ]
+  "effect": "unlit",
+  "properties": {
+    "color": "#aabbaaff"
+  }
 }

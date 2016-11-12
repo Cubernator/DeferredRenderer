@@ -2,13 +2,37 @@
   "type": "scene",
   "name": "test",
   "backColor": "#2d64ad",
-  "children": [
+  "entities": [
     {
-      "type": "entity",
       "name": "dummy",
-      "position": [ 0, 0, 0 ],
-      "mesh": "cube",
-      "material": "test"
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, -4 ],
+          "rotation": [ 0, 0, 0 ],
+          "scale": [ 1, 1, 1 ]
+        },
+        {
+          "type": "meshRenderer",
+          "mesh": "cube",
+          "material": "test"
+        }
+      ]
+    },
+    {
+      "name": "camera",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 0, 0, 0 ]
+        },
+        {
+          "type": "camera",
+          "fov": 60,
+          "nearPlane": 0.1,
+          "farPlane": 100
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,49 @@
+#ifndef KEYWORD_HELPER_HPP
+#define KEYWORD_HELPER_HPP
+
+#include <unordered_map>
+#include <string>
+
+template<typename T, typename KeyType = std::string>
+class keyword_helper
+{
+public:
+	using mapped_type = T;
+	using key_type = KeyType;
+	using container_type = std::unordered_map<key_type, mapped_type>;
+	using value_type = typename container_type::value_type;
+
+	static_assert(std::is_object<key_type>::value, "key type must be an object type! (not a reference or function)");
+
+
+	keyword_helper(std::initializer_list<value_type> keywords) : m_keywords(keywords) { }
+
+	template<typename IterType>
+	keyword_helper(IterType first, IterType last) : m_keywords(first, last) { }
+
+	bool get(const key_type& key, mapped_type& value) const
+	{
+		auto it = m_keywords.find(key);
+		if (it != m_keywords.end()) {
+			value = it->second;
+			return true;
+		}
+		return false;
+	}
+
+	bool get(const nlohmann::json& json, mapped_type& value) const
+	{
+		try {
+			return get(json.get<key_type>(), value);
+		} catch (std::domain_error&) {
+			// TODO: print error
+			return false;
+		}
+	}
+
+protected:
+	container_type m_keywords;
+};
+
+
+#endif // KEYWORD_HELPER_HPP

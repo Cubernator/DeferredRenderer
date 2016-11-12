@@ -1,0 +1,7 @@
+{
+  "title": "Deferred Renderer",
+  "resolution": [ 1280, 720 ],
+  "fullscreen": false,
+  "contentDir": "content",
+  "firstScene": "test"
+}

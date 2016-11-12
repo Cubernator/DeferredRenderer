@@ -60,4 +60,10 @@ add_project(json COMMANDS
 	CMAKE_ARGS -DBuildTests=OFF
 )
 
+add_project(assimp COMMANDS
+	GIT_REPOSITORY "https://github.com/assimp/assimp.git"
+	GIT_TAG "v3.3.1"
+	CMAKE_ARGS -DASSIMP_BUILD_ASSIMP_TOOLS=OFF -DLIBRARY_SUFFIX=
+)
+
 include(add_boost)
