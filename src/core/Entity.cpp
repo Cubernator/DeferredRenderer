@@ -16,6 +16,13 @@ Entity::Entity() : m_id(boost::uuids::random_generator()()), m_transform(nullptr
 	m_transform = addComponent<Transform>();
 }
 
+void Entity::update()
+{
+	for (auto& c : m_components) {
+		c->update();
+	}
+}
+
 void Entity::apply_json_impl(const nlohmann::json& json)
 {
 	s_properties.interpret_all(this, json);

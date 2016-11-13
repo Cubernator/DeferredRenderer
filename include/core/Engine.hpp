@@ -11,10 +11,11 @@
 using time_type = double;
 using duration_type = std::chrono::duration<time_type>;
 
-class Scene;
-class Entity;
+class Input;
 class Content;
 class RenderEngine;
+class Scene;
+class Entity;
 
 struct GLFWwindow;
 
@@ -35,6 +36,8 @@ public:
 	int getScreenHeight() const;
 
 	int run();
+
+	void stop();
 
 	Scene *getScene();
 	const Scene *getScene() const;
@@ -58,10 +61,12 @@ private:
 
 	GLFWwindow * m_window;
 	int m_error;
+	bool m_running;
 
 	duration_type m_time;
 	const duration_type m_deltaTime;
 
+	std::unique_ptr<Input> m_input;
 	std::unique_ptr<Content> m_content;
 	std::unique_ptr<RenderEngine> m_renderer;
 
@@ -76,18 +81,12 @@ private:
 	Engine& operator=(const Engine& other) = delete;
 	Engine& operator=(Engine&& other) = delete;
 
-	void onKey(int key, int scancode, int action, int mods);
-	void onMouseButton(int button, int action, int mods);
-	void onResized(int width, int height);
+	bool isRunning() const;
 
 	void update();
 	void render();
 
 	Entity* getEntityInternal(const uuid& id) const;
-
-	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-	static void framebufferCallback(GLFWwindow* window, int width, int height);
 };
 
 #endif // ENGINE_HPP

@@ -1,6 +1,7 @@
 #include "core/Engine.hpp"
 #include "core/Scene.hpp"
 #include "core/Entity.hpp"
+#include "core/Input.hpp"
 #include "core/Content.hpp"
 #include "graphics/ForwardRenderEngine.hpp"
 #include "util/app_info.hpp"
@@ -10,24 +11,9 @@
 
 #include <iostream>
 
-void Engine::keyCallback(GLFWwindow * window, int key, int scancode, int action, int mods)
-{
-	s_instance->onKey(key, scancode, action, mods);
-}
-
-void Engine::mouseButtonCallback(GLFWwindow * window, int button, int action, int mods)
-{
-	s_instance->onMouseButton(button, action, mods);
-}
-
-void Engine::framebufferCallback(GLFWwindow * window, int width, int height)
-{
-	s_instance->onResized(width, height);
-}
-
 Engine* Engine::s_instance = nullptr;
 
-Engine::Engine() : m_error(0), m_time(0), m_deltaTime(1.0 / 60.0)
+Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.0)
 {
 	s_instance = this;
 
@@ -56,11 +42,6 @@ Engine::Engine() : m_error(0), m_time(0), m_deltaTime(1.0 / 60.0)
 	glfwMakeContextCurrent(m_window);
 	glfwSwapInterval(0);
 
-	// set callbacks
-	glfwSetKeyCallback(m_window, Engine::keyCallback);
-	glfwSetMouseButtonCallback(m_window, Engine::mouseButtonCallback);
-	glfwSetFramebufferSizeCallback(m_window, Engine::framebufferCallback);
-
 	// initialize GLEW
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
@@ -68,6 +49,7 @@ Engine::Engine() : m_error(0), m_time(0), m_deltaTime(1.0 / 60.0)
 		return;
 	}
 
+	m_input = std::make_unique<Input>(m_window);
 	m_content = std::make_unique<Content>(app_info::info.contentDir);
 	m_renderer = std::make_unique<ForwardRenderEngine>(this);
 
@@ -84,6 +66,7 @@ Engine::~Engine()
 	m_entities.clear();
 	m_renderer.reset();
 	m_content.reset();
+	m_input.reset();
 
 	glfwTerminate();
 }
@@ -93,7 +76,7 @@ int Engine::run()
 	auto currentTime = clock::now();
 	duration_type accumulator(0);
 
-	while (!glfwWindowShouldClose(m_window) && !m_error) {
+	while (isRunning()) {
 		auto newTime = clock::now();
 		duration_type frameTime = newTime - currentTime;
 		currentTime = newTime;
@@ -111,6 +94,16 @@ int Engine::run()
 	}
 
 	return m_error;
+}
+
+bool Engine::isRunning() const
+{
+	return m_running && !(glfwWindowShouldClose(m_window) || m_error);
+}
+
+void Engine::stop()
+{
+	m_running = false;
 }
 
 void Engine::getScreenSize(int& w, int& h) const
@@ -182,7 +175,11 @@ Engine::const_entity_iterator Engine::entities_end() const
 
 void Engine::update()
 {
-	glfwPollEvents();
+	m_input->update();
+
+	if (m_scene) {
+		m_scene->update();
+	}
 }
 
 void Engine::render()
@@ -192,16 +189,4 @@ void Engine::render()
 	}
 
 	glfwSwapBuffers(m_window);
-}
-
-void Engine::onKey(int key, int scancode, int action, int mods)
-{
-}
-
-void Engine::onMouseButton(int button, int action, int mods)
-{
-}
-
-void Engine::onResized(int width, int height)
-{
 }

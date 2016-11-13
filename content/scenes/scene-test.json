@@ -8,9 +8,7 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 0, -4 ],
-          "rotation": [ 0, 0, 0 ],
-          "scale": [ 1, 1, 1 ]
+          "position": [ 0, 0, -4 ]
         },
         {
           "type": "meshRenderer",
@@ -23,14 +21,17 @@
       "name": "camera",
       "components": [
         {
-          "type": "transform",
-          "position": [ 0, 0, 0 ]
-        },
-        {
           "type": "camera",
           "fov": 60,
           "nearPlane": 0.1,
           "farPlane": 100
+        },
+        {
+          "type": "flyCamera",
+          "normalSpeed": 3.0,
+          "fastSpeed": 10.0,
+          "sensitivityX": 0.15,
+          "sensitivityY": 0.2
         }
       ]
     }

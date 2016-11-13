@@ -24,6 +24,8 @@ public:
 	const std::string& getName() const { return m_name; }
 	void setName(const std::string& name) { m_name = name; }
 
+	void update();
+
 	Transform* getTransform() { return m_transform; }
 	const Transform* getTransform() const { return m_transform; }
 

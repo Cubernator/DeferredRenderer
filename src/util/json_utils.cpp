@@ -16,7 +16,7 @@ glm::vec4 parse_color(const std::string s)
 		color[i] = cv / 255.0f;
 	}
 
-	if (maxSize < 4)
+	if (maxSize < 4) // assume full opacity if no alpha value is specified
 		color.a = 1.0f;
 
 	return color;

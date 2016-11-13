@@ -24,6 +24,13 @@ void Scene::addEntity(std::unique_ptr<Entity> entity)
 }
 
 
+void Scene::update()
+{
+	for (auto& e : m_entities) {
+		e->update();
+	}
+}
+
 void Scene::apply_json_impl(const nlohmann::json& json)
 {
 	s_properties.interpret_all(this, json);

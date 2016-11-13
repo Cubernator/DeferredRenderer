@@ -24,10 +24,14 @@ public:
 	Entity* getEntity() { return m_parent; }
 	const Entity* getEntity() const { return m_parent; }
 
+	void update() { update_impl(); }
+
 	COMPONENT_ALLOW_MULTIPLE;
 
 protected:
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) = 0;
+
+	virtual void update_impl() { }
 
 	friend struct json_initializable<Component>;
 

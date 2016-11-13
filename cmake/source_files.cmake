@@ -2,10 +2,12 @@ set(HEADER_FILES
 	include/glm.hpp
 	include/path.hpp
 	include/uuid.hpp
+	include/components/FlyCamera.hpp
 	include/core/Component.hpp
 	include/core/Content.hpp
 	include/core/Engine.hpp
 	include/core/Entity.hpp
+	include/core/Input.hpp
 	include/core/Scene.hpp
 	include/core/Transform.hpp
 	include/graphics/Buffer.hpp
@@ -37,10 +39,12 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
 	src/main.cpp
+	src/components/FlyCamera.cpp
 	src/core/Component.cpp
 	src/core/Content.cpp
 	src/core/Engine.cpp
 	src/core/Entity.cpp
+	src/core/Input.cpp
 	src/core/Scene.cpp
 	src/core/Transform.cpp
 	src/graphics/Camera.cpp

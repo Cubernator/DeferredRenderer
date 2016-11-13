@@ -26,6 +26,8 @@ public:
 	const glm::vec4& getBackColor() const { return m_backColor; }
 	void setBackColor(const glm::vec4& c) { m_backColor = c; }
 
+	void update();
+
 private:
 	std::vector<Entity*> m_entities;
 

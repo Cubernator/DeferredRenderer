@@ -35,6 +35,10 @@ void ForwardRenderEngine::doRender()
 
 	glm::mat4 view = mainCam->getEntity()->getTransform()->getInverseRigidMatrix();
 
+	// TODO: implement render queues and render types
+
+	// TODO: implement lighting
+
 	for (auto it = parent->entities_begin(); it != parent->entities_end(); ++it) {
 		auto& entity = it->second;
 		Renderer* renderer = entity->getComponent<Renderer>();

@@ -11,7 +11,7 @@ json_interpreter<Transform> Transform::s_properties({
 	{ "scale", &Transform::extractScale }
 });
 
-Transform::Transform(Entity* parent) : Component(parent) { }
+Transform::Transform(Entity* parent) : Component(parent), m_scale(1.0f), m_dirty(true) { }
 
 const glm::mat4& Transform::getMatrix()
 {
