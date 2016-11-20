@@ -3,6 +3,7 @@
 
 #include <string>
 #include <exception>
+
 #include "nlohmann/json.hpp"
 
 
@@ -30,7 +31,7 @@ protected:
 		}
 	}
 
-	// Should never be called! Correct implementations will either hide this function or implement apply_json_impl directly
+	// Should never be called! Correct implementations will either hide this function or apply_json_impl
 	void apply_json_property_impl(const std::string& name, const nlohmann::json& json)
 	{
 		throw std::logic_error("Default implementation of apply_json_property_impl has been called! Either this function or apply_json_impl must be hidden by the base class!");

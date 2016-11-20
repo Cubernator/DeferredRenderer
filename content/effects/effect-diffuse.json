@@ -1,0 +1,41 @@
+{
+  "type": "effect",
+  "name": "diffuse",
+  "renderQueue": [ "geometry", 0 ],
+  "renderType": "opaque",
+  "properties": [
+    {
+      "name": "color",
+      "type": "vec4",
+      "default": "#ffffffff"
+    },
+    {
+      "name": "mainTex",
+      "type": "texture2D",
+      "default": "white"
+    }
+  ],
+  "passes": [
+    {
+      "name": "fwdBase",
+      "lightMode": "forwardBase",
+      "program": {
+        "name": "diffuseFwd",
+        "shaders": [ "diffuse.vert", "diffuse.frag" ]
+      }
+    },
+    {
+      "name": "fwdAdd",
+      "lightMode": "forwardAdd",
+      "state": {
+        "depthTest": "lequal",
+        "depthWrite": false,
+        "blend": {
+          "source": "one",
+          "dest": "one"
+        }
+      },
+      "program": "diffuseFwd"
+    }
+  ]
+}

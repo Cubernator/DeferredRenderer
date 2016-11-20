@@ -5,7 +5,7 @@
 
 #include "graphics/Buffer.hpp"
 #include "util/import.hpp"
-#include "util/type_registry.hpp"
+#include "util/bounds.hpp"
 
 #include "glm.hpp"
 
@@ -36,6 +36,9 @@ public:
 	void bindVAO() const;
 	void unbindVAO() const;
 
+	void bindIndices() const;
+	void unbindIndices() const;
+
 	void updateVAO();
 
 	void setVertices(std::size_t count,
@@ -48,6 +51,8 @@ public:
 
 	void draw();
 
+	const aabb& getBounds() const { return m_bounds; }
+
 private:
 	GLuint m_vao;
 
@@ -57,6 +62,11 @@ private:
 	std::unique_ptr<uv_buffer_type>			m_uvs;
 
 	std::unique_ptr<index_buffer_type>		m_indices;
+
+	aabb m_bounds;
+
+	aabb computeBounds() const;
+	void updateBounds();
 
 	template<typename T>
 	void fillBuffer(std::size_t count, std::unique_ptr<T>& buffer, const typename T::element_type* data)
@@ -80,8 +90,6 @@ private:
 			glDisableVertexAttribArray(index);
 		}
 	}
-
-	REGISTER_OBJECT_TYPE_DECL(Mesh);
 };
 
 template<>

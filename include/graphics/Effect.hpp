@@ -2,12 +2,11 @@
 #define EFFECT_HPP
 
 #include "util/import.hpp"
-#include "util/type_registry.hpp"
 #include "util/keyword_helper.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
+#include "shader/shader_property.hpp"
 #include "render_state.hpp"
-#include "shader_property.hpp"
 
 #include "boost/multi_index_container.hpp"
 
@@ -21,7 +20,8 @@ class Effect : public json_initializable<Effect>
 public:
 	enum light_mode
 	{
-		light_forward,
+		light_forward_base,
+		light_forward_add,
 		light_deferred,
 		light_shadow_cast
 	};
@@ -112,8 +112,6 @@ private:
 	void addPass(const nlohmann::json& json);
 
 	friend struct json_initializable<Effect>;
-
-	REGISTER_OBJECT_TYPE_DECL(Effect);
 };
 
 #endif // EFFECT_HPP

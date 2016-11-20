@@ -61,54 +61,96 @@ render_state::render_state()
 	blendEnable(false), blendSourceFunction(blf_one), blendDestFunction(blf_zero), blendSourceAlphaFunction(blf_one), blendDestAlphaFunction(blf_zero),
 	blendEquation(ble_add), blendEquationAlpha(ble_add), blendColor(0.0f, 0.0f, 0.0f, 0.0f) { }
 
-void render_state::apply(bool cull, bool depthWrite, bool depthOffset, bool depthTest, bool blend) const
+void render_state::apply() const
 {
-	if (cull) applyCulling();
-	if (depthWrite) applyDepthWriting();
-	if (depthOffset) applyDepthOffset();
-	if (depthTest) applyDepthTest();
-	if (blend) applyBlending();
+	applyCulling();
+	applyDepthWriting();
+	applyDepthOffset();
+	applyDepthTest();
+	applyBlending();
+}
+
+void render_state::differentialApply(const render_state& other) const
+{
+	applyCullingDiff(other);
+	applyDepthWriteDiff(other);
+	applyDepthOffsetDiff(other);
+	applyDepthTestDiff(other);
+	applyBlendDiff(other);
 }
 
 void render_state::applyCulling() const
 {
-	if (cullEnable) {
-		glEnable(GL_CULL_FACE);
-		glCullFace(cullMode);
-	} else {
-		glDisable(GL_CULL_FACE);
-	}
-}
-
-void render_state::applyDepthWriting() const
-{
-	glDepthMask(depthWriteEnable ? GL_TRUE : GL_FALSE);
-}
-
-void render_state::applyDepthOffset() const
-{
-	glPolygonOffset(depthOffsetFactor, depthOffsetUnits);
+	setEnabled(GL_CULL_FACE, cullEnable);
+	if (cullEnable)
+		applyCullMode();
 }
 
 void render_state::applyDepthTest() const
 {
-	if (depthTestEnable) {
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(depthTestFunction);
-	} else {
-		glDisable(GL_DEPTH_TEST);
-	}
+	setEnabled(GL_DEPTH_TEST, depthTestEnable);
+	if (depthTestEnable)
+		applyDepthTestFunc();
 }
 
 void render_state::applyBlending() const
 {
+	setEnabled(GL_BLEND, blendEnable);
 	if (blendEnable) {
-		glEnable(GL_BLEND);
-		glBlendColor(blendColor.r, blendColor.g, blendColor.b, blendColor.a);
-		glBlendEquationSeparate(blendEquation, blendEquationAlpha);
-		glBlendFuncSeparate(blendSourceFunction, blendDestFunction, blendSourceAlphaFunction, blendDestAlphaFunction);
-	} else {
-		glDisable(GL_BLEND);
+		applyBlendColor();
+		applyBlendEquation();
+		applyBlendFunction();
+	}
+}
+
+
+void render_state::applyCullingDiff(const render_state& other) const
+{
+	if (other.cullEnable != cullEnable)
+		setEnabled(GL_CULL_FACE, cullEnable);
+
+	if (cullEnable && (other.cullMode != cullMode))
+		applyCullMode();
+}
+
+void render_state::applyDepthWriteDiff(const render_state& other) const
+{
+	if (other.depthWriteEnable != depthWriteEnable)
+		applyDepthWriting();
+}
+
+void render_state::applyDepthOffsetDiff(const render_state& other) const
+{
+	if ((other.depthOffsetFactor != depthOffsetFactor) || (other.depthOffsetUnits != depthOffsetUnits))
+		applyDepthOffset();
+}
+
+void render_state::applyDepthTestDiff(const render_state& other) const
+{
+	if (other.depthTestEnable != depthTestEnable)
+		setEnabled(GL_DEPTH_TEST, depthTestEnable);
+
+	if (depthTestEnable && (other.depthTestFunction != depthTestFunction))
+		applyDepthTestFunc();
+}
+
+void render_state::applyBlendDiff(const render_state& other) const
+{
+	if (other.blendEnable != blendEnable)
+		setEnabled(GL_BLEND, blendEnable);
+
+	if (blendEnable) {
+		if (other.blendColor != blendColor)
+			applyBlendColor();
+
+		if ((other.blendEquation != blendEquation) || (other.blendEquationAlpha != blendEquationAlpha))
+			applyBlendEquation();
+
+		if ((other.blendSourceFunction != blendSourceFunction)
+			|| (other.blendSourceAlphaFunction != blendSourceAlphaFunction)
+			|| (other.blendDestFunction != blendDestFunction)
+			|| (other.blendDestAlphaFunction != blendDestAlphaFunction))
+			applyBlendFunction();
 	}
 }
 

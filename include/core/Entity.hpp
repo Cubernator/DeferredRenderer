@@ -8,7 +8,6 @@
 #include "uuid.hpp"
 #include "core/Component.hpp"
 #include "util/import.hpp"
-#include "util/type_registry.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
 
@@ -103,8 +102,6 @@ private:
 	void extractComponents(const nlohmann::json& json);
 
 	friend struct json_initializable<Entity>;
-
-	REGISTER_OBJECT_TYPE_DECL(Entity);
 };
 
 #endif // ENTITY_HPP

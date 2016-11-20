@@ -1,4 +1,5 @@
 #include "components/FlyCamera.hpp"
+#include "util/component_registry.hpp"
 #include "core/Entity.hpp"
 #include "core/Input.hpp"
 #include "core/Engine.hpp"
@@ -6,7 +7,7 @@
 
 #include "GLFW/glfw3.h"
 
-REGISTER_COMPONENT_CLASS_DEF(FlyCamera, "flyCamera");
+REGISTER_COMPONENT_CLASS(FlyCamera, "flyCamera");
 
 json_interpreter<FlyCamera> FlyCamera::s_properties({
 	{ "normalSpeed", &FlyCamera::extractNormalSpeed },

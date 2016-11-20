@@ -5,5 +5,15 @@ RenderEngine::~RenderEngine() { }
 
 void RenderEngine::render()
 {
-	doRender();
+	onRender();
+}
+
+void RenderEngine::addEntity(Entity* entity)
+{
+	onAddEntity(entity);
+}
+
+void RenderEngine::removeEntity(Entity* entity)
+{
+	onRemoveEntity(entity);
 }

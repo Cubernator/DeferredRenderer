@@ -6,7 +6,6 @@
 #include "GL/glew.h"
 
 #include "util/import.hpp"
-#include "util/type_registry.hpp"
 
 class Shader
 {
@@ -37,8 +36,6 @@ private:
 	shader_type m_type;
 	GLint m_compilerStatus;
 	std::string m_compilerLog;
-
-	REGISTER_OBJECT_TYPE_DECL(Shader);
 };
 
 template<>

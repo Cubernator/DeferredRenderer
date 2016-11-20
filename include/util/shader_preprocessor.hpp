@@ -6,7 +6,7 @@
 
 #include "GL/glew.h"
 
-#include "graphics/Shader.hpp"
+#include "graphics/shader/Shader.hpp"
 
 class shader_preprocessor
 {

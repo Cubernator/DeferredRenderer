@@ -1,10 +1,12 @@
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
-
-#include "boost/uuid\random_generator.hpp"
 #include "util/json_utils.hpp"
+#include "util/type_registry.hpp"
+#include "util/component_registry.hpp"
 
-REGISTER_OBJECT_TYPE_DEF_NO_EXT(Entity, "entity");
+#include "boost/uuid/random_generator.hpp"
+
+REGISTER_OBJECT_TYPE_NO_EXT(Entity, "entity");
 
 json_interpreter<Entity> Entity::s_properties({
 	{ "name", &Entity::extractName },

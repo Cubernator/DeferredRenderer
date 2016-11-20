@@ -6,7 +6,6 @@
 
 #include "glm.hpp"
 #include "util/import.hpp"
-#include "util/type_registry.hpp"
 #include "util/json_initializable.hpp"
 #include "util/json_interpreter.hpp"
 
@@ -44,8 +43,6 @@ private:
 	Scene& operator=(const Scene& other) = delete;
 
 	friend struct json_initializable<Scene>;
-
-	REGISTER_OBJECT_TYPE_DECL(Scene);
 };
 
 #endif // SCENE_HPP

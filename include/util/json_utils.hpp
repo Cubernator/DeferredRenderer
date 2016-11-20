@@ -127,37 +127,37 @@ T json_get(const nlohmann::json& j)
 
 
 template<typename T>
-bool get_value(const nlohmann::json& j, const std::string& key, T& value) {
+bool get_value(const nlohmann::json& j, const std::string& key, T& value)
+{
 	auto it = j.find(key);
 	if (it != j.end()) {
 		try {
-			value = it->get<T>();
+			value = json_get<T>(*it);
 			return true;
-		} catch (std::domain_error&) {
-			// TODO: // print error
-		}
+		} catch (std::domain_error&) { }
 	}
 
 	return false;
 }
 
-inline std::string get_string(const nlohmann::json& j, const std::string& key, const std::string& def = "")
+template<typename T>
+T get_value(const nlohmann::json& j, const std::string& key, const T& def)
 {
-	std::string v;
-	if (get_value(j, key, v)) {
-		return v;
+	T result;
+	if (get_value(j, key, result)) {
+		return result;
 	}
 	return def;
 }
 
 inline std::string get_name(const nlohmann::json& j, const std::string& def = "unnamed")
 {
-	return get_string(j, "name", def);
+	return get_value<std::string>(j, "name", def);
 }
 
 inline std::string get_type(const nlohmann::json& j, const std::string& def = "undefined")
 {
-	return get_string(j, "type", def);
+	return get_value<std::string>(j, "type", def);
 }
 
 #endif // JSON_UTILS_HPP

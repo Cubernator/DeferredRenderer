@@ -84,19 +84,8 @@ struct render_state : public json_initializable<render_state>
 
 	render_state();
 
-	void apply(
-		bool cull = true,
-		bool depthWrite = true,
-		bool depthOffset = true,
-		bool depthTest = true,
-		bool blend = true
-	) const;
-
-	void applyCulling() const;
-	void applyDepthWriting() const;
-	void applyDepthOffset() const;
-	void applyDepthTest() const;
-	void applyBlending() const;
+	void apply() const;
+	void differentialApply(const render_state& other) const;
 
 private:
 	static json_interpreter<render_state> s_properties;
@@ -107,13 +96,65 @@ private:
 	static keyword_helper<blend_equation> s_blendEqtns;
 
 
+	void applyCulling() const;
+	void applyCullMode() const
+	{
+		glCullFace(cullMode);
+	}
+
+	void applyDepthWriting() const
+	{
+		glDepthMask(depthWriteEnable ? GL_TRUE : GL_FALSE);
+	}
+
+	void applyDepthOffset() const
+	{
+		glPolygonOffset(depthOffsetFactor, depthOffsetUnits);
+	}
+
+
+	void applyDepthTest() const;
+	void applyDepthTestFunc() const
+	{
+		glDepthFunc(depthTestFunction);
+	}
+
+
+	void applyBlending() const;
+	void applyBlendColor() const
+	{
+		glBlendColor(blendColor.r, blendColor.g, blendColor.b, blendColor.a);
+	}
+	void applyBlendEquation() const
+	{
+		glBlendEquationSeparate(blendEquation, blendEquationAlpha);
+	}
+	void applyBlendFunction() const
+	{
+		glBlendFuncSeparate(blendSourceFunction, blendDestFunction, blendSourceAlphaFunction, blendDestAlphaFunction);
+	}
+
+	void applyCullingDiff(const render_state& other) const;
+	void applyDepthWriteDiff(const render_state& other) const;
+	void applyDepthOffsetDiff(const render_state& other) const;
+	void applyDepthTestDiff(const render_state& other) const;
+	void applyBlendDiff(const render_state& other) const;
+
 	void apply_json_impl(const nlohmann::json& json);
 
 	void getCull(const nlohmann::json& json);
-	void getDepthTest(const nlohmann::json& json);
 	void getDepthWrite(const nlohmann::json& json);
 	void getDepthOffset(const nlohmann::json& json);
+	void getDepthTest(const nlohmann::json& json);
 	void getBlend(const nlohmann::json& json);
+
+	static void setEnabled(GLenum target, bool enabled)
+	{
+		if (enabled)
+			glEnable(target);
+		else
+			glDisable(target);
+	}
 
 	friend struct json_initializable<render_state>;
 };

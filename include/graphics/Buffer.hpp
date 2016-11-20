@@ -3,13 +3,12 @@
 
 #include "GL\glew.h"
 
-#include <stdint.h>
-
-template<typename ElementType, GLenum target>
+template<typename ElementType, GLenum t>
 class Buffer
 {
 public:
 	using element_type = ElementType;
+	static constexpr GLenum target = t;
 
 	Buffer(GLenum usage = GL_STATIC_DRAW) : m_glObj(0), m_usage(usage), m_count(0)
 	{
@@ -43,11 +42,12 @@ public:
 	}
 
 	operator bool() const {
-		return getObj();
+		return glObj();
 	}
 
-	GLuint getObj() const { return m_glObj; }
-	GLsizeiptr getCount() const { return m_count; }
+	constexpr GLenum glTarget() const { return target; }
+	GLuint glObj() const { return m_glObj; }
+	GLsizeiptr count() const { return m_count; }
 
 	void bind()
 	{
@@ -59,14 +59,34 @@ public:
 		glBindBuffer(target, 0);
 	}
 
-	void setData(std::size_t count, const ElementType* data, GLenum usage = 0)
+	void setData(std::size_t count, const element_type* data, GLenum usage = 0)
 	{
 		if (usage) m_usage = usage; // modify usage policy if function argument was set
 
 		bind();
-		glBufferData(target, count * sizeof(ElementType), data, m_usage);
+		glBufferData(target, count * sizeof(element_type), data, m_usage);
 
 		m_count = count;
+	}
+
+	element_type* map(bool writeOnly = false)
+	{
+		return static_cast<element_type*>(glMapNamedBuffer(m_glObj, writeOnly ? GL_WRITE_ONLY : GL_READ_WRITE));
+	}
+
+	const element_type* map() const
+	{
+		return static_cast<element_type*>(glMapNamedBuffer(m_glObj, GL_READ_ONLY));
+	}
+
+	const element_type* mapReadOnly() const
+	{
+		return map();
+	}
+
+	void unmap() const
+	{
+		glUnmapNamedBuffer(m_glObj);
 	}
 
 	void clearData()
@@ -86,19 +106,5 @@ using VertexBuffer = Buffer<VertexType, GL_ARRAY_BUFFER>;
 
 template<typename IndexType>
 using IndexBuffer = Buffer<IndexType, GL_ELEMENT_ARRAY_BUFFER>;
-
-
-template<typename IndexType> constexpr GLenum getGLType() { return 0; }
-
-template<> inline constexpr GLenum getGLType<uint8_t>() { return GL_UNSIGNED_BYTE; }
-template<> inline constexpr GLenum getGLType<uint16_t>() { return GL_UNSIGNED_SHORT; }
-template<> inline constexpr GLenum getGLType<uint32_t>() { return GL_UNSIGNED_INT; }
-
-template<> inline constexpr GLenum getGLType<int8_t>() { return GL_BYTE; }
-template<> inline constexpr GLenum getGLType<int16_t>() { return GL_SHORT; }
-template<> inline constexpr GLenum getGLType<int32_t>() { return GL_INT; }
-
-template<> inline constexpr GLenum getGLType<float>() { return GL_FLOAT; }
-template<> inline constexpr GLenum getGLType<double>() { return GL_DOUBLE; }
 
 #endif // BUFFER_HPP

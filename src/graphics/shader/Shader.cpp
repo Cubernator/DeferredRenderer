@@ -1,7 +1,8 @@
-#include "graphics/Shader.hpp"
+#include "graphics/shader/Shader.hpp"
 #include "util/shader_preprocessor.hpp"
+#include "util/type_registry.hpp"
 
-REGISTER_OBJECT_TYPE_DEF(Shader, "shader", ".glsl");
+REGISTER_OBJECT_TYPE(Shader, "shader", ".glsl");
 
 Shader::Shader(shader_type type, const std::string& source) : m_glObj(0), m_type(type), m_compilerStatus(GL_FALSE)
 {

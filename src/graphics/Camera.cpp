@@ -1,8 +1,9 @@
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
+#include "util/component_registry.hpp"
 #include "graphics/Camera.hpp"
 
-REGISTER_COMPONENT_CLASS_DEF(Camera, "camera");
+REGISTER_COMPONENT_CLASS(Camera, "camera");
 
 Camera * Camera::s_mainCamera(nullptr);
 

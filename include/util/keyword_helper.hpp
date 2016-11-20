@@ -21,9 +21,9 @@ public:
 	template<typename IterType>
 	keyword_helper(IterType first, IterType last) : m_keywords(first, last) { }
 
-	bool get(const key_type& key, mapped_type& value) const
+	bool get(const key_type& keyword, mapped_type& value) const
 	{
-		auto it = m_keywords.find(key);
+		auto it = m_keywords.find(keyword);
 		if (it != m_keywords.end()) {
 			value = it->second;
 			return true;
@@ -39,6 +39,16 @@ public:
 			// TODO: print error
 			return false;
 		}
+	}
+
+	bool findKeyword(const nlohmann::json& json, const std::string& name, mapped_type& value) const
+	{
+		auto it = json.find(name);
+		if (it != json.end()) {
+			return get(*it, value);
+		}
+
+		return false;
 	}
 
 protected:

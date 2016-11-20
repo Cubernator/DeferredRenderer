@@ -2,7 +2,6 @@
 #define CAMERA_HPP
 
 #include "core/Component.hpp"
-#include "util/component_registry.hpp"
 #include "util/json_interpreter.hpp"
 #include "glm.hpp"
 
@@ -44,8 +43,6 @@ private:
 	void extractFov(const nlohmann::json& json);
 	void extractNearPlane(const nlohmann::json& json);
 	void extractFarPlane(const nlohmann::json& json);
-
-	REGISTER_COMPONENT_CLASS_DECL(Camera);
 };
 
 #endif // CAMERA_HPP

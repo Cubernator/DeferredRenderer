@@ -8,14 +8,6 @@ string(REPLACE "." "_" BOOST_FOLDER ${BOOST_VERSION})
 set(BOOST_FOLDER boost_${BOOST_FOLDER})
 set(BOOST_ARCHIVE_FILENAME ${BOOST_FOLDER}.tar.gz)
 
-#[[
-string(REGEX REPLACE "\\.0+$" "" BOOST_SHORT_VERSION ${BOOST_VERSION})
-string(REPLACE "." "_" BOOST_SHORT_VERSION ${BOOST_SHORT_VERSION})
-set(BOOST_HDR_DIRNAME boost-${BOOST_SHORT_VERSION})
-
-include_directories(${CMAKE_BINARY_DIR}/include/${BOOST_HDR_DIRNAME})
-]]
-
 set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_ARCHIVE_FILENAME}/download")
 
 set(BUILD_CMD

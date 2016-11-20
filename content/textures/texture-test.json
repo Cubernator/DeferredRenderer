@@ -1,0 +1,16 @@
+{
+  "type": "texture2D",
+  "name": "test",
+
+  "file": "test.raw",
+  "importer": "raw",
+  "importOptions": {
+    "format": "rgb",
+    "size": 512
+  },
+
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 4
+}

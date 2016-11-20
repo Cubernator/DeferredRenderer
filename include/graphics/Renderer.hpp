@@ -3,6 +3,7 @@
 
 #include "core/Component.hpp"
 #include "util/json_interpreter.hpp"
+#include "util/bounds.hpp"
 
 class Material;
 
@@ -16,14 +17,24 @@ public:
 
 	void setMaterial(Material* material) { m_material = material; }
 
-	void render() { drawGeometry(); }
+	void bind() { bind_impl(); }
+	void unbind() { unbind_impl(); }
+	void draw() { draw_impl(); }
+
 	bool isVisible() const { return hasGeometry(); }
+
+	aabb getBounds() const { return getBounds_impl(); }
 
 	COMPONENT_DISALLOW_MULTIPLE;
 
 protected:
-	virtual void drawGeometry() = 0;
+	virtual void bind_impl() { }
+	virtual void unbind_impl() { }
+
+	virtual void draw_impl() = 0;
 	virtual bool hasGeometry() const = 0;
+
+	virtual aabb getBounds_impl() const = 0;
 
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
 

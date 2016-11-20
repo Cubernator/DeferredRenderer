@@ -2,7 +2,6 @@
 #define FLYCAMERA_HPP
 
 #include "core/Component.hpp"
-#include "util/component_registry.hpp"
 #include "util/json_interpreter.hpp"
 
 class FlyCamera : public Component
@@ -27,8 +26,6 @@ private:
 	void extractFastSpeed(const nlohmann::json& json);
 	void extractSensitivityX(const nlohmann::json& json);
 	void extractSensitivityY(const nlohmann::json& json);
-
-	REGISTER_COMPONENT_CLASS_DECL(FlyCamera);
 };
 
 #endif // FLYCAMERA_HPP

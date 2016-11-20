@@ -2,6 +2,7 @@
 #define RENDERENGINE_HPP
 
 class Engine;
+class Entity;
 
 class RenderEngine
 {
@@ -14,8 +15,14 @@ public:
 
 	void render();
 
+	void addEntity(Entity* entity);
+	void removeEntity(Entity* entity);
+
 protected:
-	virtual void doRender() = 0;
+	virtual void onRender() = 0;
+
+	virtual void onAddEntity(Entity* entity) = 0;
+	virtual void onRemoveEntity(Entity* entity) = 0;
 
 private:
 	Engine *m_parent;

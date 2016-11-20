@@ -1,10 +1,10 @@
 #include "graphics/Effect.hpp"
-#include "graphics/ShaderProgram.hpp"
+#include "graphics/shader/ShaderProgram.hpp"
 #include "graphics/Material.hpp"
+#include "util/type_registry.hpp"
 #include "core/Content.hpp"
 
-
-REGISTER_OBJECT_TYPE_DEF_NO_EXT(Effect, "effect");
+REGISTER_OBJECT_TYPE_NO_EXT(Effect, "effect");
 
 json_interpreter<Effect> Effect::s_properties({
 	{ "renderQueue",	&Effect::getRenderQueue },
@@ -36,15 +36,16 @@ keyword_helper<Effect::render_type> Effect::s_renderTypes({
 
 
 keyword_helper<Effect::light_mode> Effect::s_lightModes({
-	{ "forward",	Effect::light_forward },
-	{ "deferred",	Effect::light_deferred },
-	{ "shadowCast",	Effect::light_shadow_cast }
+	{ "forwardBase",	Effect::light_forward_base },
+	{ "forwardAdd",		Effect::light_forward_add },
+	{ "deferred",		Effect::light_deferred },
+	{ "shadowCast",		Effect::light_shadow_cast }
 });
 
 
 Effect::Effect() : m_renderType(type_opaque), m_queuePriority(queue_geometry) { }
 
-Effect::pass::pass() : mode(light_forward), program(nullptr) { }
+Effect::pass::pass() : mode(light_forward_base), program(nullptr) { }
 
 
 const Effect::pass* Effect::getPass(light_mode mode)
@@ -70,15 +71,12 @@ const Effect::pass* Effect::getPass(const std::string& name)
 void Effect::applyProperties(const pass* p, const Material* m)
 {
 	for (const shader_property& prop : m_properties) {
-		GLint loc;
-		if (p->program->getUniformLoc(prop.name, loc)) {
-			const shader_property* matProp = m->getProperty(prop.name);
-			// use default value if material doesn't contain this property
-			if (!matProp)
-				matProp = &prop;
+		const shader_property* matProp = m->getProperty(prop.id);
+		// use default value if material doesn't contain this property
+		if (!matProp)
+			matProp = &prop;
 
-			matProp->apply(loc);
-		}
+		matProp->applyTo(p->program);
 	}
 }
 

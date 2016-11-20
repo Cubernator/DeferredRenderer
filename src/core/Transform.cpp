@@ -1,9 +1,9 @@
 #include "core/Transform.hpp"
 #include "core/Entity.hpp"
-
+#include "util/component_registry.hpp"
 #include "util/json_utils.hpp"
 
-REGISTER_COMPONENT_CLASS_DEF(Transform, "transform");
+REGISTER_COMPONENT_CLASS(Transform, "transform");
 
 json_interpreter<Transform> Transform::s_properties({
 	{ "position", &Transform::extractPosition },
@@ -16,8 +16,7 @@ Transform::Transform(Entity* parent) : Component(parent), m_scale(1.0f), m_dirty
 const glm::mat4& Transform::getMatrix()
 {
 	if (m_dirty) {
-		m_cachedMatrix = glm::toMat4(m_rotation) * glm::scale(m_scale);
-		m_cachedMatrix = glm::translate(m_cachedMatrix, m_position);
+		m_cachedMatrix = glm::translate(m_position) * glm::toMat4(m_rotation) * glm::scale(m_scale);
 		m_dirty = false;
 	}
 
@@ -26,7 +25,7 @@ const glm::mat4& Transform::getMatrix()
 
 glm::mat4 Transform::getRigidMatrix() const
 {
-	return glm::translate(glm::toMat4(m_rotation), m_position);
+	return glm::translate(m_position) * glm::toMat4(m_rotation);
 }
 
 glm::mat4 Transform::getInverseRigidMatrix() const

@@ -9,7 +9,7 @@
   "passes": [
     {
       "name": "default",
-      "lightMode": "forward",
+      "lightMode": "forwardBase",
       "state": {
         "cull": "back",
         "depthTest": "less",

@@ -1,4 +1,4 @@
-#include "shader_preprocessor.hpp"
+#include "util/shader_preprocessor.hpp"
 
 #include "boost/format.hpp"
 #include "boost/spirit/home/qi.hpp"

@@ -2,9 +2,8 @@
 #define MATERIAL_HPP
 
 #include "util/import.hpp"
-#include "util/type_registry.hpp"
 #include "util/json_initializable.hpp"
-#include "graphics/shader_property.hpp"
+#include "graphics/shader/shader_property.hpp"
 
 class Effect;
 
@@ -17,12 +16,12 @@ public:
 	const Effect* getEffect() const { return m_effect; }
 	void setEffect(Effect* effect);
 
-	const shader_property* getProperty(const std::string& name) const;
+	const shader_property* getProperty(uniform_id id) const;
 
 	template<typename T>
-	bool getPropertyValue(const std::string& name, T& value) const
+	bool getPropertyValue(uniform_id id, T& value) const
 	{
-		const shader_property* prop = getProperty(name);
+		const shader_property* prop = getProperty(id);
 		if (prop) {
 			value = prop->value;
 			return true;
@@ -31,17 +30,17 @@ public:
 	}
 
 	template<typename T>
-	T getPropertyValue(const std::string& name) const
+	T getPropertyValue(uniform_id id) const
 	{
 		T tmp;
-		getProperty(name, tmp);
+		getProperty(id, tmp);
 		return std::move(tmp);
 	}
 
 	template<typename T>
-	void setPropertyValue(const std::string& name, const T& newValue)
+	void setPropertyValue(uniform_id id, const T& newValue)
 	{
-		auto it = m_properties.find(name);
+		auto it = m_properties.find(id);
 		if (it != m_properties.end()) {
 			m_properties.modify(it, [&json](shader_property& prop) {
 				prop.set(newValue);
@@ -58,8 +57,6 @@ private:
 	void setPropFromJson(const std::string& name, const nlohmann::json& json);
 
 	friend struct json_initializable<Material>;
-
-	REGISTER_OBJECT_TYPE_DECL(Material);
 };
 
 #endif // MATERIAL_HPP

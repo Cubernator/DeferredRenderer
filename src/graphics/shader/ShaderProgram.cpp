@@ -1,33 +1,14 @@
-#include "graphics/ShaderProgram.hpp"
+#include "graphics/shader/ShaderProgram.hpp"
+#include "graphics/shader/Shader.hpp"
+#include "graphics/texture/Texture.hpp"
+#include "graphics/texture/texture_unit_manager.hpp"
+#include "util/type_registry.hpp"
 #include "core/Content.hpp"
 
 #include <algorithm>
 #include <numeric>
 
-REGISTER_OBJECT_TYPE_DEF_NO_EXT(ShaderProgram, "shaderProgram");
-
-bool ShaderProgram::getTarget(GLenum samplerType, GLenum& target)
-{
-	switch (samplerType) {
-	case GL_SAMPLER_1D:
-		target = GL_TEXTURE_1D;
-		return true;
-	case GL_SAMPLER_2D:
-		target = GL_TEXTURE_2D;
-		return true;
-	case GL_SAMPLER_3D:
-		target = GL_TEXTURE_3D;
-		return true;
-	case GL_SAMPLER_CUBE:
-		target = GL_TEXTURE_CUBE_MAP;
-		return true;
-	case GL_SAMPLER_2D_RECT:
-		target = GL_TEXTURE_RECTANGLE;
-		return true;
-	}
-
-	return false;
-}
+REGISTER_OBJECT_TYPE_NO_EXT(ShaderProgram, "shaderProgram");
 
 ShaderProgram::~ShaderProgram()
 {
@@ -38,7 +19,6 @@ ShaderProgram::ShaderProgram(ShaderProgram&& other)
 	: m_glObj(other.m_glObj),
 	m_shaders(std::move(other.m_shaders)),
 	m_uniforms(std::move(other.m_uniforms)),
-	m_textures(std::move(other.m_textures)),
 	m_linkerStatus(other.m_linkerStatus),
 	m_linkerLog(std::move(other.m_linkerLog)),
 	m_good(other.m_good)
@@ -54,7 +34,6 @@ ShaderProgram& ShaderProgram::operator=(ShaderProgram&& other)
 		m_glObj = other.m_glObj;
 		m_shaders = std::move(other.m_shaders);
 		m_uniforms = std::move(other.m_uniforms);
-		m_textures = std::move(other.m_textures);
 		m_linkerStatus = other.m_linkerStatus;
 		m_linkerLog = std::move(other.m_linkerLog);
 		m_good = other.m_good;
@@ -108,19 +87,18 @@ void ShaderProgram::getUniforms()
 	GLint s;
 	GLenum t;
 
-	GLenum texTarget;
-	GLuint loc;
-
 	for (int i = 0; i < uniformCount; ++i) {
 		glGetActiveUniform(m_glObj, i, maxLength, &l, &s, &t, buf.get());
 		std::string name(buf.get());
+		uniform_id id = uniform_name_to_id(name);
 
-		loc = glGetUniformLocation(m_glObj, buf.get());
-
-		if (getTarget(t, texTarget)) {
-			m_textures[name] = ShaderTextureUnit(unitCounter++, texTarget, loc);
+		GLenum texTarget = sampler_type_to_target(t);
+		GLuint loc = glGetUniformLocation(m_glObj, buf.get());
+		
+		if (texTarget != 0) {
+			m_textures.emplace(id, loc);
 		} else {
-			m_uniforms[name] = loc;
+			m_uniforms.emplace(id, loc);
 		}
 	}
 }
@@ -150,31 +128,25 @@ ShaderProgram::operator bool() const
 	return isGood();
 }
 
-GLint ShaderProgram::getUniformLoc(const std::string & name) const
+bool ShaderProgram::getUniformLoc(uniform_id id, GLint& loc) const
 {
-	GLint output = -1;
-	getUniformLoc(name, output);
-	return output;
-}
-
-bool ShaderProgram::getUniformLoc(const std::string & name, GLint & loc) const
-{
-	if (m_uniforms.count(name)) {
-		loc = m_uniforms.at(name);
+	auto it = m_uniforms.find(id);
+	if (it != m_uniforms.end()) {
+		loc = it->second;
 		return true;
 	}
 
 	return false;
 }
 
-bool ShaderProgram::getTextureUnit(const std::string & name, ShaderTextureUnit & unit) const
+void ShaderProgram::setTexture(uniform_id id, const Texture* texture) const
 {
-	if (m_textures.count(name)) {
-		unit = m_textures.at(name);
-		return true;
+	if (texture) {
+		auto it = m_textures.find(id);
+		if (it != m_textures.end()) {
+			set_uniform(it->second, texture_unit_manager::bindTexture(texture));
+		}
 	}
-
-	return false;
 }
 
 void ShaderProgram::bind()
@@ -185,16 +157,6 @@ void ShaderProgram::bind()
 void ShaderProgram::unbind()
 {
 	glUseProgram(0);
-}
-
-void ShaderProgram::setTexture(const std::string & name, GLuint tex)
-{
-	ShaderTextureUnit unit;
-	if (getTextureUnit(name, unit)) {
-		glUniform1i(unit.location, unit.unit);
-		glActiveTexture(GL_TEXTURE0 + unit.unit);
-		glBindTexture(unit.target, tex);
-	}
 }
 
 template<>
@@ -222,4 +184,48 @@ std::unique_ptr<ShaderProgram> json_to_object<ShaderProgram>(const nlohmann::jso
 	}
 
 	return std::unique_ptr<ShaderProgram>();
+}
+
+GLenum sampler_type_to_target(GLenum type)
+{
+	switch (type) {
+	case GL_SAMPLER_1D:
+	case GL_SAMPLER_1D_SHADOW:
+		return GL_TEXTURE_1D;
+
+	case GL_SAMPLER_2D:
+	case GL_SAMPLER_2D_SHADOW:
+		return GL_TEXTURE_2D;
+
+	case GL_SAMPLER_3D:
+		return GL_TEXTURE_3D;
+
+	case GL_SAMPLER_CUBE:
+	case GL_SAMPLER_CUBE_SHADOW:
+		return GL_TEXTURE_CUBE_MAP;
+
+	case GL_SAMPLER_1D_ARRAY:
+	case GL_SAMPLER_1D_ARRAY_SHADOW:
+		return GL_TEXTURE_1D_ARRAY;
+
+	case GL_SAMPLER_2D_ARRAY:
+	case GL_SAMPLER_2D_ARRAY_SHADOW:
+		return GL_TEXTURE_2D_ARRAY;
+
+	case GL_SAMPLER_2D_MULTISAMPLE:
+		return GL_TEXTURE_2D_MULTISAMPLE;
+
+	case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+		return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+
+	case GL_SAMPLER_2D_RECT:
+	case GL_SAMPLER_2D_RECT_SHADOW:
+		return GL_TEXTURE_RECTANGLE;
+
+	case GL_SAMPLER_BUFFER:
+		return GL_TEXTURE_BUFFER;
+
+	default:
+		return 0;
+	}
 }

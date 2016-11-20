@@ -41,18 +41,23 @@ struct component_adder
 	}
 };
 
-
-template<typename T>
-struct component_registerer
+namespace detail
 {
-	component_registerer(const std::string& name)
+	template<typename T>
+	struct component_registerer
 	{
-		component_registry::registerFactory(component_adder<T>(), name);
-	}
-};
+		component_registerer(const std::string& name)
+		{
+			component_registry::registerFactory(component_adder<T>(), name);
+		}
+	};
+}
 
-#define REGISTER_COMPONENT_CLASS_DECL(c) static component_registerer<c> s_cmp_register_helper
-#define REGISTER_COMPONENT_CLASS_DEF(c, n) component_registerer<c> c::s_cmp_register_helper((n))
+#define REGISTER_COMPONENT_CLASS(c, n)							\
+namespace														\
+{																\
+	detail::component_registerer<c> register_component_##c (n);	\
+}
 
 
 static struct component_registry_initializer

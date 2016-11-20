@@ -3,7 +3,6 @@
 
 #include "glm.hpp"
 #include "Component.hpp"
-#include "util/component_registry.hpp"
 #include "util/json_interpreter.hpp"
 
 class Transform : public Component
@@ -42,8 +41,6 @@ private:
 	void extractPosition(const nlohmann::json& json);
 	void extractRotation(const nlohmann::json& json);
 	void extractScale(const nlohmann::json& json);
-
-	REGISTER_COMPONENT_CLASS_DECL(Transform);
 };
 
 #endif // TRANSFORM_HPP

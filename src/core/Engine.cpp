@@ -150,12 +150,21 @@ Entity * Engine::getEntityInternal(const uuid & id) const
 
 void Engine::addEntity(std::unique_ptr<Entity> entity)
 {
-	m_entities.emplace(entity->getId(), std::move(entity));
+	auto p = m_entities.emplace(entity->getId(), std::move(entity));
+	if (m_renderer) {
+		m_renderer->addEntity(p.first->second.get());
+	}
 }
 
-void Engine::destroyEntity(const uuid & id)
+void Engine::destroyEntity(const uuid& id)
 {
-	m_entities.erase(id);
+	auto it = m_entities.find(id);
+	if (it != m_entities.end()) {
+		if (m_renderer) {
+			m_renderer->removeEntity(it->second.get());
+		}
+		m_entities.erase(it);
+	}
 }
 
 void Engine::destroyEntity(Entity * entity)

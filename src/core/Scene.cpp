@@ -2,8 +2,9 @@
 #include "core/Engine.hpp"
 #include "core/Entity.hpp"
 #include "util/json_utils.hpp"
+#include "util/type_registry.hpp"
 
-REGISTER_OBJECT_TYPE_DEF_NO_EXT(Scene, "scene");
+REGISTER_OBJECT_TYPE_NO_EXT(Scene, "scene");
 
 json_interpreter<Scene> Scene::s_properties({
 	{ "backColor", &Scene::extractBackColor },

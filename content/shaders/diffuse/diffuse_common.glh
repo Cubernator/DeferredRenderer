@@ -1,0 +1,5 @@
+struct vertex_output {
+	vec3 normal;
+	vec3 lightVec;
+	vec2 uv;
+};

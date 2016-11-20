@@ -1,8 +1,9 @@
 #include "graphics/Material.hpp"
 #include "graphics/Effect.hpp"
+#include "util/type_registry.hpp"
 #include "core/Content.hpp"
 
-REGISTER_OBJECT_TYPE_DEF_NO_EXT(Material, "material");
+REGISTER_OBJECT_TYPE_NO_EXT(Material, "material");
 
 Material::Material() : m_effect(nullptr) { }
 
@@ -12,7 +13,7 @@ void Material::setEffect(Effect* effect)
 
 	if (m_effect) {
 		for (auto it = m_effect->begin_properties(); it != m_effect->end_properties(); ++it) {
-			auto pit = m_properties.find(it->name);
+			auto pit = m_properties.find(it->id);
 			if (pit != m_properties.end()) {
 				if (!is_same_type(*it, *pit)) {
 					m_properties.replace(pit, *it);
@@ -24,9 +25,9 @@ void Material::setEffect(Effect* effect)
 	}
 }
 
-const shader_property* Material::getProperty(const std::string& name) const
+const shader_property* Material::getProperty(uniform_id id) const
 {
-	auto it = m_properties.find(name);
+	auto it = m_properties.find(id);
 	if (it != m_properties.end()) {
 		return &(*it);
 	}
@@ -52,7 +53,7 @@ void Material::apply_json_impl(const nlohmann::json& json)
 
 void Material::setPropFromJson(const std::string& name, const nlohmann::json& json)
 {
-	auto it = m_properties.find(name);
+	auto it = m_properties.find(uniform_name_to_id(name));
 	if (it != m_properties.end()) {
 		m_properties.modify(it, [&json](shader_property& prop) {
 			prop.assign_json(json);

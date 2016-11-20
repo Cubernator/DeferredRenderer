@@ -1,4 +1,5 @@
-#include "graphics/shader_property.hpp"
+#include "graphics/shader/shader_property.hpp"
+#include "graphics/texture/Texture2D.hpp"
 
 shader_property::converter_container shader_property::s_converters({
 	make_converter<float>("float"),
@@ -18,7 +19,9 @@ shader_property::converter_container shader_property::s_converters({
 
 	make_converter<glm::mat4>("mat4"),
 	make_converter<glm::mat3>("mat3"),
-	make_converter<glm::mat4x3>("mat4x3")
+	make_converter<glm::mat4x3>("mat4x3"),
+
+	make_object_json_converter<Texture2D>("texture2D")
 });
 
 
@@ -50,6 +53,7 @@ void shader_property::apply_json_impl(const nlohmann::json& json)
 	auto nit = json.find("name");
 	if (nit != json.end() && nit->is_string()) {
 		name = nit->get<std::string>();
+		id = uniform_name_to_id(name);
 	}
 
 	auto tit = json.find("type");

@@ -1,11 +1,15 @@
 #include "graphics/Mesh.hpp"
+#include "graphics/gl_types.hpp"
+#include "util/type_registry.hpp"
 
 #include "assimp/Importer.hpp"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
 #include "assimp/mesh.h"
 
-REGISTER_OBJECT_TYPE_DEF(Mesh, "mesh", ".fbx");
+#include <numeric>
+
+REGISTER_OBJECT_TYPE(Mesh, "mesh", ".fbx");
 
 Mesh::Mesh() : m_vao(0) { }
 
@@ -50,6 +54,16 @@ void Mesh::unbindVAO() const
 	glBindVertexArray(0);
 }
 
+void Mesh::bindIndices() const
+{
+	m_indices->bind();
+}
+
+void Mesh::unbindIndices() const
+{
+	m_indices->unbind();
+}
+
 void Mesh::updateVAO()
 {
 	if (!m_vao) {
@@ -70,22 +84,51 @@ void Mesh::setVertices(std::size_t count, const position_type* positions, const 
 	fillBuffer(count, m_normals, normals);
 	fillBuffer(count, m_tangents, tangents);
 	fillBuffer(count, m_uvs, uvs);
+
+	updateVAO();
 }
 
 void Mesh::setIndices(std::size_t count, const index_type* indices)
 {
 	fillBuffer(count, m_indices, indices);
+
+	updateBounds();
 }
 
 void Mesh::draw()
 {
-	bindVAO();
-	m_indices->bind();
+	glDrawElements(GL_TRIANGLES, m_indices->count(), gl_type<index_type>(), nullptr);
+}
 
-	glDrawElements(GL_TRIANGLES, m_indices->getCount(), getGLType<index_type>(), nullptr);
+aabb Mesh::computeBounds() const
+{
+	glm::vec3 min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min());
 
-	m_indices->unbind();
-	unbindVAO();
+	const index_type* indices = m_indices->mapReadOnly();
+	const position_type* vertices = m_positions->mapReadOnly();
+
+	std::size_t numIndices = m_indices->count();
+	for (std::size_t i = 0; i < numIndices; ++i) {
+		position_type pos = vertices[indices[i]];
+
+		if (pos.x < min.x) min.x = pos.x;
+		if (pos.y < min.y) min.y = pos.y;
+		if (pos.z < min.z) min.z = pos.z;
+
+		if (pos.x > max.x) max.x = pos.x;
+		if (pos.y > max.y) max.y = pos.y;
+		if (pos.z > max.z) max.z = pos.z;
+	}
+
+	m_positions->unmap();
+	m_indices->unmap();
+
+	return aabb{ min, max };
+}
+
+void Mesh::updateBounds()
+{
+	m_bounds = computeBounds();
 }
 
 template<>
@@ -93,15 +136,13 @@ std::unique_ptr<Mesh> import_object(const path& filename)
 {
 	using namespace Assimp;
 
-	auto newMesh = std::make_unique<Mesh>();
-
 	unsigned int importFlags = aiProcessPreset_TargetRealtime_MaxQuality;
 
 	Importer importer;
 	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
 	const aiScene* scene = importer.ReadFile(filename.string(), importFlags);
 
-	if (scene->mNumMeshes > 0) {
+	if (scene && scene->mNumMeshes > 0) {
 		if (scene->mNumMeshes > 1) {
 			std::cout << "WARNING: only one mesh per file can be imported! (" << filename << ")" << std::endl;
 		}
@@ -131,10 +172,13 @@ std::unique_ptr<Mesh> import_object(const path& filename)
 			indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
 		}
 
+		auto newMesh = std::make_unique<Mesh>();
+
 		newMesh->setVertices(mesh->mNumVertices, positions, normals, tangents, uvs);
 		newMesh->setIndices(indices.size(), indices.data());
-		newMesh->updateVAO();
+
+		return newMesh;
 	}
 
-	return newMesh;
+	return std::unique_ptr<Mesh>();
 }

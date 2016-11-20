@@ -12,16 +12,38 @@
 #include "boost/type_erasure/typeid_of.hpp"
 #include "boost/type_erasure/free.hpp"
 
+#include "core/Content.hpp"
 #include "util/json_initializable.hpp"
 #include "util/property_interpreter.hpp"
 #include "util/json_utils.hpp"
+
+#include "uniform_id.hpp"
 #include "set_uniform.hpp"
+#include "ShaderProgram.hpp"
 
 
-BOOST_TYPE_ERASURE_FREE((detail)(has_set_uniform), set_uniform, 2)
+template<typename C = boost::type_erasure::_self>
+struct uniform_settable
+{
+	static void apply(const ShaderProgram* program, uniform_id id, const C& cont)
+	{
+		program->setUniform(id, cont);
+	}
+};
 
-template<typename T = boost::type_erasure::_self>
-using has_set_uniform = detail::has_set_uniform<void(GLint, const T&)>;
+namespace boost {
+namespace type_erasure {
+	template<typename C, typename Base>
+	struct concept_interface<uniform_settable<C>, Base, C> : Base
+	{
+		void applyTo(const ShaderProgram* program, uniform_id id) const
+		{
+			call(uniform_settable<C>(), program, id, *this);
+		}
+	};
+}
+}
+
 
 namespace mi = boost::multi_index;
 
@@ -29,13 +51,14 @@ namespace mi = boost::multi_index;
 struct shader_property : public json_initializable<shader_property>
 {
 	using value_type = boost::type_erasure::any<boost::mpl::vector<
-		has_set_uniform<>,
+		uniform_settable<>,
 		boost::type_erasure::typeid_<>,
 		boost::type_erasure::copy_constructible<>,
 		boost::type_erasure::relaxed
 	>>;
 
 	std::string name;
+	uniform_id id;
 	value_type value;
 
 	template<typename T>
@@ -44,9 +67,9 @@ struct shader_property : public json_initializable<shader_property>
 		value = newValue;
 	}
 
-	void apply(GLint location) const
+	void applyTo(const ShaderProgram* program) const
 	{
-		set_uniform(location, value);
+		value.applyTo(program, id);
 	}
 
 	void assign_json(const nlohmann::json& json);
@@ -68,6 +91,24 @@ private:
 		}
 	};
 
+	template<typename T>
+	struct get_pooled_object
+	{
+		value_type operator() (const nlohmann::json& j) const
+		{
+			return value_type(Content::instance()->getPooledFromDisk<T>(j));
+		}
+	};
+
+	template<typename T>
+	struct get_pooled_object_json
+	{
+		value_type operator() (const nlohmann::json& j) const
+		{
+			return value_type(Content::instance()->getPooledFromJson<T>(j));
+		}
+	};
+
 	using type_converter_function = std::function<value_type(const nlohmann::json&)>;
 	struct type_converter
 	{
@@ -80,6 +121,18 @@ private:
 	static type_converter make_converter(const std::string& type_name)
 	{
 		return type_converter{type_name, typeid(T), get_json_value<T>()};
+	}
+
+	template<typename T>
+	static type_converter make_object_converter(const std::string& type_name)
+	{
+		return type_converter{ type_name, typeid(T*), get_pooled_object<T>() };
+	}
+
+	template<typename T>
+	static type_converter make_object_json_converter(const std::string& type_name)
+	{
+		return type_converter{ type_name, typeid(T*), get_pooled_object_json<T>() };
 	}
 
 	struct by_name { };
@@ -102,9 +155,11 @@ private:
 
 namespace detail
 {
+	struct by_id { };
 	struct by_name { };
 
 	struct property_container_indices : public mi::indexed_by<
+		mi::hashed_unique<mi::tag<by_id>, mi::member<shader_property, uniform_id, &shader_property::id>>,
 		mi::hashed_unique<mi::tag<by_name>, mi::member<shader_property, std::string, &shader_property::name>>
 	> { };
 }

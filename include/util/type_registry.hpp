@@ -53,19 +53,25 @@ private:
 	friend struct type_registry_initializer;
 };
 
-
-template<typename T>
-struct type_registerer
+namespace detail
 {
-	type_registerer(const std::string& name, const std::string& extension)
+	template<typename T>
+	struct type_registerer
 	{
-		type_registry::registerType(registered_type(typeid(T), name, extension));
-	}
-};
+		type_registerer(const std::string& name, const std::string& extension)
+		{
+			type_registry::registerType(registered_type(typeid(T), name, extension));
+		}
+	};
+}
 
-#define REGISTER_OBJECT_TYPE_DECL(c) static type_registerer<c> s_type_register_helper
-#define REGISTER_OBJECT_TYPE_DEF(c, n, e) type_registerer<c> c::s_type_register_helper(n, e)
-#define REGISTER_OBJECT_TYPE_DEF_NO_EXT(c, n) REGISTER_OBJECT_TYPE_DEF(c, n, "")
+#define REGISTER_OBJECT_TYPE(c, n, e)						\
+namespace													\
+{															\
+	detail::type_registerer<c> register_type_##c (n, e);	\
+}
+
+#define REGISTER_OBJECT_TYPE_NO_EXT(c, n) REGISTER_OBJECT_TYPE(c, n, "")
 
 
 static struct type_registry_initializer

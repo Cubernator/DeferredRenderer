@@ -7,5 +7,5 @@
 
 void main()
 {
-	gl_Position = common_mat_wvp * vec4(v_input.position, 1.0);
+	gl_Position = cm_mat_wvp * vec4(v_input.position, 1.0);
 }

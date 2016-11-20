@@ -1,0 +1,29 @@
+uniform vec4 cm_light_color;
+uniform vec4 cm_light_dir;
+uniform float cm_light_radius;
+
+vec3 light_vec(vec3 pos)
+{
+	vec3 dir = normalize(cm_light_dir.xyz) * (1.0 - cm_light_dir.w);
+	vec3 pointVec = cm_light_dir.xyz - pos;
+	dir += pointVec * cm_light_dir.w;
+
+	return dir;
+}
+
+float light_attenuation(vec3 vec, float radius)
+{
+	float dist = length(vec);
+	float att = clamp(1.0 - (dist*dist)/(radius*radius), 0.0, 1.0);
+	return att*att;
+}
+
+float light_lambert(vec3 normal, vec3 lightVec)
+{
+	vec3 l = normalize(lightVec);
+
+	float ndotl = max(dot(normal, l), 0.0);
+	float atten = light_attenuation(lightVec * cm_light_dir.w, cm_light_radius);
+
+	return ndotl * atten;
+}

@@ -13,19 +13,23 @@ class Content
 public:
 	Content(const path& contentDir);
 
-	path findOnDisk(const std::type_info& type, const std::string& name);
+	path findGenericFirst(const std::string& name);
+	bool findGenericFirst(const std::string& name, path& result);
+	std::vector<path> findGenericAll(const std::string& name);
+
+	path findObject(const std::type_info& type, const std::string& name);
 
 	template<typename T>
-	path findOnDisk(const std::string& name)
+	path findObject(const std::string& name)
 	{
-		return findOnDisk(typeid(T), name);
+		return findObject(typeid(T), name);
 	}
 
 	template<typename T>
 	std::unique_ptr<T> getFromDisk(const std::string& name)
 	{
 		// TODO: print warning if pointer is empty
-		return import_object<T>(findOnDisk<T>(name));
+		return import_object<T>(findObject<T>(name));
 	}
 
 	template<typename T>
@@ -76,11 +80,13 @@ public:
 	static Content* instance() { return s_instance; }
 
 private:
+	using simple_registry = std::unordered_multimap<std::string, path>;
 	using sub_registry = std::unordered_map<std::string, path>;
 	using registry = std::unordered_map<std::type_index, sub_registry>;
 
 	path m_contentDir;
 	registry m_registry;
+	simple_registry m_genericRegistry;
 	object_pool m_pool;
 
 	static Content* s_instance;
