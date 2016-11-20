@@ -27,6 +27,8 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 		return;
 	}
 
+	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
+
 	// create window
 	m_window = glfwCreateWindow(
 		app_info::info.screenWidth,

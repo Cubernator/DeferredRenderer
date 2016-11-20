@@ -28,6 +28,13 @@ raw_img_importer::raw_img_importer(const path& file, const nlohmann::json& optio
 
 		// determine format
 		s_formats.findKeyword(options, "format", m_pixelTraits);
+		pixel_traits formatOverride;
+		if (s_formats.findKeyword(options, "convertTo", formatOverride)) {
+			// The internal image format can be overriden via the "convertTo" property.
+			// This is useful whenever the image data needs to be converted by OpenGL,
+			// for example if the image file uses a packed pixel format but needs to be stored in sRGB color space (OpenGL does not support packed sRGB textures)
+			m_pixelTraits.imageFormat = formatOverride.imageFormat;
+		}
 
 		// check image dimensions
 		std::size_t pixelCount = m_width * m_height;
@@ -107,6 +114,8 @@ keyword_helper<pixel_traits> raw_img_importer::s_formats({
 	{ "rgb32i", get_pixel_traits<pixel::rgb32i>() },
 
 	{ "rgb", get_pixel_traits<pixel::rgb>() },
+	{ "srgb", get_pixel_traits<pixel::srgb>() },
+	{ "srgb8", get_pixel_traits<pixel::srgb8>() },
 
 	{ "bgr8", get_pixel_traits<pixel::bgr8>() },
 	{ "bgr16", get_pixel_traits<pixel::bgr16>() },
@@ -147,6 +156,8 @@ keyword_helper<pixel_traits> raw_img_importer::s_formats({
 	{ "rgba32i", get_pixel_traits<pixel::rgba32i>() },
 
 	{ "rgba", get_pixel_traits<pixel::rgba>() },
+	{ "srgba", get_pixel_traits<pixel::srgba>() },
+	{ "srgba8", get_pixel_traits<pixel::srgba8>() },
 
 	{ "bgra8", get_pixel_traits<pixel::bgra8>() },
 	{ "bgra16", get_pixel_traits<pixel::bgra16>() },

@@ -5,7 +5,7 @@
   "file": "test.raw",
   "importer": "raw",
   "importOptions": {
-    "format": "rgb",
+    "format": "srgb",
     "size": 512
   },
 

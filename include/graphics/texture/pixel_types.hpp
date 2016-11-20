@@ -163,7 +163,9 @@ namespace pixel
 	using rgb16i = trgb<s16_t, GL_RGB16I, true>;
 	using rgb32i = trgb<s32_t, GL_RGB32I, true>;
 
-	using rgb = rgb8;
+	using rgb = trgb<u8_t, GL_RGB>;
+	using srgb = trgb<u8_t, GL_SRGB>;
+	using srgb8 = trgb<u8_t, GL_SRGB8>;
 
 
 	// Reverse three component types
@@ -186,8 +188,7 @@ namespace pixel
 	using bgr16i = tbgr<s16_t, GL_RGB16I, true>;
 	using bgr32i = tbgr<s32_t, GL_RGB32I, true>;
 
-	using bgr = bgr8;
-
+	using bgr = tbgr<u8_t, GL_RGB>;
 
 	// Four component types
 
@@ -209,7 +210,9 @@ namespace pixel
 	using rgba16i = trgba<s16_t, GL_RGBA16I, true>;
 	using rgba32i = trgba<s32_t, GL_RGBA32I, true>;
 
-	using rgba = rgba8;
+	using rgba = trgba<u8_t, GL_RGBA>;
+	using srgba = trgba<u8_t, GL_SRGB_ALPHA>;
+	using srgba8 = trgba<u8_t, GL_SRGB8_ALPHA8>;
 
 
 	// Reverse four component types
