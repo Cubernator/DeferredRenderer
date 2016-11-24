@@ -4,3 +4,6 @@ uniform mat4 cm_mat_world;
 
 uniform mat4 cm_mat_vp;
 uniform mat4 cm_mat_wvp;
+uniform mat4 cm_mat_tiworld;
+
+uniform vec3 cm_cam_pos;

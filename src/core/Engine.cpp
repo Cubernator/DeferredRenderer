@@ -3,7 +3,7 @@
 #include "core/Entity.hpp"
 #include "core/Input.hpp"
 #include "core/Content.hpp"
-#include "graphics/ForwardRenderEngine.hpp"
+#include "graphics/RenderEngine.hpp"
 #include "util/app_info.hpp"
 
 #include "GL\glew.h"
@@ -42,7 +42,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 	}
 
 	glfwMakeContextCurrent(m_window);
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 
 	// initialize GLEW
 	GLenum err = glewInit();
@@ -53,7 +53,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 
 	m_input = std::make_unique<Input>(m_window);
 	m_content = std::make_unique<Content>(app_info::info.contentDir);
-	m_renderer = std::make_unique<ForwardRenderEngine>(this);
+	m_renderer = std::make_unique<RenderEngine>(this);
 
 	setScene(Content::instance()->getFromDisk<Scene>(app_info::info.firstScene));
 

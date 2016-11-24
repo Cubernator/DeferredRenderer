@@ -1,8 +1,0 @@
-{
-  "type": "material",
-  "name": "test",
-  "effect": "unlit",
-  "properties": {
-    "color": "#edc43d"
-  }
-}

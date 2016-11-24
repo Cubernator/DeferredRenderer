@@ -20,6 +20,7 @@ FlyCamera::FlyCamera(Entity* parent) : Component(parent), m_normalSpeed(1.0f), m
 
 void FlyCamera::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
 {
+	Component::apply_json_property_impl(name, json);
 	s_properties.interpret_property(name, this, json);
 }
 

@@ -1,0 +1,57 @@
+#define PI 3.1415926535897932384626433832795
+
+float pow5(float x)
+{
+	return x * x * x * x * x;
+}
+
+float dotClamped(vec3 a, vec3 b)
+{
+	return max(dot(a, b), 0.0);
+}
+
+vec3 fresnelSchlick(vec3 f0, float c)
+{
+	float t = pow5(1.0 - c);
+	return f0 + (1.0 - f0) * t;
+}
+
+vec3 pbs_brdf(vec3 diffColor, vec3 specColor, vec3 lightColor, float roughness, vec3 n, vec3 v, vec3 l)
+{
+	float a2 = roughness*roughness;
+
+	vec3 h = normalize(l + v);
+
+	float ndotl = dotClamped(n, l);
+	float ndotv = dotClamped(n, v);
+	float ndoth = dotClamped(n, h);
+	float hdotv = dotClamped(h, v);
+	float hdotl = dotClamped(h, l);
+
+	// Normal distribution term: GGX
+	float dd = ndoth*ndoth*(a2 - 1.0) + 1.0;
+	float D = a2 / (PI * dd * dd);
+
+	// Geometry term: Smith joint GGX
+	float gv = ndotl * sqrt((-ndotv * a2 + ndotv) * ndotv + a2);
+	float gl = ndotv * sqrt((-ndotl * a2 + ndotl) * ndotl + a2);
+	float G = 2.0 / (gv + gl);
+
+	// Fresnel term: Schlick interpolation
+	// calculate fresnel per component, treat specular color as reflectance at 0° (F0)
+	vec3 F = fresnelSchlick(specColor, hdotv);
+
+	// BRDF = kD / pi + kS * (D * G * F) / 4
+	// I = BRDF * (N dot L)
+
+	// The common term (N dot L) * (N dot V) in the denominator is missing since it has been reduced via the geometry term
+
+	// apply fresnel later because it is non-scalar
+	float specFactor = (D * G) * 0.25;
+
+	vec3 diffuse = diffColor / PI;
+	vec3 specular = specFactor * F;
+	vec3 color = (diffuse + specular) * lightColor * ndotl;
+
+	return color;
+}

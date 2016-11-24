@@ -1,0 +1,8 @@
+struct vertex_output {
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	vec3 viewVec;
+	vec3 lightVec;
+	vec2 uv;
+};

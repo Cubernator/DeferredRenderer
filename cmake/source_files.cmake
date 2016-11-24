@@ -13,7 +13,6 @@ set(HEADER_FILES
 	include/graphics/Buffer.hpp
 	include/graphics/Camera.hpp
 	include/graphics/Effect.hpp
-	include/graphics/ForwardRenderEngine.hpp
 	include/graphics/gl_types.hpp
 	include/graphics/Light.hpp
 	include/graphics/Material.hpp
@@ -61,7 +60,6 @@ set(SOURCE_FILES
 	src/core/Transform.cpp
 	src/graphics/Camera.cpp
 	src/graphics/Effect.cpp
-	src/graphics/ForwardRenderEngine.cpp
 	src/graphics/Light.cpp
 	src/graphics/Material.cpp
 	src/graphics/Mesh.cpp
@@ -100,9 +98,9 @@ source_group("Script Files" FILES ${SCRIPT_FILES})
 set(CONTENT_FILES
 	content/appinfo.json
 	content/effects/effect-diffuse.json
+	content/effects/effect-pbr.json
 	content/effects/effect-unlit.json
-	content/materials/material-diffuse.json
-	content/materials/material-test.json
+	content/materials/material-stonewall.json
 	content/meshes/cube.fbx
 	content/scenes/scene-test.json
 	content/shaders/common/input.glh
@@ -111,11 +109,17 @@ set(CONTENT_FILES
 	content/shaders/diffuse/diffuse.frag.glsl
 	content/shaders/diffuse/diffuse.vert.glsl
 	content/shaders/diffuse/diffuse_common.glh
+	content/shaders/pbr/pbr.frag.glsl
+	content/shaders/pbr/pbr.vert.glsl
+	content/shaders/pbr/pbr_brdf.glh
+	content/shaders/pbr/pbr_common.glh
 	content/shaders/unlit/unlit.frag.glsl
 	content/shaders/unlit/unlit.vert.glsl
 	content/shaders/unlit/unlit_common.glh
 	content/textures/test.raw
+	content/textures/testnormal.raw
 	content/textures/texture-test.json
+	content/textures/texture-testnormal.json
 )
 source_group("Content Files" FILES ${CONTENT_FILES})
 

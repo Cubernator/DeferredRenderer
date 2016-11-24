@@ -6,6 +6,7 @@
 #include "boost/mpl/bool.hpp"
 #include "util/import.hpp"
 #include "util/json_initializable.hpp"
+#include "util/json_interpreter.hpp"
 
 #define COMPONENT_SET_MULTIPLE_ALLOWED(v) using multiple_allowed = boost::mpl::##v##_
 
@@ -24,12 +25,17 @@ public:
 	Entity* getEntity() { return m_parent; }
 	const Entity* getEntity() const { return m_parent; }
 
+	bool isEnabled() const { return m_enabled; }
+	void setEnabled(bool val) { m_enabled = val; }
+
+	bool isActiveAndEnabled() const;
+
 	void update() { update_impl(); }
 
 	COMPONENT_ALLOW_MULTIPLE;
 
 protected:
-	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) = 0;
+	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json);
 
 	virtual void update_impl() { }
 
@@ -37,6 +43,11 @@ protected:
 
 private:
 	Entity* m_parent;
+	bool m_enabled;
+
+	static json_interpreter<Component> s_properties;
+
+	void extractEnabled(const nlohmann::json& json);
 };
 
 #endif // COMPONENT_HPP

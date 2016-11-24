@@ -66,6 +66,8 @@ public:
 
 	Effect();
 
+	render_type getRenderType() const { return m_renderType; }
+
 	const pass* getPass(light_mode mode);
 	const pass* getPass(const std::string& name);
 
@@ -103,10 +105,10 @@ private:
 
 	void apply_json_impl(const nlohmann::json& json);
 
-	void getRenderQueue(const nlohmann::json& json);
-	void getRenderType(const nlohmann::json& json);
-	void getProperties(const nlohmann::json& json);
-	void getPasses(const nlohmann::json& json);
+	void extractRenderQueue(const nlohmann::json& json);
+	void extractRenderType(const nlohmann::json& json);
+	void extractProperties(const nlohmann::json& json);
+	void extractPasses(const nlohmann::json& json);
 
 	void addProperty(const nlohmann::json& json);
 	void addPass(const nlohmann::json& json);

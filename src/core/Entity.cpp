@@ -10,10 +10,11 @@ REGISTER_OBJECT_TYPE_NO_EXT(Entity, "entity");
 
 json_interpreter<Entity> Entity::s_properties({
 	{ "name", &Entity::extractName },
+	{ "active", &Entity::extractActive },
 	{ "components", &Entity::extractComponents }
 });
 
-Entity::Entity() : m_id(boost::uuids::random_generator()()), m_transform(nullptr)
+Entity::Entity() : m_id(boost::uuids::random_generator()()), m_active(true), m_transform(nullptr)
 {
 	m_transform = addComponent<Transform>();
 }
@@ -33,7 +34,14 @@ void Entity::apply_json_impl(const nlohmann::json& json)
 void Entity::extractName(const nlohmann::json& json)
 {
 	if (json.is_string()) {
-		setName(json.get<std::string>());
+		setName(json);
+	}
+}
+
+void Entity::extractActive(const nlohmann::json& json)
+{
+	if (json.is_boolean()) {
+		setActive(json);
 	}
 }
 

@@ -34,6 +34,7 @@ glm::mat4 Camera::getProjectionMatrix(float width, float height) const
 
 void Camera::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
 {
+	Component::apply_json_property_impl(name, json);
 	s_properties.interpret_property(name, this, json);
 }
 

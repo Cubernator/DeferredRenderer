@@ -9,6 +9,9 @@
 shader_preprocessor::shader_preprocessor(const path& fname, unsigned int srcId) : m_filename(fname), m_shaderType(Shader::type_undefined), m_srcId(srcId)
 {
 	boost::filesystem::ifstream fs(fname);
+	if (!fs) {
+		std::cout << "Shader preprocessor error: could not open file " << fname << std::endl;
+	}
 	process(fs);
 }
 

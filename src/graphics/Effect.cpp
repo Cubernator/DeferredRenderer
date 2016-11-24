@@ -7,10 +7,10 @@
 REGISTER_OBJECT_TYPE_NO_EXT(Effect, "effect");
 
 json_interpreter<Effect> Effect::s_properties({
-	{ "renderQueue",	&Effect::getRenderQueue },
-	{ "renderType",		&Effect::getRenderType },
-	{ "properties",		&Effect::getProperties },
-	{ "passes",			&Effect::getPasses }
+	{ "renderQueue",	&Effect::extractRenderQueue },
+	{ "renderType",		&Effect::extractRenderType },
+	{ "properties",		&Effect::extractProperties },
+	{ "passes",			&Effect::extractPasses }
 });
 
 json_interpreter<Effect::pass> Effect::pass::s_properties({
@@ -90,7 +90,7 @@ void Effect::apply_json_impl(const nlohmann::json& json)
 	s_properties.interpret_all(this, json);
 }
 
-void Effect::getRenderQueue(const nlohmann::json& json)
+void Effect::extractRenderQueue(const nlohmann::json& json)
 {
 	render_queue q = queue_geometry;
 	int offset = 0;
@@ -110,19 +110,19 @@ void Effect::getRenderQueue(const nlohmann::json& json)
 	m_queuePriority = int(q) + offset;
 }
 
-void Effect::getRenderType(const nlohmann::json& json)
+void Effect::extractRenderType(const nlohmann::json& json)
 {
 	s_renderTypes.get(json, m_renderType);
 }
 
-void Effect::getProperties(const nlohmann::json& json)
+void Effect::extractProperties(const nlohmann::json& json)
 {
 	if (json.is_array()) {
 		for (auto& pj : json) addProperty(pj);
 	}
 }
 
-void Effect::getPasses(const nlohmann::json& json)
+void Effect::extractPasses(const nlohmann::json& json)
 {
 	if (json.is_array()) {
 		for (auto& pj : json) addPass(pj);

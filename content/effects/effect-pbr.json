@@ -1,0 +1,61 @@
+{
+  "type": "effect",
+  "name": "pbr",
+  "renderQueue": [ "geometry", 0 ],
+  "renderType": "opaque",
+  "properties": [
+    {
+      "name": "color",
+      "type": "vec4",
+      "default": "#ffffffff"
+    },
+    {
+      "name": "mainTex",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "normalMap",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "smoothness",
+      "type": "float",
+      "default": 0.5
+    },
+    {
+      "name": "metallic",
+      "type": "float",
+      "default": 0.0
+    },
+    {
+      "name": "dielectricReflec",
+      "type": "float",
+      "default": 0.22
+    }
+  ],
+  "passes": [
+    {
+      "name": "fwdBase",
+      "lightMode": "forwardBase",
+      "program": {
+        "name": "pbrFwd",
+        "shaders": [ "pbr.vert", "pbr.frag" ]
+      }
+    },
+    {
+      "name": "fwdAdd",
+      "lightMode": "forwardAdd",
+      "state": {
+        "depthTest": "lequal",
+        "depthWrite": false,
+        "blend": {
+          "source": "one",
+          "dest": "one"
+        }
+      },
+      "program": "pbrFwd"
+    }
+  ]
+}

@@ -18,12 +18,22 @@ float light_attenuation(vec3 vec, float radius)
 	return att*att;
 }
 
+float light_attenuation_auto(vec3 vec)
+{
+	return light_attenuation(vec * cm_light_dir.w, cm_light_radius);
+}
+
+vec3 light_attenuated_color(vec3 vec)
+{
+	return cm_light_color.rgb * light_attenuation_auto(vec);
+}
+
 float light_lambert(vec3 normal, vec3 lightVec)
 {
 	vec3 l = normalize(lightVec);
 
 	float ndotl = max(dot(normal, l), 0.0);
-	float atten = light_attenuation(lightVec * cm_light_dir.w, cm_light_radius);
+	float atten = light_attenuation_auto(lightVec);
 
 	return ndotl * atten;
 }

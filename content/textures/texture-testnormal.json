@@ -1,0 +1,16 @@
+{
+  "type": "texture2D",
+  "name": "testnormal",
+
+  "file": "testnormal.raw",
+  "importer": "raw",
+  "importOptions": {
+    "format": "rgb",
+    "size": 1024
+  },
+
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 4
+}

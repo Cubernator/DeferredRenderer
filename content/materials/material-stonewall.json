@@ -1,0 +1,12 @@
+{
+  "type": "material",
+  "name": "stonewall",
+  "effect": "pbr",
+  "properties": {
+    "color": "#ffffff",
+    "smoothness": 0.1,
+    "metallic": 0.0,
+    "mainTex": "test",
+    "normalMap": "testnormal"
+  }
+}

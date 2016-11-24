@@ -1,9 +1,0 @@
-{
-  "type": "material",
-  "name": "diffuse-test",
-  "effect": "diffuse",
-  "properties": {
-    "color": "#ffffff",
-    "mainTex": "test"
-  }
-}

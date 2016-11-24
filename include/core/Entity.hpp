@@ -23,6 +23,9 @@ public:
 	const std::string& getName() const { return m_name; }
 	void setName(const std::string& name) { m_name = name; }
 
+	bool isActive() const { return m_active; }
+	void setActive(bool val) { m_active = val; }
+
 	void update();
 
 	Transform* getTransform() { return m_transform; }
@@ -77,6 +80,7 @@ public:
 private:
 	const uuid m_id;
 	std::string m_name;
+	bool m_active;
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform; // every entity must have a transform, so cache it here for fast access
@@ -99,6 +103,7 @@ private:
 	void apply_json_impl(const nlohmann::json& json);
 
 	void extractName(const nlohmann::json& json);
+	void extractActive(const nlohmann::json& json);
 	void extractComponents(const nlohmann::json& json);
 
 	friend struct json_initializable<Entity>;
