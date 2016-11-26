@@ -3,6 +3,7 @@
 
 #include <typeinfo>
 #include <unordered_map>
+#include <vector>
 
 #include "util/import.hpp"
 #include "util/json_utils.hpp"
@@ -11,7 +12,9 @@
 class Content
 {
 public:
-	Content(const path& contentDir);
+	Content();
+
+	const path& contentRoot() const { return m_contentRoot; }
 
 	path findGenericFirst(const std::string& name);
 	bool findGenericFirst(const std::string& name, path& result);
@@ -77,6 +80,14 @@ public:
 		return nullptr;
 	}
 
+	template<typename T>
+	T* addToPool(const std::string& name, std::unique_ptr<T> obj)
+	{
+		return m_pool.add<T>(name, std::move(obj));
+	}
+
+	bool findShaderFile(const path& p, path& result) const;
+
 	static Content* instance() { return s_instance; }
 
 private:
@@ -84,10 +95,12 @@ private:
 	using sub_registry = std::unordered_map<std::string, path>;
 	using registry = std::unordered_map<std::type_index, sub_registry>;
 
-	path m_contentDir;
+	path m_contentRoot;
 	registry m_registry;
 	simple_registry m_genericRegistry;
 	object_pool m_pool;
+
+	std::vector<path> m_shaderIncludeDirs;
 
 	static Content* s_instance;
 

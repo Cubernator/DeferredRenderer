@@ -4,6 +4,7 @@
 #include "core/Input.hpp"
 #include "core/Content.hpp"
 #include "graphics/RenderEngine.hpp"
+#include "graphics/texture/Texture2D.hpp"
 #include "util/app_info.hpp"
 
 #include "GL\glew.h"
@@ -17,6 +18,8 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 {
 	s_instance = this;
 
+	const app_info& ai = app_info::info;
+
 	glfwSetErrorCallback([](int err, const char* msg) {
 		std::cout << msg << std::endl;
 	});
@@ -27,13 +30,16 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 		return;
 	}
 
+	auto resolution = ai.get("resolution", glm::ivec2(640, 480));
+	auto title = ai.get<std::string>("title", "Untitled");
+
 	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
 	// create window
 	m_window = glfwCreateWindow(
-		app_info::info.screenWidth,
-		app_info::info.screenHeight,
-		app_info::info.title.c_str(),
+		resolution.x,
+		resolution.y,
+		title.c_str(),
 		NULL, NULL);
 
 	if (!m_window) {
@@ -43,6 +49,8 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 
 	glfwMakeContextCurrent(m_window);
 	glfwSwapInterval(1);
+	
+	glfwSetFramebufferSizeCallback(m_window, resizeCallback);
 
 	// initialize GLEW
 	GLenum err = glewInit();
@@ -52,14 +60,13 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 	}
 
 	m_input = std::make_unique<Input>(m_window);
-	m_content = std::make_unique<Content>(app_info::info.contentDir);
+	m_content = std::make_unique<Content>();
 	m_renderer = std::make_unique<RenderEngine>(this);
 
-	setScene(Content::instance()->getFromDisk<Scene>(app_info::info.firstScene));
+	createDefaultResources();
 
-	if (!m_scene) {
-		std::cout << "WARNING: first scene could not be loaded!" << std::endl;
-	}
+	auto firstSceneName = ai.get<std::string>("firstScene", "scene0");
+	loadScene(firstSceneName);
 }
 
 Engine::~Engine()
@@ -71,6 +78,21 @@ Engine::~Engine()
 	m_input.reset();
 
 	glfwTerminate();
+}
+
+void Engine::createDefaultResources()
+{
+	pixel::srgb pw{ 255U, 255U, 255U };
+	auto texWhite = std::make_unique<Texture2D>();
+	texWhite->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
+	texWhite->setData(&pw, 1, 1);
+	m_content->addToPool("white", std::move(texWhite));
+
+	pixel::srgb pb{ 0U, 0U, 0U };
+	auto texBlack = std::make_unique<Texture2D>();
+	texBlack->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
+	texBlack->setData(&pb, 1, 1);
+	m_content->addToPool("black", std::move(texBlack));
 }
 
 int Engine::run()
@@ -142,12 +164,27 @@ void Engine::setScene(std::unique_ptr<Scene> scene)
 	m_scene = std::move(scene);
 }
 
+void Engine::loadScene(const std::string& sceneName)
+{
+	auto scene = Content::instance()->getFromDisk<Scene>(sceneName);
+	if (scene) {
+		setScene(std::move(scene));
+	} else {
+		std::cout << "ERROR: could not find scene " << sceneName << std::endl;
+	}
+}
+
 Entity * Engine::getEntityInternal(const uuid & id) const
 {
 	auto it = m_entities.find(id);
 	if (it != m_entities.end())
 		return it->second.get();
 	return nullptr;
+}
+
+void Engine::onResize(int width, int height)
+{
+	m_renderer->onResize(width, height);
 }
 
 void Engine::addEntity(std::unique_ptr<Entity> entity)

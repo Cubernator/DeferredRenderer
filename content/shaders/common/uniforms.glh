@@ -2,8 +2,10 @@ uniform mat4 cm_mat_proj;
 uniform mat4 cm_mat_view;
 uniform mat4 cm_mat_world;
 
-uniform mat4 cm_mat_vp;
-uniform mat4 cm_mat_wvp;
 uniform mat4 cm_mat_tiworld;
+
+uniform mat4 cm_mat_vp;
+uniform mat4 cm_mat_ivp;
+uniform mat4 cm_mat_wvp;
 
 uniform vec3 cm_cam_pos;

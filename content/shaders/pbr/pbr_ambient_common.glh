@@ -1,0 +1,3 @@
+struct vertex_output {
+	vec2 uv;
+};

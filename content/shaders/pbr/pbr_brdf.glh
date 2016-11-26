@@ -1,19 +1,16 @@
-#define PI 3.1415926535897932384626433832795
-
-float pow5(float x)
-{
-	return x * x * x * x * x;
-}
-
-float dotClamped(vec3 a, vec3 b)
-{
-	return max(dot(a, b), 0.0);
-}
+#include "common/utils.glh"
 
 vec3 fresnelSchlick(vec3 f0, float c)
 {
 	float t = pow5(1.0 - c);
 	return f0 + (1.0 - f0) * t;
+}
+
+float getRealRoughness(float smoothness)
+{
+	// smoothness is 1.0 - sqrt(m), where m is the real academic roughness (which is needed in BRDF)
+	float roughness = 1.0 - smoothness;
+	return roughness*roughness;
 }
 
 vec3 pbs_brdf(vec3 diffColor, vec3 specColor, vec3 lightColor, float roughness, vec3 n, vec3 v, vec3 l)
@@ -38,15 +35,15 @@ vec3 pbs_brdf(vec3 diffColor, vec3 specColor, vec3 lightColor, float roughness, 
 	float G = 2.0 / (gv + gl);
 
 	// Fresnel term: Schlick interpolation
-	// calculate fresnel per component, treat specular color as reflectance at 0° (F0)
+	// calculate fresnel per color component, treat specular color as reflectance at 0° (F0)
 	vec3 F = fresnelSchlick(specColor, hdotv);
 
 	// BRDF = kD / pi + kS * (D * G * F) / 4
 	// I = BRDF * (N dot L)
 
-	// The common term (N dot L) * (N dot V) in the denominator is missing since it has been reduced via the geometry term
+	// The term (N dot L) * (N dot V) is missing in the denominator because it has been reduced via the geometry term
 
-	// apply fresnel later because it is non-scalar
+	// apply fresnel later since it is non-scalar
 	float specFactor = (D * G) * 0.25;
 
 	vec3 diffuse = diffColor / PI;

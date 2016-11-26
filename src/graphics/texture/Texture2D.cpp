@@ -48,7 +48,7 @@ void Texture2D::setParams(bool mipmaps, filter filtering, wrap wrapping, const g
 		break;
 
 	case Texture2D::filter_trilinear:
-		minFilter = GL_LINEAR_MIPMAP_LINEAR;
+		minFilter = mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
 		magFilter = GL_LINEAR;
 		break;
 	}

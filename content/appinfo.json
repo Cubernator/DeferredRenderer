@@ -2,6 +2,8 @@
   "title": "Deferred Renderer",
   "resolution": [ 1280, 720 ],
   "fullscreen": false,
-  "contentDir": "content",
+  "contentRoot": "content",
+  "shaderIncludeDirs": [ "shaders" ],
+  "deferredLightEffect": "deferred_light",
   "firstScene": "test"
 }

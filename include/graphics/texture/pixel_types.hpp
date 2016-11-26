@@ -38,6 +38,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type r;
+
+		tred(const value_type& r) : r(r) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_RG, bool integral = false>
@@ -45,6 +47,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type r, g;
+
+		trg(const value_type& r, const value_type& g) : r(r), g(g) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_RGB, bool integral = false>
@@ -52,6 +56,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type r, g, b;
+
+		trgb(const value_type& r, const value_type& g, const value_type& b) : r(r), g(g), b(b) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_RGB, bool integral = false>
@@ -59,6 +65,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type b, g, r;
+
+		tbgr(const value_type& b, const value_type& g, const value_type& r) : b(b), g(g), r(r) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_RGBA, bool integral = false>
@@ -66,6 +74,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type r, g, b, a;
+
+		trgba(const value_type& r, const value_type& g, const value_type& b, const value_type& a) : r(r), g(g), b(b), a(a) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_RGBA, bool integral = false>
@@ -73,6 +83,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type b, g, r, a;
+
+		tbgra(const value_type& b, const value_type& g, const value_type& r, const value_type& a) : b(b), g(g), r(r), a(a) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_DEPTH_COMPONENT>
@@ -80,6 +92,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type d;
+
+		tdepth(const value_type& d) : d(d) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_DEPTH_STENCIL>
@@ -87,6 +101,8 @@ namespace pixel
 	{
 		using value_type = T;
 		value_type d, s;
+
+		tdepthstencil(const value_type& d, const value_type& s) : d(d), s(s) { }
 	};
 
 	template<typename T, GLint imgFormat, GLenum pxFormat, GLenum pxType>
@@ -94,6 +110,8 @@ namespace pixel
 	{
 		using data_type = T;
 		data_type data;
+
+		packed(const data_type& v) : data(d) { }
 	};
 
 
@@ -130,7 +148,7 @@ namespace pixel
 	using rg16s = trg<s16_t, GL_RG16_SNORM>;
 	using rg32s = trg<s32_t>;
 
-	using rg32f = trg<f32_t>;
+	using rg32f = trg<f32_t, GL_RG32F>;
 
 	using rg8ui = trg<u8_t, GL_RG8UI, true>;
 	using rg16ui = trg<u16_t, GL_RG16UI, true>;
@@ -153,7 +171,7 @@ namespace pixel
 	using rgb16s = trgb<s16_t, GL_RGB16_SNORM>;
 	using rgb32s = trgb<s32_t>;
 
-	using rgb32f = trgb<f32_t>;
+	using rgb32f = trgb<f32_t, GL_RGB32F>;
 
 	using rgb8ui = trgb<u8_t, GL_RGB8UI, true>;
 	using rgb16ui = trgb<u16_t, GL_RGB16UI, true>;
@@ -178,7 +196,7 @@ namespace pixel
 	using bgr16s = tbgr<s16_t, GL_RGB16_SNORM>;
 	using bgr32s = tbgr<s32_t>;
 
-	using bgr32f = tbgr<f32_t>;
+	using bgr32f = tbgr<f32_t, GL_RGB32F>;
 
 	using bgr8ui = tbgr<u8_t, GL_RGB8UI, true>;
 	using bgr16ui = tbgr<u16_t, GL_RGB16UI, true>;
@@ -200,7 +218,7 @@ namespace pixel
 	using rgba16s = trgba<s16_t, GL_RGBA16_SNORM>;
 	using rgba32s = trgba<s32_t>;
 
-	using rgba32f = trgba<f32_t>;
+	using rgba32f = trgba<f32_t, GL_RGBA32F>;
 
 	using rgba8ui = trgba<u8_t, GL_RGBA8UI, true>;
 	using rgba16ui = trgba<u16_t, GL_RGBA16UI, true>;
@@ -225,7 +243,7 @@ namespace pixel
 	using bgra16s = tbgra<s16_t, GL_RGBA16_SNORM>;
 	using bgra32s = tbgra<s32_t>;
 
-	using bgra32f = tbgra<f32_t>;
+	using bgra32f = tbgra<f32_t, GL_RGBA32F>;
 
 	using bgra8ui = tbgra<u8_t, GL_RGBA8UI, true>;
 	using bgra16ui = tbgra<u16_t, GL_RGBA16UI, true>;

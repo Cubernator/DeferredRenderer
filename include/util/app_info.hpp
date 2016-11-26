@@ -4,29 +4,56 @@
 #include <string>
 
 #include "import.hpp"
+#include "util/json_utils.hpp"
 #include "util/json_initializable.hpp"
-#include "util/json_interpreter.hpp"
 
 struct app_info : public json_initializable<app_info>
 {
-	std::string title;
-	path contentDir;
-	unsigned int screenWidth, screenHeight;
-	bool fullscreen;
-	std::string firstScene;
-
 	static const app_info info;
 
+	template<typename T>
+	bool find(const std::string& propName, T& value) const
+	{
+		auto it = properties.find(propName);
+		try {
+			if (it != properties.end()) {
+				value = json_get<T>(*it);
+				return true;
+			}
+		} catch (std::domain_error&) { }
+
+		return false;
+	}
+
+	template<typename T>
+	T get(const std::string& propName, const T& def) const
+	{
+		T result(def);
+		find<T>(propName, result);
+		return std::move(result);
+	}
+
+	template<typename T>
+	T get(const std::string& propName, T&& def) const
+	{
+		T result(std::move(def));
+		find<T>(propName, result);
+		return std::move(result);
+	}
+
+	template<typename T>
+	T get(const std::string& propName) const
+	{
+		return get<T>(propName, {});
+	}
+
 private:
-	static json_interpreter<app_info> s_properties;
+	nlohmann::json properties;
 
-	void apply_json_impl(const nlohmann::json& json);
-
-	void extractTitle(const nlohmann::json& json);
-	void extractContentDir(const nlohmann::json& json);
-	void extractResolution(const nlohmann::json& json);
-	void extractFullscreen(const nlohmann::json& json);
-	void extractFirstScene(const nlohmann::json& json);
+	void apply_json_impl(const nlohmann::json& json)
+	{
+		properties = json;
+	}
 
 	static app_info load();
 

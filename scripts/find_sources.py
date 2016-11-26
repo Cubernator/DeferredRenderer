@@ -59,6 +59,5 @@ def main():
 
         cmake_file.write(")\n")
 
-
 if __name__ == '__main__':
     main()

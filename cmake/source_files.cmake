@@ -97,22 +97,35 @@ source_group("Script Files" FILES ${SCRIPT_FILES})
 
 set(CONTENT_FILES
 	content/appinfo.json
+	content/effects/effect-deferred_light.json
 	content/effects/effect-diffuse.json
 	content/effects/effect-pbr.json
 	content/effects/effect-unlit.json
 	content/materials/material-stonewall.json
 	content/meshes/cube.fbx
 	content/scenes/scene-test.json
+	content/shaders/common/gbuffer.glh
 	content/shaders/common/input.glh
 	content/shaders/common/lighting.glh
 	content/shaders/common/uniforms.glh
+	content/shaders/common/utils.glh
 	content/shaders/diffuse/diffuse.frag.glsl
 	content/shaders/diffuse/diffuse.vert.glsl
 	content/shaders/diffuse/diffuse_common.glh
-	content/shaders/pbr/pbr.frag.glsl
-	content/shaders/pbr/pbr.vert.glsl
+	content/shaders/pbr/pbr_ambient.frag.glsl
+	content/shaders/pbr/pbr_ambient.vert.glsl
+	content/shaders/pbr/pbr_ambient_common.glh
 	content/shaders/pbr/pbr_brdf.glh
-	content/shaders/pbr/pbr_common.glh
+	content/shaders/pbr/pbr_deferred.frag.glsl
+	content/shaders/pbr/pbr_deferred.vert.glsl
+	content/shaders/pbr/pbr_deferred_common.glh
+	content/shaders/pbr/pbr_forward.frag.glsl
+	content/shaders/pbr/pbr_forward.vert.glsl
+	content/shaders/pbr/pbr_forward_common.glh
+	content/shaders/pbr/pbr_light.frag.glsl
+	content/shaders/pbr/pbr_light.vert.glsl
+	content/shaders/pbr/pbr_light_common.glh
+	content/shaders/pbr/pbr_utils.glh
 	content/shaders/unlit/unlit.frag.glsl
 	content/shaders/unlit/unlit.vert.glsl
 	content/shaders/unlit/unlit_common.glh

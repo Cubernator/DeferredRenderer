@@ -35,18 +35,22 @@ public:
 	void setData(const void* data, unsigned int w, unsigned int h, GLint imgFormat, GLenum pxFormat, GLenum pxType);
 
 	template<typename T>
-	void setData(const T* data, unsigned int size, GLint imgFormat)
+	void setData(const T* data, unsigned int w, unsigned int h, GLint imgFormat)
 	{
-		setData(data, size, internalFormat, pixel_format<T>(), pixel_type<T>());
+		setData(data, w, h, internalFormat, pixel_format<T>(), pixel_type<T>());
 	}
 
 	template<typename T>
-	void setData(const T* data, unsigned int size)
+	void setData(const T* data, unsigned int w, unsigned int h)
 	{
-		setData(data, size, image_format<T>(), pixel_format<T>(), pixel_type<T>());
+		setData(data, w, h, image_format<T>(), pixel_format<T>(), pixel_type<T>());
 	}
 
 	void setParams(bool mipmaps, filter filtering, wrap wrapping, const glm::vec4& borderColor, float anisotropic);
+	void setParams(bool mipmaps, filter filtering, wrap wrapping)
+	{
+		setParams(mipmaps, filtering, wrapping, glm::vec4(0.f), 0.f);
+	}
 
 	unsigned int width() const { return m_width; }
 	unsigned int height() const { return m_height; }

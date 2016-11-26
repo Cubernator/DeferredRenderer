@@ -2,6 +2,8 @@ uniform vec4 cm_light_color;
 uniform vec4 cm_light_dir;
 uniform float cm_light_radius;
 
+uniform vec4 cm_light_ambient;
+
 vec3 light_vec(vec3 pos)
 {
 	vec3 dir = normalize(cm_light_dir.xyz) * (1.0 - cm_light_dir.w);

@@ -34,12 +34,13 @@ keyword_helper<Effect::render_type> Effect::s_renderTypes({
 	{ "transparent",	Effect::type_transparent }
 });
 
-
 keyword_helper<Effect::light_mode> Effect::s_lightModes({
-	{ "forwardBase",	Effect::light_forward_base },
-	{ "forwardAdd",		Effect::light_forward_add },
-	{ "deferred",		Effect::light_deferred },
-	{ "shadowCast",		Effect::light_shadow_cast }
+	{ "forwardBase",		Effect::light_forward_base },
+	{ "forwardAdd",			Effect::light_forward_add },
+	{ "deferred",			Effect::light_deferred },
+	{ "shadowCast",			Effect::light_shadow_cast },
+	{ "deferredAmbient",	Effect::light_deferred_ambient },
+	{ "deferredLight",		Effect::light_deferred_light }
 });
 
 

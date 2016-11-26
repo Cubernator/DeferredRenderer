@@ -43,6 +43,7 @@ public:
 	const Scene *getScene() const;
 
 	void setScene(std::unique_ptr<Scene> scene);
+	void loadScene(const std::string& sceneName);
 
 	Entity* getEntity(const uuid& id) { return getEntityInternal(id); }
 	const Entity* getEntity(const uuid& id) const { return getEntityInternal(id); }
@@ -86,7 +87,16 @@ private:
 	void update();
 	void render();
 
+	void createDefaultResources();
+
 	Entity* getEntityInternal(const uuid& id) const;
+
+	void onResize(int width, int height);
+
+	static void resizeCallback(GLFWwindow* window, int width, int height)
+	{
+		s_instance->onResize(width, height);
+	}
 };
 
 #endif // ENGINE_HPP

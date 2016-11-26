@@ -1,16 +1,20 @@
 #include "core/Content.hpp"
 #include "util/type_registry.hpp"
+#include "util/app_info.hpp"
 
 #include "boost/filesystem.hpp"
 
 Content* Content::s_instance = nullptr;
 
-Content::Content(const path& contentDir) : m_contentDir(contentDir)
+Content::Content()
 {
 	s_instance = this;
 
+	m_contentRoot = app_info::info.get<path>("contentRoot", "content");
+	m_shaderIncludeDirs = app_info::info.get<std::vector<path>>("shaderIncludeDirs");
+
 	std::cout << "scanning content..." << std::endl;
-	scanContentFolder(m_contentDir);
+	scanContentFolder(m_contentRoot);
 }
 
 path Content::findGenericFirst(const std::string& name)
@@ -59,6 +63,22 @@ path Content::findObject(const std::type_info& type, const std::string& name)
 	std::cout << "could not find object \"" << name << "\" of type \"" << t.name << "\"" << std::endl;
 
 	return "";
+}
+
+bool Content::findShaderFile(const path& p, path& result) const
+{
+	path tmp;
+	if (p.is_relative()) {
+		for (const path& dir : m_shaderIncludeDirs) {
+			tmp = m_contentRoot / dir / p;
+			if (boost::filesystem::exists(tmp)) {
+				result = std::move(tmp);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void Content::scanContentFolder(const path& p)

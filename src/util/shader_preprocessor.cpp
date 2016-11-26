@@ -1,4 +1,5 @@
 #include "util/shader_preprocessor.hpp"
+#include "core/Content.hpp"
 
 #include "boost/format.hpp"
 #include "boost/spirit/home/qi.hpp"
@@ -6,23 +7,25 @@
 
 #include <iostream>
 
-shader_preprocessor::shader_preprocessor(const path& fname, unsigned int srcId) : m_filename(fname), m_shaderType(Shader::type_undefined), m_srcId(srcId)
+shader_preprocessor::shader_preprocessor(const path& fname, unsigned int srcId) : m_filename(fname), m_shaderType(Shader::type_undefined), m_error(false), m_srcId(srcId)
 {
 	boost::filesystem::ifstream fs(fname);
 	if (!fs) {
 		std::cout << "Shader preprocessor error: could not open file " << fname << std::endl;
+		m_error = true;
+	} else {
+		process(fs);
 	}
-	process(fs);
 }
 
-shader_preprocessor::shader_preprocessor(std::istream& stream, unsigned int srcId) : m_shaderType(Shader::type_undefined), m_srcId(srcId)
+shader_preprocessor::shader_preprocessor(std::istream& stream, unsigned int srcId) : m_shaderType(Shader::type_undefined), m_error(false), m_srcId(srcId)
 {
 	process(stream);
 }
 
 bool shader_preprocessor::good() const
 {
-	return m_shaderType != Shader::type_undefined;
+	return m_shaderType != Shader::type_undefined && !m_error;
 }
 
 
@@ -133,6 +136,9 @@ void shader_preprocessor::process(std::istream& stream)
 			appendOrig = boost::apply_visitor(pp_line_visitor(this), parsed_line);
 		}
 
+		if (m_error)
+			break;
+
 		if (appendOrig)
 			m_processed.append(line_orig);
 		++m_currentLine;
@@ -141,17 +147,32 @@ void shader_preprocessor::process(std::istream& stream)
 
 void shader_preprocessor::include(const path& file)
 {
-	if (m_filename.empty()) return;
+	using namespace boost::filesystem;
 
-
+	bool found = false;
 	path filepath;
 	if (file.is_absolute()) {
 		filepath = file;
+		found = exists(filepath);
 	} else {
 		filepath = m_filename.parent_path() / file;
+		found = exists(filepath);
+		if (!found) {
+			found = Content::instance()->findShaderFile(file, filepath);
+		}
+	}
+
+	if (!found) {
+		std::cout << m_filename.string() << "(" << m_currentLine << "): could not find include file " << file << std::endl;
+		m_error = true;
+		return;
 	}
 
 	shader_preprocessor pp(filepath, m_nextSrcId);
+	if (pp.m_error) {
+		m_error = true;
+		return;
+	}
 
 	auto fmt = boost::format("#line %i %i\n");
 

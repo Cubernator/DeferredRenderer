@@ -48,6 +48,8 @@ public:
 		setUniformImpl<T>(id, value);
 	}
 
+	void setTexture(uniform_id id, const Texture* texture) const;
+
 	void bind();
 	void unbind();
 
@@ -83,8 +85,6 @@ private:
 	{
 		setTexture(id, static_cast<Texture*>(value));
 	}
-
-	void setTexture(uniform_id id, const Texture* texture) const;
 };
 
 template<>

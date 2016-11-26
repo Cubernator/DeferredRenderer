@@ -4,50 +4,163 @@
 #include "core/Scene.hpp"
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
+#include "core/Content.hpp"
 #include "graphics/Material.hpp"
 #include "graphics/shader/ShaderProgram.hpp"
 #include "graphics/Renderer.hpp"
 #include "graphics/Camera.hpp"
 #include "graphics/Light.hpp"
+#include "graphics/texture/Texture2D.hpp"
+#include "util/app_info.hpp"
 
 #include "GL/glew.h"
 
 #include <vector>
 
-uniform_id RenderEngine::s_cm_mat_proj_id = uniform_name_to_id("cm_mat_proj");
-uniform_id RenderEngine::s_cm_mat_view_id = uniform_name_to_id("cm_mat_view");
-uniform_id RenderEngine::s_cm_mat_world_id = uniform_name_to_id("cm_mat_world");
+#define DEF_UNIFORM_ID(name) const uniform_id g_##name##_id = uniform_name_to_id(#name)
 
-uniform_id RenderEngine::s_cm_mat_tiworld_id = uniform_name_to_id("cm_mat_tiworld");
-uniform_id RenderEngine::s_cm_mat_vp_id = uniform_name_to_id("cm_mat_vp");
-uniform_id RenderEngine::s_cm_mat_wvp_id = uniform_name_to_id("cm_mat_wvp");
+DEF_UNIFORM_ID(cm_mat_proj);
+DEF_UNIFORM_ID(cm_mat_view);
+DEF_UNIFORM_ID(cm_mat_world);
 
-uniform_id RenderEngine::s_cm_cam_pos_id = uniform_name_to_id("cm_cam_pos");
+DEF_UNIFORM_ID(cm_mat_tiworld);
+DEF_UNIFORM_ID(cm_mat_vp);
+DEF_UNIFORM_ID(cm_mat_ivp);
+DEF_UNIFORM_ID(cm_mat_wvp);
 
-uniform_id RenderEngine::s_cm_light_color_id = uniform_name_to_id("cm_light_color");
-uniform_id RenderEngine::s_cm_light_dir_id = uniform_name_to_id("cm_light_dir");
-uniform_id RenderEngine::s_cm_light_radius_id = uniform_name_to_id("cm_light_radius");
+DEF_UNIFORM_ID(cm_cam_pos);
 
-RenderEngine::RenderEngine(Engine* parent) : m_parent(parent), m_maxLights(8)
+DEF_UNIFORM_ID(cm_light_color);
+DEF_UNIFORM_ID(cm_light_dir);
+DEF_UNIFORM_ID(cm_light_radius);
+DEF_UNIFORM_ID(cm_light_ambient);
+
+DEF_UNIFORM_ID(transform);
+DEF_UNIFORM_ID(gbuf_diffuse);
+DEF_UNIFORM_ID(gbuf_specSmooth);
+DEF_UNIFORM_ID(gbuf_normal);
+DEF_UNIFORM_ID(gbuf_depth);
+
+RenderEngine* RenderEngine::s_instance = nullptr;
+
+RenderEngine::RenderEngine(Engine* parent)
+	: m_parent(parent), m_maxLights(8), m_gBufFBO(0), m_quadVAO(0),
+	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
+	m_enableDeferred(true)
 {
+	s_instance = this;
+
 	m_lightQueue.reserve(m_maxLights);
-
+	setupDeferredPath();
 	m_renderState.apply();
-
 	glEnable(GL_FRAMEBUFFER_SRGB);
+}
+
+void RenderEngine::setupDeferredPath()
+{
+	m_gBufDiff = std::make_unique<Texture2D>();
+	m_gBufDiff->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+
+	m_gBufSpec = std::make_unique<Texture2D>();
+	m_gBufSpec->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+
+	m_gBufNorm = std::make_unique<Texture2D>();
+	m_gBufNorm->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+
+	m_gBufDepth = std::make_unique<Texture2D>();
+	m_gBufDepth->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+
+	onResize(m_parent->getScreenWidth(), m_parent->getScreenHeight());
+
+	glGenFramebuffers(1, &m_gBufFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_gBufFBO);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gBufDiff->glObj(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_gBufSpec->glObj(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_gBufNorm->glObj(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_gBufDepth->glObj(), 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "ERROR: Deferred framebuffer object is incomplete!" << std::endl;
+	}
+
+	m_gDrawBufs[0] = GL_COLOR_ATTACHMENT0;
+	m_gDrawBufs[1] = GL_COLOR_ATTACHMENT1;
+	m_gDrawBufs[2] = GL_COLOR_ATTACHMENT2;
+
+	m_gClearColor[0] = 0.0f;
+	m_gClearColor[1] = 0.0f;
+	m_gClearColor[2] = 0.0f;
+	m_gClearColor[3] = 0.0f;
+
+	m_gClearDepth = 1.0f;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glm::vec3 quadData[4] = {
+		{ -1.f, -1.f, 0.f },
+		{ 1.f, -1.f, 0.f },
+		{ -1.f, 1.f, 0.f },
+		{ 1.f, 1.f, 0.f }
+	};
+
+	glGenVertexArrays(1, &m_quadVAO);
+	glBindVertexArray(m_quadVAO);
+	glEnableVertexAttribArray(0);
+	m_quadVBuf.setData(4, quadData);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+	glBindVertexArray(0);
+
+	auto lightEffectName = app_info::info.get<std::string>("deferredLightEffect", "deferred_light");
+	m_deferredLightEffect = Content::instance()->getFromDisk<Effect>(lightEffectName);
+
+	if (m_deferredLightEffect) {
+		m_deferredAmbientPass = m_deferredLightEffect->getPass(Effect::light_deferred_ambient);
+		m_deferredLightPass = m_deferredLightEffect->getPass(Effect::light_deferred_light);
+
+		if (!m_deferredAmbientPass) {
+			std::cout << "WARNING: could not initialize deferred ambient pass!" << std::endl;
+		}
+
+		if (!m_deferredLightPass) {
+			std::cout << "WARNING: could not initialize deferred light pass!" << std::endl;
+		}
+	} else {
+		std::cout << "WARNING: could not initialize deferred light effect!" << std::endl;
+	}
+}
+
+RenderEngine::~RenderEngine()
+{
+	if (m_gBufFBO) {
+		glDeleteFramebuffers(1, &m_gBufFBO);
+	}
+
+	if (m_quadVAO) {
+		glDeleteVertexArrays(1, &m_quadVAO);
+	}
+}
+
+void RenderEngine::onResize(int width, int height)
+{
+	glViewport(0, 0, width, height);
+
+	m_gBufDiff->setData<pixel::rgb32f>(nullptr, width, height);
+	m_gBufSpec->setData<pixel::rgba32f>(nullptr, width, height);
+	m_gBufNorm->setData<pixel::rgb10a2>(nullptr, width, height);
+	m_gBufDepth->setData<pixel::depth32>(nullptr, width, height);
 }
 
 void RenderEngine::render()
 {
-	glm::vec4 bc(0.f);
-
 	Scene* scene = m_parent->getScene();
 	if (scene) {
-		bc = scene->getBackColor();
+		m_clearColor = scene->getBackColor();
+		m_objUniforms.ambientLight = scene->getAmbientLight();
 	}
 
+	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	glDepthMask(GL_TRUE);
-	glClearColor(bc.r, bc.g, bc.b, bc.a);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	Camera* mainCam = Camera::main();
@@ -57,6 +170,20 @@ void RenderEngine::render()
 	m_parent->getScreenSize(sw, sh);
 
 	m_objUniforms.setProjView(mainCam, float(sw), float(sh));
+
+	m_dirLights.clear();
+	m_posLights.clear();
+
+	// sort lights by type
+	for (Light* light : m_lights) {
+		if (!light->isActiveAndEnabled()) continue;
+
+		if (light->getType() == Light::type_directional) {
+			m_dirLights.insert(light);
+		} else {
+			m_posLights.insert(light);
+		}
+	}
 
 	m_deferredQueue.clear();
 	m_forwardQueue.clear();
@@ -82,7 +209,7 @@ void RenderEngine::render()
 		// TODO: view frustum culling
 
 		// if the object is not transparent and has a deferred pass, put it into deferred queue (deferred pass will be ignored in transparent effects)
-		if (effect->getRenderType() != Effect::type_transparent) {
+		if (m_enableDeferred && (effect->getRenderType() != Effect::type_transparent)) {
 			const Effect::pass* passDeferred = effect->getPass(Effect::light_deferred);
 			if (passDeferred && passDeferred->program) {
 				m_deferredQueue.emplace_back(renderer, passDeferred);
@@ -101,7 +228,7 @@ void RenderEngine::render()
 	}
 
 	// render all objects that support deferred shading
-	//renderDeferred();
+	renderDeferred();
 
 	// the rest is rendered using good ol' forward rendering
 	renderForward();
@@ -109,26 +236,57 @@ void RenderEngine::render()
 
 void RenderEngine::renderDeferred()
 {
+	if (m_deferredQueue.empty() || !(m_deferredAmbientPass && m_deferredAmbientPass->program)) return;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, m_gBufFBO);
+	glDrawBuffers(3, m_gDrawBufs);
+
+	glClearBufferfv(GL_COLOR, 0, m_gClearColor);
+	glClearBufferfv(GL_COLOR, 1, m_gClearColor);
+	glClearBufferfv(GL_COLOR, 2, m_gClearColor);
+	glClearBufferfv(GL_DEPTH, 0, &m_gClearDepth);
+
 	// G-Buffer pass
 	for (const auto& obj : m_deferredQueue) {
-
+		m_objUniforms.setWorld(obj.renderer->getEntity());
+		Material* material = obj.renderer->getMaterial();
+		bindPass(obj.pass, material);
+		updateRenderState(obj.pass->state);
+		obj.renderer->bind();
+		obj.renderer->draw();
+		obj.renderer->unbind();
 	}
 
-	// Lighting pass
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Light pass
+	glBindVertexArray(m_quadVAO);
+
+	// Render ambient light
+	bindDeferredLightPass(m_deferredAmbientPass);
+	m_deferredAmbientPass->program->setUniform(g_transform_id, glm::mat4());
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	if (!(m_deferredLightPass && m_deferredLightPass->program)) return;
+
+	// Render normal lights
+	bindDeferredLightPass(m_deferredLightPass);
+
+	// First directional lights, then positional lights
+	m_lightQueue.assign(m_dirLights.begin(), m_dirLights.end());
+	m_lightQueue.insert(m_lightQueue.end(), m_posLights.begin(), m_posLights.end());
+
+	for (Light* light : m_lightQueue) {
+		// TODO: set transform
+		m_deferredLightPass->program->setUniform(g_transform_id, glm::mat4());
+		applyLight(light, m_deferredLightPass->program);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	}
 }
 
 void RenderEngine::renderForward()
 {
-	// sort lights by type
-	for (Light* light : m_lights) {
-		if (!light->isActiveAndEnabled()) continue;
-
-		if (light->getType() == Light::type_directional) {
-			m_dirLights.insert(light);
-		} else {
-			m_posLights.insert(light);
-		}
-	}
+	if (m_forwardQueue.empty()) return;
 
 	// render objects
 	for (const auto& obj : m_forwardQueue) {
@@ -179,9 +337,6 @@ void RenderEngine::renderForward()
 
 		obj.renderer->unbind();
 	}
-
-	m_dirLights.clear();
-	m_posLights.clear();
 }
 
 void RenderEngine::addEntity(Entity* entity)
@@ -210,6 +365,21 @@ void RenderEngine::removeEntity(Entity* entity)
 	}
 }
 
+void RenderEngine::bindDeferredLightPass(const Effect::pass * pass)
+{
+	updateRenderState(pass->state);
+
+	ShaderProgram* program = pass->program;
+	program->bind();
+	program->setUniform(g_cm_mat_ivp_id, m_objUniforms.ivp);
+	program->setUniform(g_cm_cam_pos_id, m_objUniforms.camPos);
+	program->setUniform(g_cm_light_ambient_id, m_objUniforms.ambientLight);
+	program->setTexture(g_gbuf_diffuse_id, m_gBufDiff.get());
+	program->setTexture(g_gbuf_specSmooth_id, m_gBufSpec.get());
+	program->setTexture(g_gbuf_normal_id, m_gBufNorm.get());
+	program->setTexture(g_gbuf_depth_id, m_gBufDepth.get());
+}
+
 void RenderEngine::bindPass(const Effect::pass* pass, Material* material)
 {
 	pass->program->bind();
@@ -220,9 +390,9 @@ void RenderEngine::bindPass(const Effect::pass* pass, Material* material)
 void RenderEngine::applyLight(Light* light, ShaderProgram* program)
 {
 	if (light) {
-		program->setUniform(s_cm_light_color_id, light->getPremultipliedColor());
-		program->setUniform(s_cm_light_dir_id, light->getShaderProp());
-		program->setUniform(s_cm_light_radius_id, light->getRange());
+		program->setUniform(g_cm_light_color_id, light->getPremultipliedColor());
+		program->setUniform(g_cm_light_dir_id, light->getShaderProp());
+		program->setUniform(g_cm_light_radius_id, light->getRange());
 	}
 }
 
@@ -243,6 +413,7 @@ void RenderEngine::uniforms_per_obj::setProjView(Camera* camera, float w, float 
 	proj = camera->getProjectionMatrix(w, h);
 	view = camTrans->getInverseRigidMatrix();
 	vp = proj * view;
+	ivp = glm::inverse(vp);
 	camPos = camTrans->getPosition();
 }
 
@@ -255,11 +426,13 @@ void RenderEngine::uniforms_per_obj::setWorld(Entity* entity)
 
 void RenderEngine::uniforms_per_obj::apply(ShaderProgram* program) const
 {
-	program->setUniform(s_cm_mat_proj_id, proj);
-	program->setUniform(s_cm_mat_view_id, view);
-	program->setUniform(s_cm_mat_world_id, world);
-	program->setUniform(s_cm_mat_tiworld_id, tiworld);
-	program->setUniform(s_cm_mat_vp_id, vp);
-	program->setUniform(s_cm_mat_wvp_id, wvp);
-	program->setUniform(s_cm_cam_pos_id, camPos);
+	program->setUniform(g_cm_mat_proj_id, proj);
+	program->setUniform(g_cm_mat_view_id, view);
+	program->setUniform(g_cm_mat_world_id, world);
+	program->setUniform(g_cm_mat_tiworld_id, tiworld);
+	program->setUniform(g_cm_mat_vp_id, vp);
+	program->setUniform(g_cm_mat_ivp_id, ivp);
+	program->setUniform(g_cm_mat_wvp_id, wvp);
+	program->setUniform(g_cm_cam_pos_id, camPos);
+	program->setUniform(g_cm_light_ambient_id, ambientLight);
 }

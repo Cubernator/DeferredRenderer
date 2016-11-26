@@ -26,6 +26,15 @@ void json_get_array(const nlohmann::json& j, T* ptr, std::size_t count)
 	}
 }
 
+template<>
+struct json_getter<nlohmann::json>
+{
+	static nlohmann::json get(const nlohmann::json& j)
+	{
+		return j;
+	}
+};
+
 template<typename T, glm::precision p>
 struct json_getter<glm::tvec2<T, p>>
 {

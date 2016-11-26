@@ -41,7 +41,7 @@
       "lightMode": "forwardBase",
       "program": {
         "name": "pbrFwd",
-        "shaders": [ "pbr.vert", "pbr.frag" ]
+        "shaders": [ "pbr_forward.vert", "pbr_forward.frag" ]
       }
     },
     {
@@ -56,6 +56,13 @@
         }
       },
       "program": "pbrFwd"
+    },
+    {
+      "name": "deferred",
+      "lightMode": "deferred",
+      "program": {
+        "shaders": [ "pbr_deferred.vert", "pbr_deferred.frag" ]
+      }
     }
   ]
 }

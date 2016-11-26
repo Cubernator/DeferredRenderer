@@ -1,8 +1,8 @@
 #version 330
 #pragma type vertex
 
-#include "../common/input.glh"
-#include "../common/uniforms.glh"
+#include "common/input.glh"
+#include "common/uniforms.glh"
 #include "unlit_common.glh"
 
 void main()

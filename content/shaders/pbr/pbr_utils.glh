@@ -1,0 +1,14 @@
+uniform float dielectricReflec;
+
+void getDiffuseAndSpecular(vec3 albedo, float metallic, out vec3 diffCol, out vec3 specCol)
+{
+	// calculate diffuse and specular colors depending on metallic factor and according to energy conservation
+	float omd = 1.0 - dielectricReflec;
+	diffCol = albedo * (omd - metallic * omd);
+
+	// The BRDF treats the specular color as the component-wise reflectance at 0°
+	// For non-metallic (dielectric) materials the reflectance is defined by the "dielectricReflec" uniform (in most cases constant at 0.22).
+	// For metals the specular color is "tinted" by the surface color (albedo).
+	// These values are blended together depending of the metallic value.
+	specCol = mix(vec3(dielectricReflec), albedo, metallic);
+}

@@ -1,0 +1,3 @@
+layout (location = 0) out vec3 gbuf_diffuse;
+layout (location = 1) out vec4 gbuf_specSmooth;
+layout (location = 2) out vec4 gbuf_normal;

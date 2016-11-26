@@ -1,7 +1,7 @@
 #version 330
 #pragma type fragment
 
-#include "../common/uniforms.glh"
+#include "common/uniforms.glh"
 #include "unlit_common.glh"
 
 uniform vec4 color;

@@ -30,6 +30,7 @@ private:
 	std::string m_original;
 	std::string m_processed;
 	Shader::shader_type m_shaderType;
+	bool m_error;
 	unsigned int m_currentLine;
 	unsigned int m_srcId, m_nextSrcId;
 

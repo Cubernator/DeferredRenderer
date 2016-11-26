@@ -18,6 +18,8 @@ class texture_unit_manager
 public:
 	static GLint bindTexture(const Texture* texture);
 
+	// TODO: add reservable units
+
 	static void emptyCache();
 
 private:

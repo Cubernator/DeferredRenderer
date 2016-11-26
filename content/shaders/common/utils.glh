@@ -1,0 +1,11 @@
+#define PI 3.1415926535897932384626433832795
+
+float pow5(float x)
+{
+	return x * x * x * x * x;
+}
+
+float dotClamped(vec3 a, vec3 b)
+{
+	return max(dot(a, b), 0.0);
+}

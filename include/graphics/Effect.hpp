@@ -23,7 +23,9 @@ public:
 		light_forward_base,
 		light_forward_add,
 		light_deferred,
-		light_shadow_cast
+		light_shadow_cast,
+		light_deferred_ambient,
+		light_deferred_light
 	};
 
 	enum render_queue

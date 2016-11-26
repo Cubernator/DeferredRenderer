@@ -1,10 +1,10 @@
 #version 330
 #pragma type vertex
 
-#include "../common/uniforms.glh"
-#include "../common/lighting.glh"
-#include "../common/input.glh"
-#include "pbr_common.glh"
+#include "common/uniforms.glh"
+#include "common/lighting.glh"
+#include "common/input.glh"
+#include "pbr_forward_common.glh"
 
 out vertex_output v_output;
 

@@ -1,8 +1,8 @@
 #version 330
 #pragma type fragment
 
-#include "../common/uniforms.glh"
-#include "../common/lighting.glh"
+#include "common/uniforms.glh"
+#include "common/lighting.glh"
 #include "diffuse_common.glh"
 
 uniform vec4 color;

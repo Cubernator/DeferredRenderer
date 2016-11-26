@@ -1,0 +1,28 @@
+{
+  "type": "effect",
+  "name": "deferred_light",
+  "passes": [
+    {
+      "name": "ambient",
+      "lightMode": "deferredAmbient",
+      "program": {
+        "shaders": [ "pbr_ambient.vert", "pbr_ambient.frag" ]
+      }
+    },
+    {
+      "name": "light",
+      "lightMode": "deferredLight",
+      "state": {
+        "depthTest": "lequal",
+        "depthWrite": false,
+        "blend": {
+          "source": "one",
+          "dest": "one"
+        }
+      },
+      "program": {
+        "shaders": [ "pbr_light.vert", "pbr_light.frag" ]
+      }
+    }
+  ]
+}

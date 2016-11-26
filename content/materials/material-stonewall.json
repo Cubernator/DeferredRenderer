@@ -4,7 +4,7 @@
   "effect": "pbr",
   "properties": {
     "color": "#ffffff",
-    "smoothness": 0.1,
+    "smoothness": 0.3,
     "metallic": 0.0,
     "mainTex": "test",
     "normalMap": "testnormal"
