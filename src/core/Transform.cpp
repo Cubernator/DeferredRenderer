@@ -6,9 +6,9 @@
 REGISTER_COMPONENT_CLASS(Transform, "transform");
 
 json_interpreter<Transform> Transform::s_properties({
-	{ "position", &Transform::extractPosition },
-	{ "rotation", &Transform::extractRotation },
-	{ "scale", &Transform::extractScale }
+	{ "position", &Transform::setPosition },
+	{ "rotation", &Transform::setRotation },
+	{ "scale", &Transform::setScale }
 });
 
 Transform::Transform(Entity* parent) : Component(parent), m_scale(1.0f), m_dirty(true) { }
@@ -37,20 +37,5 @@ void Transform::apply_json_property_impl(const std::string& name, const nlohmann
 {
 	Component::apply_json_property_impl(name, json);
 	s_properties.interpret_property(name, this, json);
-}
-
-void Transform::extractPosition(const nlohmann::json& json)
-{
-	setPosition(json_get<glm::vec3>(json));
-}
-
-void Transform::extractRotation(const nlohmann::json& json)
-{
-	setRotation(json_get<glm::quat>(json));
-}
-
-void Transform::extractScale(const nlohmann::json& json)
-{
-	setScale(json_get<glm::vec3>(json));
 }
 

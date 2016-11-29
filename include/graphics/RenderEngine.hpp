@@ -51,7 +51,6 @@ private:
 		glm::mat4 ivp;
 		glm::mat4 tiworld;
 		glm::vec3 camPos;
-		glm::vec4 ambientLight;
 
 		void setProjView(Camera* camera, float w, float h);
 		void setWorld(Entity* entity);
@@ -73,6 +72,8 @@ private:
 	std::vector<Renderer*> m_renderers;
 	std::vector<Light*> m_lights;
 
+	Camera* m_camera;
+
 	glm::vec4 m_clearColor;
 
 	renderer_queue m_deferredQueue, m_forwardQueue;
@@ -86,8 +87,13 @@ private:
 	std::unique_ptr<Effect> m_deferredLightEffect;
 	const Effect::pass* m_deferredAmbientPass;
 	const Effect::pass* m_deferredLightPass;
-	VertexBuffer<glm::vec3> m_quadVBuf;
-	GLuint m_quadVAO;
+
+	GLuint m_lightMeshVAO;
+	VertexBuffer<glm::vec3> m_lightMeshVbuf;
+	IndexBuffer<unsigned int> m_lightMeshIbuf;
+	float m_lightMeshRadius;
+	std::size_t m_quadOffset, m_sphereOffset;
+	std::size_t m_quadCount, m_sphereCount;
 
 	light_queue m_dirLights, m_posLights;
 	std::vector<Light*> m_lightQueue;
@@ -95,6 +101,7 @@ private:
 	render_state m_renderState;
 	uniforms_per_obj m_objUniforms;
 	unsigned int m_maxLights;
+	glm::vec4 m_ambientLight;
 
 	bool m_enableDeferred;
 
@@ -102,14 +109,17 @@ private:
 
 
 	void setupDeferredPath();
+	void createCombinedLightMesh();
 
 	void renderDeferred();
 	void renderForward();
 
 	void bindPass(const Effect::pass* pass, Material* material);
 	void applyLight(Light* light, ShaderProgram* program);
+	void applyAmbient(bool enabled, ShaderProgram* program);
 	void updateRenderState(const render_state& newState);
 	void bindDeferredLightPass(const Effect::pass* pass);
+	void drawDeferredLight(Light* light, ShaderProgram* program);
 };
 
 #endif // RENDERENGINE_HPP

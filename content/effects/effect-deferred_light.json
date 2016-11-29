@@ -13,7 +13,7 @@
       "name": "light",
       "lightMode": "deferredLight",
       "state": {
-        "depthTest": "lequal",
+        "depthTest": "less",
         "depthWrite": false,
         "blend": {
           "source": "one",

@@ -58,10 +58,8 @@ public:
 
 		void apply_json_impl(const nlohmann::json& json);
 
-		void getName(const nlohmann::json& json);
-		void getLightMode(const nlohmann::json& json);
-		void getState(const nlohmann::json& json);
-		void getProgram(const nlohmann::json& json);
+		void extractState(const nlohmann::json& json);
+		void extractProgram(const nlohmann::json& json);
 
 		friend struct json_initializable<pass>;
 	};
@@ -69,6 +67,7 @@ public:
 	Effect();
 
 	render_type getRenderType() const { return m_renderType; }
+	void setRenderType(render_type val) { m_renderType = val; }
 
 	const pass* getPass(light_mode mode);
 	const pass* getPass(const std::string& name);
@@ -108,7 +107,6 @@ private:
 	void apply_json_impl(const nlohmann::json& json);
 
 	void extractRenderQueue(const nlohmann::json& json);
-	void extractRenderType(const nlohmann::json& json);
 	void extractProperties(const nlohmann::json& json);
 	void extractPasses(const nlohmann::json& json);
 

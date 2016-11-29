@@ -1,12 +1,11 @@
 {
   "type": "texture2D",
-  "name": "testnormal",
+  "name": "brick_normal",
 
-  "file": "testnormal.raw",
-  "importer": "raw",
+  "file": "brick_normal.jpg",
+  "importer": "stb",
   "importOptions": {
-    "format": "rgb",
-    "size": 1024
+    "components": 3
   },
 
   "mipmaps": true,

@@ -1,12 +1,11 @@
 {
   "type": "texture2D",
-  "name": "test",
+  "name": "steel_metallic",
 
-  "file": "test.raw",
-  "importer": "raw",
+  "file": "steel_metallic.png",
+  "importer": "stb",
   "importOptions": {
-    "format": "srgb",
-    "size": 512
+    "components": 2
   },
 
   "mipmaps": true,

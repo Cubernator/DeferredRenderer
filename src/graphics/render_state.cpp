@@ -2,11 +2,11 @@
 #include "util/json_utils.hpp"
 
 json_interpreter<render_state> render_state::s_properties({
-	{ "cull",			&render_state::getCull },
-	{ "depthTest",		&render_state::getDepthTest },
-	{ "depthWrite",		&render_state::getDepthWrite },
-	{ "depthOffset",	&render_state::getDepthOffset },
-	{ "blend",			&render_state::getBlend }
+	{ "cull",			&render_state::extractCull },
+	{ "depthTest",		&render_state::extractDepthTest },
+	{ "depthWrite",		&render_state::extractDepthWrite },
+	{ "depthOffset",	&render_state::extractDepthOffset },
+	{ "blend",			&render_state::extractBlend }
 });
 
 keyword_helper<render_state::cull_mode> render_state::s_cullModes({
@@ -159,7 +159,7 @@ void render_state::apply_json_impl(const nlohmann::json& json)
 	s_properties.interpret_all(this, json);
 }
 
-void render_state::getCull(const nlohmann::json& json)
+void render_state::extractCull(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		cullEnable = json.get<bool>();
@@ -168,7 +168,7 @@ void render_state::getCull(const nlohmann::json& json)
 	}
 }
 
-void render_state::getDepthTest(const nlohmann::json& json)
+void render_state::extractDepthTest(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		depthTestEnable = json.get<bool>();
@@ -177,14 +177,14 @@ void render_state::getDepthTest(const nlohmann::json& json)
 	}
 }
 
-void render_state::getDepthWrite(const nlohmann::json& json)
+void render_state::extractDepthWrite(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		depthWriteEnable = json.get<bool>();
 	}
 }
 
-void render_state::getDepthOffset(const nlohmann::json& json)
+void render_state::extractDepthOffset(const nlohmann::json& json)
 {
 	if (json.is_array()) {
 		unsigned int s = json.size();
@@ -199,7 +199,7 @@ void render_state::getDepthOffset(const nlohmann::json& json)
 	}
 }
 
-void render_state::getBlend(const nlohmann::json& json)
+void render_state::extractBlend(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		blendEnable = json.get<bool>();

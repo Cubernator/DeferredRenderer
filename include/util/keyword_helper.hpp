@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <string>
 
+#include "nlohmann/json.hpp"
+
 template<typename T, typename KeyType = std::string>
 class keyword_helper
 {

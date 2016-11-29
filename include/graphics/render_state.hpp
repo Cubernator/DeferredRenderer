@@ -142,11 +142,11 @@ private:
 
 	void apply_json_impl(const nlohmann::json& json);
 
-	void getCull(const nlohmann::json& json);
-	void getDepthWrite(const nlohmann::json& json);
-	void getDepthOffset(const nlohmann::json& json);
-	void getDepthTest(const nlohmann::json& json);
-	void getBlend(const nlohmann::json& json);
+	void extractCull(const nlohmann::json& json);
+	void extractDepthWrite(const nlohmann::json& json);
+	void extractDepthOffset(const nlohmann::json& json);
+	void extractDepthTest(const nlohmann::json& json);
+	void extractBlend(const nlohmann::json& json);
 
 	static void setEnabled(GLenum target, bool enabled)
 	{

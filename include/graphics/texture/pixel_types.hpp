@@ -2,6 +2,7 @@
 #define PIXEL_TYPES_HPP
 
 #include <cstdint>
+#include <cstdio>
 
 #include "graphics/gl_types.hpp"
 

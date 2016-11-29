@@ -59,6 +59,8 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 		return;
 	}
 
+	std::cout << "Using OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+
 	m_input = std::make_unique<Input>(m_window);
 	m_content = std::make_unique<Content>();
 	m_renderer = std::make_unique<RenderEngine>(this);
@@ -67,32 +69,6 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 
 	auto firstSceneName = ai.get<std::string>("firstScene", "scene0");
 	loadScene(firstSceneName);
-}
-
-Engine::~Engine()
-{
-	m_scene.reset();
-	m_entities.clear();
-	m_renderer.reset();
-	m_content.reset();
-	m_input.reset();
-
-	glfwTerminate();
-}
-
-void Engine::createDefaultResources()
-{
-	pixel::srgb pw{ 255U, 255U, 255U };
-	auto texWhite = std::make_unique<Texture2D>();
-	texWhite->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
-	texWhite->setData(&pw, 1, 1);
-	m_content->addToPool("white", std::move(texWhite));
-
-	pixel::srgb pb{ 0U, 0U, 0U };
-	auto texBlack = std::make_unique<Texture2D>();
-	texBlack->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
-	texBlack->setData(&pb, 1, 1);
-	m_content->addToPool("black", std::move(texBlack));
 }
 
 int Engine::run()
@@ -118,6 +94,32 @@ int Engine::run()
 	}
 
 	return m_error;
+}
+
+void Engine::createDefaultResources()
+{
+	pixel::srgb pw{ 255U, 255U, 255U };
+	auto texWhite = std::make_unique<Texture2D>();
+	texWhite->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
+	texWhite->setData(&pw, 1, 1);
+	m_content->addToPool("white", std::move(texWhite));
+
+	pixel::srgb pb{ 0U, 0U, 0U };
+	auto texBlack = std::make_unique<Texture2D>();
+	texBlack->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
+	texBlack->setData(&pb, 1, 1);
+	m_content->addToPool("black", std::move(texBlack));
+}
+
+Engine::~Engine()
+{
+	m_scene.reset();
+	m_entities.clear();
+	m_renderer.reset();
+	m_content.reset();
+	m_input.reset();
+
+	glfwTerminate();
 }
 
 bool Engine::isRunning() const

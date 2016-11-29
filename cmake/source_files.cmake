@@ -1,6 +1,7 @@
 set(HEADER_FILES
 	include/glm.hpp
 	include/path.hpp
+	include/stb_image.h
 	include/uuid.hpp
 	include/components/FlyCamera.hpp
 	include/core/Component.hpp
@@ -27,9 +28,11 @@ set(HEADER_FILES
 	include/graphics/shader/shader_property.hpp
 	include/graphics/shader/uniform_id.hpp
 	include/graphics/texture/image_importer.hpp
+	include/graphics/texture/pixel_format_helper.hpp
 	include/graphics/texture/pixel_types.hpp
 	include/graphics/texture/raw_img_importer.hpp
 	include/graphics/texture/Sampler.hpp
+	include/graphics/texture/stb_img_importer.hpp
 	include/graphics/texture/Texture.hpp
 	include/graphics/texture/Texture2D.hpp
 	include/graphics/texture/texture_unit_manager.hpp
@@ -70,7 +73,10 @@ set(SOURCE_FILES
 	src/graphics/shader/Shader.cpp
 	src/graphics/shader/ShaderProgram.cpp
 	src/graphics/shader/shader_property.cpp
+	src/graphics/texture/image_importer.cpp
+	src/graphics/texture/pixel_format_helper.cpp
 	src/graphics/texture/raw_img_importer.cpp
+	src/graphics/texture/stb_img_importer.cpp
 	src/graphics/texture/Texture2D.cpp
 	src/graphics/texture/texture_unit_manager.cpp
 	src/util/app_info.cpp
@@ -101,8 +107,11 @@ set(CONTENT_FILES
 	content/effects/effect-diffuse.json
 	content/effects/effect-pbr.json
 	content/effects/effect-unlit.json
-	content/materials/material-stonewall.json
+	content/materials/brick.json
+	content/materials/debug.json
+	content/materials/steel.json
 	content/meshes/cube.fbx
+	content/meshes/sphere.fbx
 	content/scenes/scene-test.json
 	content/shaders/common/gbuffer.glh
 	content/shaders/common/input.glh
@@ -112,27 +121,33 @@ set(CONTENT_FILES
 	content/shaders/diffuse/diffuse.frag.glsl
 	content/shaders/diffuse/diffuse.vert.glsl
 	content/shaders/diffuse/diffuse_common.glh
-	content/shaders/pbr/pbr_ambient.frag.glsl
-	content/shaders/pbr/pbr_ambient.vert.glsl
-	content/shaders/pbr/pbr_ambient_common.glh
 	content/shaders/pbr/pbr_brdf.glh
-	content/shaders/pbr/pbr_deferred.frag.glsl
-	content/shaders/pbr/pbr_deferred.vert.glsl
-	content/shaders/pbr/pbr_deferred_common.glh
-	content/shaders/pbr/pbr_forward.frag.glsl
-	content/shaders/pbr/pbr_forward.vert.glsl
-	content/shaders/pbr/pbr_forward_common.glh
-	content/shaders/pbr/pbr_light.frag.glsl
-	content/shaders/pbr/pbr_light.vert.glsl
-	content/shaders/pbr/pbr_light_common.glh
 	content/shaders/pbr/pbr_utils.glh
+	content/shaders/pbr/deferred/pbr_deferred.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred.vert.glsl
+	content/shaders/pbr/deferred/pbr_deferred_common.glh
+	content/shaders/pbr/deferred_light/pbr_ambient.frag.glsl
+	content/shaders/pbr/deferred_light/pbr_ambient.vert.glsl
+	content/shaders/pbr/deferred_light/pbr_ambient_common.glh
+	content/shaders/pbr/deferred_light/pbr_light.frag.glsl
+	content/shaders/pbr/deferred_light/pbr_light.vert.glsl
+	content/shaders/pbr/deferred_light/pbr_light_common.glh
+	content/shaders/pbr/forward/pbr_forward.frag.glsl
+	content/shaders/pbr/forward/pbr_forward.vert.glsl
+	content/shaders/pbr/forward/pbr_forward_common.glh
 	content/shaders/unlit/unlit.frag.glsl
 	content/shaders/unlit/unlit.vert.glsl
 	content/shaders/unlit/unlit_common.glh
-	content/textures/test.raw
-	content/textures/testnormal.raw
-	content/textures/texture-test.json
-	content/textures/texture-testnormal.json
+	content/textures/brick_albedo.jpg
+	content/textures/brick_albedo.json
+	content/textures/brick_normal.jpg
+	content/textures/brick_normal.json
+	content/textures/steel_albedo.json
+	content/textures/steel_albedo.png
+	content/textures/steel_metallic.json
+	content/textures/steel_metallic.png
+	content/textures/steel_normal.json
+	content/textures/steel_normal.png
 )
 source_group("Content Files" FILES ${CONTENT_FILES})
 

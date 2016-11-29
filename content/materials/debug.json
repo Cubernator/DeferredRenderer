@@ -1,0 +1,8 @@
+{
+  "type": "material",
+  "name": "debug",
+  "effect": "unlit",
+  "properties": {
+    "color": "#ffffff11"
+  }
+}

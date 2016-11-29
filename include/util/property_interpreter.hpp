@@ -2,6 +2,7 @@
 #define PROPERTY_INTERPRETER_HPP
 
 #include <functional>
+#include <exception>
 
 #include "keyword_helper.hpp"
 
@@ -21,7 +22,11 @@ public:
 		mapped_type fun;
 		if (get(propName, fun)) {
 			if (fun) {
-				return fun(std::forward<Args>(args)...);
+				try {
+					return fun(std::forward<Args>(args)...);
+				} catch (std::exception& e) {
+					std::cout << "ERROR: an exception was thrown while interpreting json property \"" << propName << "\": " << e.what() << std::endl;
+				}
 			}
 		}
 

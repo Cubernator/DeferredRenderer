@@ -7,7 +7,8 @@
 REGISTER_OBJECT_TYPE_NO_EXT(Scene, "scene");
 
 json_interpreter<Scene> Scene::s_properties({
-	{ "backColor", &Scene::extractBackColor },
+	{ "backColor", &Scene::setBackColor },
+	{ "ambientLight", &Scene::setAmbientLight },
 	{ "entities", &Scene::extractEntities }
 });
 
@@ -35,11 +36,6 @@ void Scene::update()
 void Scene::apply_json_impl(const nlohmann::json& json)
 {
 	s_properties.interpret_all(this, json);
-}
-
-void Scene::extractBackColor(const nlohmann::json& json)
-{
-	setBackColor(json_get<glm::vec4>(json));
 }
 
 void Scene::extractEntities(const nlohmann::json& json)

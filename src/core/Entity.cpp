@@ -9,8 +9,8 @@
 REGISTER_OBJECT_TYPE_NO_EXT(Entity, "entity");
 
 json_interpreter<Entity> Entity::s_properties({
-	{ "name", &Entity::extractName },
-	{ "active", &Entity::extractActive },
+	{ "name", &Entity::setName },
+	{ "active", &Entity::setActive },
 	{ "components", &Entity::extractComponents }
 });
 
@@ -29,20 +29,6 @@ void Entity::update()
 void Entity::apply_json_impl(const nlohmann::json& json)
 {
 	s_properties.interpret_all(this, json);
-}
-
-void Entity::extractName(const nlohmann::json& json)
-{
-	if (json.is_string()) {
-		setName(json);
-	}
-}
-
-void Entity::extractActive(const nlohmann::json& json)
-{
-	if (json.is_boolean()) {
-		setActive(json);
-	}
 }
 
 void Entity::extractComponents(const nlohmann::json& json)

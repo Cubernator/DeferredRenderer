@@ -6,34 +6,52 @@
 #include "nlohmann/json.hpp"
 #include "GL/glew.h"
 #include "path.hpp"
+#include "pixel_types.hpp"
+#include "util/keyword_helper.hpp"
 
 class image_importer
 {
 public:
+	image_importer(const nlohmann::json& options);
 	virtual ~image_importer() { };
 
 	const char* getData() const { return getData_impl(); }
 
-	unsigned int getWidth() const { return getWidth_impl(); }
-	unsigned int getHeight() const { return getHeight_impl(); }
+	unsigned int getWidth() const { return m_width; }
+	unsigned int getHeight() const { return m_height; }
 
-	GLint getImageFormat() const { return getImageFormat_impl(); }
-	GLenum getPixelFormat() const { return getPixelFormat_impl(); }
-	GLenum getPixelType() const { return getPixelType_impl(); }
+	GLenum getPixelFormat() const { return m_format.pixelFormat; }
+	GLenum getPixelType() const { return m_format.pixelType; }
+	std::size_t getPixelSize() const { return m_format.pixelSize; }
 
-	bool getStatus() const { return getStatus_impl(); }
+	bool getStatus() const { return m_status; }
+
+	GLint getDefaultImageFormat() const {
+		return m_format.imageFormat;
+	}
+
+	GLint getImageFormat() const {
+		return (m_imgFormatOverride != 0) ? m_imgFormatOverride : getDefaultImageFormat();
+	}
 
 protected:
 	virtual const char* getData_impl() const = 0;
 
-	virtual unsigned int getWidth_impl() const = 0;
-	virtual unsigned int getHeight_impl() const = 0;
+	void setFormat(const pixel_traits& format) { m_format = format; }
+	void setStatus(bool status) { m_status = status; }
+	void setSize(unsigned int w, unsigned int h)
+	{
+		m_width = w;
+		m_height = h;
+	}
 
-	virtual GLint getImageFormat_impl() const = 0;
-	virtual GLenum getPixelFormat_impl() const = 0;
-	virtual GLenum getPixelType_impl() const = 0;
+	void setSuccess() { setStatus(true); }
 
-	virtual bool getStatus_impl() const { return true; };
+private:
+	unsigned int m_width, m_height;
+	pixel_traits m_format;
+	GLint m_imgFormatOverride;
+	bool m_status;
 };
 
 template<typename T>

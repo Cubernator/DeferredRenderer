@@ -1,0 +1,11 @@
+{
+  "type": "material",
+  "name": "steel",
+  "effect": "pbr",
+  "properties": {
+    "color": "#ffffff",
+    "mainTex": "steel_albedo",
+    "normalMap": "steel_normal",
+    "metallicMap": "steel_metallic"
+  }
+}

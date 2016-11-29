@@ -37,10 +37,6 @@ private:
 	bool m_dirty;
 
 	static json_interpreter<Transform> s_properties;
-
-	void extractPosition(const nlohmann::json& json);
-	void extractRotation(const nlohmann::json& json);
-	void extractScale(const nlohmann::json& json);
 };
 
 #endif // TRANSFORM_HPP

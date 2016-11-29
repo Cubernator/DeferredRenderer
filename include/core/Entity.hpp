@@ -102,8 +102,6 @@ private:
 
 	void apply_json_impl(const nlohmann::json& json);
 
-	void extractName(const nlohmann::json& json);
-	void extractActive(const nlohmann::json& json);
 	void extractComponents(const nlohmann::json& json);
 
 	friend struct json_initializable<Entity>;

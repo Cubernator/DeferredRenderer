@@ -3,15 +3,16 @@
 
 #include "common/uniforms.glh"
 #include "common/gbuffer.glh"
+#include "pbr/pbr_utils.glh"
 #include "pbr_deferred_common.glh"
-#include "pbr_utils.glh"
 
 uniform vec4 color;
-uniform float smoothness;
-uniform float metallic;
+uniform float smoothnessScale;
+uniform float metallicScale;
 
 uniform sampler2D mainTex;
 uniform sampler2D normalMap;
+uniform sampler2D metallicMap;
 
 in vertex_output v_output;
 
@@ -28,6 +29,11 @@ void main()
 
 	// sample surface color
 	vec3 albedo = texture(mainTex, v_output.uv).rgb * color.rgb;
+
+	// sample metallic and smoothness
+	vec2 metallicSmoothness = texture(metallicMap, v_output.uv).rg;
+	float metallic = metallicSmoothness.r * metallicScale;
+	float smoothness = metallicSmoothness.g * smoothnessScale;
 
 	getDiffuseAndSpecular(albedo, metallic, gbuf_diffuse.rgb, gbuf_specSmooth.rgb);
 

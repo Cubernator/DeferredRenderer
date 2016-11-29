@@ -46,8 +46,6 @@ private:
 	bool m_enabled;
 
 	static json_interpreter<Component> s_properties;
-
-	void extractEnabled(const nlohmann::json& json);
 };
 
 #endif // COMPONENT_HPP

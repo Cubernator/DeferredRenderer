@@ -44,7 +44,7 @@ DEF_UNIFORM_ID(gbuf_depth);
 RenderEngine* RenderEngine::s_instance = nullptr;
 
 RenderEngine::RenderEngine(Engine* parent)
-	: m_parent(parent), m_maxLights(8), m_gBufFBO(0), m_quadVAO(0),
+	: m_parent(parent), m_maxLights(8), m_gBufFBO(0), m_lightMeshVAO(0),
 	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
 	m_enableDeferred(true)
 {
@@ -97,19 +97,7 @@ void RenderEngine::setupDeferredPath()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glm::vec3 quadData[4] = {
-		{ -1.f, -1.f, 0.f },
-		{ 1.f, -1.f, 0.f },
-		{ -1.f, 1.f, 0.f },
-		{ 1.f, 1.f, 0.f }
-	};
-
-	glGenVertexArrays(1, &m_quadVAO);
-	glBindVertexArray(m_quadVAO);
-	glEnableVertexAttribArray(0);
-	m_quadVBuf.setData(4, quadData);
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
-	glBindVertexArray(0);
+	createCombinedLightMesh();
 
 	auto lightEffectName = app_info::info.get<std::string>("deferredLightEffect", "deferred_light");
 	m_deferredLightEffect = Content::instance()->getFromDisk<Effect>(lightEffectName);
@@ -130,14 +118,110 @@ void RenderEngine::setupDeferredPath()
 	}
 }
 
+void RenderEngine::createCombinedLightMesh()
+{
+	std::vector<glm::vec3> vertices;
+	std::vector<unsigned int> indices;
+	std::size_t baseIndex;
+	unsigned int b;
+
+
+	// generate quad
+	baseIndex = indices.size();
+	b = vertices.size();
+	vertices.insert(vertices.end(), {
+		{ -1.f, -1.f, 0.f },
+		{ 1.f, -1.f, 0.f },
+		{ -1.f, 1.f, 0.f },
+		{ 1.f, 1.f, 0.f }
+	});
+	indices.insert(indices.end(), {
+		b+0, b+1, b+2,
+		b+2, b+1, b+3
+	});
+	m_quadOffset = sizeof(unsigned int) * baseIndex;
+	m_quadCount = indices.size() - baseIndex;
+
+
+	// generate sphere
+	baseIndex = indices.size();
+	b = vertices.size();
+
+	const unsigned int rings = 6;
+	const unsigned int sectors = rings * 2;
+	const float alpha = glm::pi<float>() / sectors;
+	// adjust radius so the mesh encompasses the sphere
+	// NOTE: may be wrong still
+	const float r = 1.0f / cosf(alpha);
+	m_lightMeshRadius = r;
+
+	unsigned int rb = b + 1;
+	vertices.push_back({ 0.f, r, 0.f });
+	for (unsigned int si = 0; si < sectors; ++si) {
+		indices.insert(indices.end(), {
+			b, rb + si, rb + ((si < (sectors - 1)) ? (si + 1) : 0)
+		});
+	}
+
+	for (unsigned int ri = 1; ri < rings; ++ri) {
+		float theta = (glm::pi<float>() * ri) / rings;
+		float sint = sinf(theta), cost = cosf(theta);
+
+		for (unsigned int si = 0; si < sectors; ++si) {
+			float phi = (glm::two_pi<float>() * si) / sectors;
+			vertices.push_back({
+				r * sint * sinf(phi),
+				r * cost,
+				r * sint * cosf(phi)
+			});
+
+			if (ri < (rings - 1)) {
+				unsigned int sn = (si < (sectors - 1)) ? (si + 1) : 0;
+
+				indices.insert(indices.end(), {
+					rb + si,
+					rb + si + sectors,
+					rb + sn,
+					rb + sn,
+					rb + si + sectors,
+					rb + sn + sectors,
+				});
+			}
+		}
+
+		rb += sectors;
+	}
+	b = vertices.size();
+	rb -= sectors;
+	vertices.push_back({ 0.f, -r, 0.f });
+	for (unsigned int si = 0; si < sectors; ++si) {
+		indices.insert(indices.end(), {
+			b, rb + ((si < (sectors - 1)) ? (si + 1) : 0), rb + si
+		});
+	}
+
+	m_sphereOffset = sizeof(unsigned int) * baseIndex;
+	m_sphereCount = indices.size() - baseIndex;
+
+	m_lightMeshVbuf.setData(vertices.size(), vertices.data());
+	m_lightMeshIbuf.setData(indices.size(), indices.data());
+
+	glGenVertexArrays(1, &m_lightMeshVAO);
+	glBindVertexArray(m_lightMeshVAO);
+	glEnableVertexAttribArray(0);
+	m_lightMeshVbuf.bind();
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindVertexArray(0);
+}
+
 RenderEngine::~RenderEngine()
 {
 	if (m_gBufFBO) {
 		glDeleteFramebuffers(1, &m_gBufFBO);
 	}
 
-	if (m_quadVAO) {
-		glDeleteVertexArrays(1, &m_quadVAO);
+	if (m_lightMeshVAO) {
+		glDeleteVertexArrays(1, &m_lightMeshVAO);
 	}
 }
 
@@ -156,20 +240,20 @@ void RenderEngine::render()
 	Scene* scene = m_parent->getScene();
 	if (scene) {
 		m_clearColor = scene->getBackColor();
-		m_objUniforms.ambientLight = scene->getAmbientLight();
+		m_ambientLight = scene->getAmbientLight();
 	}
 
 	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
 	glDepthMask(GL_TRUE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	Camera* mainCam = Camera::main();
-	if (!mainCam) return; // can't render anything without a camera!
+	m_camera = Camera::main();
+	if (!m_camera) return; // can't render anything without a camera!
 
 	int sw, sh;
 	m_parent->getScreenSize(sw, sh);
 
-	m_objUniforms.setProjView(mainCam, float(sw), float(sh));
+	m_objUniforms.setProjView(m_camera, float(sw), float(sh));
 
 	m_dirLights.clear();
 	m_posLights.clear();
@@ -238,6 +322,7 @@ void RenderEngine::renderDeferred()
 {
 	if (m_deferredQueue.empty() || !(m_deferredAmbientPass && m_deferredAmbientPass->program)) return;
 
+	// G-Buffer pass
 	glBindFramebuffer(GL_FRAMEBUFFER, m_gBufFBO);
 	glDrawBuffers(3, m_gDrawBufs);
 
@@ -246,7 +331,6 @@ void RenderEngine::renderDeferred()
 	glClearBufferfv(GL_COLOR, 2, m_gClearColor);
 	glClearBufferfv(GL_DEPTH, 0, &m_gClearDepth);
 
-	// G-Buffer pass
 	for (const auto& obj : m_deferredQueue) {
 		m_objUniforms.setWorld(obj.renderer->getEntity());
 		Material* material = obj.renderer->getMaterial();
@@ -259,28 +343,28 @@ void RenderEngine::renderDeferred()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Light pass
-	glBindVertexArray(m_quadVAO);
+	// Lighting pass
+	glBindVertexArray(m_lightMeshVAO);
+	m_lightMeshIbuf.bind();
 
 	// Render ambient light
 	bindDeferredLightPass(m_deferredAmbientPass);
-	m_deferredAmbientPass->program->setUniform(g_transform_id, glm::mat4());
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	applyAmbient(true, m_deferredAmbientPass->program);
+	drawDeferredLight(nullptr, m_deferredAmbientPass->program);
 
 	if (!(m_deferredLightPass && m_deferredLightPass->program)) return;
 
 	// Render normal lights
 	bindDeferredLightPass(m_deferredLightPass);
+	applyAmbient(false, m_deferredLightPass->program);
 
 	// First directional lights, then positional lights
 	m_lightQueue.assign(m_dirLights.begin(), m_dirLights.end());
 	m_lightQueue.insert(m_lightQueue.end(), m_posLights.begin(), m_posLights.end());
 
 	for (Light* light : m_lightQueue) {
-		// TODO: set transform
-		m_deferredLightPass->program->setUniform(g_transform_id, glm::mat4());
 		applyLight(light, m_deferredLightPass->program);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		drawDeferredLight(light, m_deferredLightPass->program);
 	}
 }
 
@@ -317,6 +401,7 @@ void RenderEngine::renderForward()
 		bindPass(obj.pass, material);
 		updateRenderState(obj.pass->state);
 		applyLight(*lit, obj.pass->program);
+		applyAmbient(true, obj.pass->program);
 		obj.renderer->bind();
 		obj.renderer->draw();
 		++lit;
@@ -326,6 +411,9 @@ void RenderEngine::renderForward()
 		if (passFwdAdd && passFwdAdd->program) {
 			if (passFwdAdd->program != obj.pass->program) // no need to re-bind shader and re-apply uniforms if program is the same
 				bindPass(passFwdAdd, material);
+
+			// disable ambient light in additive pass
+			applyAmbient(false, passFwdAdd->program);
 			updateRenderState(passFwdAdd->state);
 
 			while (lit != m_lightQueue.end()) {
@@ -373,11 +461,41 @@ void RenderEngine::bindDeferredLightPass(const Effect::pass * pass)
 	program->bind();
 	program->setUniform(g_cm_mat_ivp_id, m_objUniforms.ivp);
 	program->setUniform(g_cm_cam_pos_id, m_objUniforms.camPos);
-	program->setUniform(g_cm_light_ambient_id, m_objUniforms.ambientLight);
 	program->setTexture(g_gbuf_diffuse_id, m_gBufDiff.get());
 	program->setTexture(g_gbuf_specSmooth_id, m_gBufSpec.get());
 	program->setTexture(g_gbuf_normal_id, m_gBufNorm.get());
 	program->setTexture(g_gbuf_depth_id, m_gBufDepth.get());
+}
+
+void RenderEngine::drawDeferredLight(Light* light, ShaderProgram* program)
+{
+	glm::mat4 transform;
+	auto o = m_quadOffset;
+	auto c = m_quadCount;
+
+	if (light) {
+		Light::type t = light->getType();
+
+		if (t != Light::type_directional) {
+			float r = light->getRange();
+			float lr = r * m_lightMeshRadius;
+			Transform* lt = light->getEntity()->getTransform();
+			glm::vec4 lp = {lt->getPosition(), 1.0f};
+			glm::vec3 lpos = m_objUniforms.view * lp;
+			
+			// TODO: improve this test and add frustum culling
+			if ((-lpos.z - lr) > m_camera->getNearPlane()) {
+				transform = m_objUniforms.vp * lt->getRigidMatrix() * glm::scale(glm::vec3(r));
+				if (t == Light::type_point) {
+					c = m_sphereCount;
+					o = m_sphereOffset;
+				}
+			}
+		}
+	}
+
+	program->setUniform(g_transform_id, transform);
+	glDrawElements(GL_TRIANGLES, c, GL_UNSIGNED_INT, reinterpret_cast<void*>(o));
 }
 
 void RenderEngine::bindPass(const Effect::pass* pass, Material* material)
@@ -394,6 +512,11 @@ void RenderEngine::applyLight(Light* light, ShaderProgram* program)
 		program->setUniform(g_cm_light_dir_id, light->getShaderProp());
 		program->setUniform(g_cm_light_radius_id, light->getRange());
 	}
+}
+
+void RenderEngine::applyAmbient(bool enabled, ShaderProgram* program)
+{
+	program->setUniform(g_cm_light_ambient_id, enabled ? m_ambientLight : glm::vec4(0.f));
 }
 
 void RenderEngine::updateRenderState(const render_state& newState)
@@ -434,5 +557,4 @@ void RenderEngine::uniforms_per_obj::apply(ShaderProgram* program) const
 	program->setUniform(g_cm_mat_ivp_id, ivp);
 	program->setUniform(g_cm_mat_wvp_id, wvp);
 	program->setUniform(g_cm_cam_pos_id, camPos);
-	program->setUniform(g_cm_light_ambient_id, ambientLight);
 }

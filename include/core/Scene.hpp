@@ -40,7 +40,6 @@ private:
 
 	void apply_json_impl(const nlohmann::json& json);
 
-	void extractBackColor(const nlohmann::json& json);
 	void extractEntities(const nlohmann::json& json);
 
 	Scene(const Scene& other) = delete;

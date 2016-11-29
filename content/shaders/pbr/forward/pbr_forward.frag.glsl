@@ -3,16 +3,17 @@
 
 #include "common/uniforms.glh"
 #include "common/lighting.glh"
+#include "pbr/pbr_brdf.glh"
+#include "pbr/pbr_utils.glh"
 #include "pbr_forward_common.glh"
-#include "pbr_utils.glh"
-#include "pbr_brdf.glh"
 
 uniform vec4 color;
-uniform float smoothness;
-uniform float metallic;
+uniform float smoothnessScale;
+uniform float metallicScale;
 
 uniform sampler2D mainTex;
 uniform sampler2D normalMap;
+uniform sampler2D metallicMap;
 
 in vertex_output v_output;
 
@@ -34,6 +35,11 @@ void main()
 	// sample surface color
 	vec3 albedo = texture(mainTex, v_output.uv).rgb * color.rgb;
 
+	// sample metallic and smoothness
+	vec2 metallicSmoothness = texture(metallicMap, v_output.uv).rg;
+	float metallic = metallicSmoothness.r * metallicScale;
+	float smoothness = metallicSmoothness.g * smoothnessScale;
+
 	vec3 diffCol, specCol;
 	getDiffuseAndSpecular(albedo, metallic, diffCol, specCol);
 
@@ -43,8 +49,10 @@ void main()
 	vec3 color = pbs_brdf(diffCol, specCol, lightColor, roughness, ppNormal, v, l);
 
 	// eliminate lighting artifacts caused by normal mapping
-	float ndotl = dot(n, l);
-	color *= (ndotl < 0.0) ? 0.0 : 1.0;
+	//float ndotl = dot(n, l);
+	//color *= (ndotl < 0.0) ? 0.0 : 1.0;
+
+	color += pbs_brdf_ambient(diffCol, cm_light_ambient.rgb);
 
 	f_output = vec4(color, 1.0);
 }

@@ -2,6 +2,7 @@
 #define JSON_INTERPRETER_HPP
 
 #include "property_interpreter.hpp"
+#include "json_utils.hpp"
 #include "nlohmann/json.hpp"
 #include "boost/iterator/transform_iterator.hpp"
 
@@ -10,12 +11,44 @@ class json_interpreter : public property_interpreter<void, T*, const nlohmann::j
 {
 public:
 	using member_func = void (T::*)(const nlohmann::json&);
-	using member_func_pair = std::pair<key_type, member_func>;
 
-	json_interpreter(std::initializer_list<member_func_pair> functions)
-		: property_interpreter(
-			boost::make_transform_iterator(functions.begin(), transform_pair()),
-			boost::make_transform_iterator(functions.end(), transform_pair())) { }
+	template<typename U>
+	using setter_func = void (T::*)(U);
+
+	template<typename U>
+	using member_var = U T::*;
+
+	template<typename U>
+	using kwd_helper = keyword_helper<std::decay_t<U>>;
+
+	struct property_accessor
+	{
+		mapped_type function;
+
+		property_accessor(member_func f) : function(std::mem_fn(f)) { }
+
+		template<typename U> property_accessor(setter_func<U> f)
+			: function(std::bind(setter_from_json<U>(), std::placeholders::_1, f, std::placeholders::_2)) { }
+
+		template<typename U> property_accessor(setter_func<U> f, const kwd_helper<U>* keywords)
+			: function(std::bind(setter_from_keyword<U>(), std::placeholders::_1, f, keywords, std::placeholders::_2)) { }
+
+		template<typename U> property_accessor(member_var<U> v)
+			: function(std::bind(member_from_json<U>(), std::placeholders::_1, v, std::placeholders::_2)) { }
+
+		template<typename U> property_accessor(member_var<U> v, const kwd_helper<U>* keywords)
+			: function(std::bind(member_from_keyword<U>(), std::placeholders::_1, v, keywords, std::placeholders::_2)) { }
+
+		void operator() (T* obj, const nlohmann::json& json) const
+		{
+			function(obj, json);
+		}
+	};
+
+	using accessor_pair = std::pair<key_type, property_accessor>;
+
+	json_interpreter(std::initializer_list<accessor_pair> functions)
+		: property_interpreter(functions.begin(), functions.end()) { }
 
 	void interpret_all(T* obj, const nlohmann::json& json)
 	{
@@ -27,11 +60,53 @@ public:
 	}
 
 private:
-	struct transform_pair
+	template<typename U>
+	struct setter_from_json
 	{
-		value_type operator() (const member_func_pair& v) const
+		using value_type = std::decay_t<U>;
+
+		void operator() (T* obj, setter_func<U> func, const nlohmann::json& json) const
 		{
-			return value_type(v.first, std::mem_fn(v.second));
+			(obj->*func)(json_get<value_type>(json));
+		}
+	};
+
+	template<typename U>
+	struct setter_from_keyword
+	{
+		using value_type = std::decay_t<U>;
+
+		void operator() (T* obj, setter_func<U> func, const kwd_helper<U>* keywords, const nlohmann::json& json) const
+		{
+			value_type tmp;
+			if (keywords->get(json, tmp)) {
+				(obj->*func)(std::move(tmp));
+			}
+		}
+	};
+
+	template<typename U>
+	struct member_from_json
+	{
+		using value_type = std::decay_t<U>;
+
+		void operator() (T* obj, member_var<U> var, const nlohmann::json& json) const
+		{
+			obj->*var = json_get<value_type>(json);
+		}
+	};
+
+	template<typename U>
+	struct member_from_keyword
+	{
+		using value_type = std::decay_t<U>;
+
+		void operator() (T* obj, member_var<U> var, const kwd_helper<U>* keywords, const nlohmann::json& json) const
+		{
+			value_type tmp;
+			if (keywords->get(json, tmp)) {
+				obj->*var = std::move(tmp);
+			}
 		}
 	};
 };

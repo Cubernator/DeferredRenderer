@@ -39,10 +39,6 @@ private:
 	static Camera *s_mainCamera;
 
 	static json_interpreter<Camera> s_properties;
-
-	void extractFov(const nlohmann::json& json);
-	void extractNearPlane(const nlohmann::json& json);
-	void extractFarPlane(const nlohmann::json& json);
 };
 
 #endif // CAMERA_HPP

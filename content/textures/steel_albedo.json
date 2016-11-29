@@ -1,0 +1,16 @@
+{
+  "type": "texture2D",
+  "name": "steel_albedo",
+
+  "file": "steel_albedo.png",
+  "importer": "stb",
+  "importOptions": {
+    "convertTo": "srgb",
+    "components": 3
+  },
+
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 4
+}

@@ -8,9 +8,9 @@ REGISTER_COMPONENT_CLASS(Camera, "camera");
 Camera * Camera::s_mainCamera(nullptr);
 
 json_interpreter<Camera> Camera::s_properties({
-	{ "fov",		&Camera::extractFov },
-	{ "nearPlane",	&Camera::extractNearPlane },
-	{ "farPlane",	&Camera::extractFarPlane }
+	{ "fov",		&Camera::setFov },
+	{ "nearPlane",	&Camera::setNearPlane },
+	{ "farPlane",	&Camera::setFarPlane }
 });
 
 Camera::Camera(Entity* parent) : Component(parent)
@@ -36,26 +36,5 @@ void Camera::apply_json_property_impl(const std::string& name, const nlohmann::j
 {
 	Component::apply_json_property_impl(name, json);
 	s_properties.interpret_property(name, this, json);
-}
-
-void Camera::extractFov(const nlohmann::json& json)
-{
-	if (json.is_number()) {
-		setFov(json);
-	}
-}
-
-void Camera::extractNearPlane(const nlohmann::json& json)
-{
-	if (json.is_number()) {
-		setNearPlane(json);
-	}
-}
-
-void Camera::extractFarPlane(const nlohmann::json& json)
-{
-	if (json.is_number()) {
-		setFarPlane(json);
-	}
 }
 

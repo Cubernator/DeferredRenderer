@@ -8,16 +8,16 @@ REGISTER_OBJECT_TYPE_NO_EXT(Effect, "effect");
 
 json_interpreter<Effect> Effect::s_properties({
 	{ "renderQueue",	&Effect::extractRenderQueue },
-	{ "renderType",		&Effect::extractRenderType },
+	{ "renderType",		{&Effect::setRenderType, &Effect::s_renderTypes} },
 	{ "properties",		&Effect::extractProperties },
 	{ "passes",			&Effect::extractPasses }
 });
 
 json_interpreter<Effect::pass> Effect::pass::s_properties({
-	{ "name",			&Effect::pass::getName },
-	{ "lightMode",		&Effect::pass::getLightMode },
-	{ "state",			&Effect::pass::getState },
-	{ "program",		&Effect::pass::getProgram },
+	{ "name",			&Effect::pass::name },
+	{ "lightMode",		{&Effect::pass::mode, &Effect::s_lightModes} },
+	{ "state",			&Effect::pass::extractState },
+	{ "program",		&Effect::pass::extractProgram },
 });
 
 keyword_helper<Effect::render_queue> Effect::s_renderQueues({
@@ -111,11 +111,6 @@ void Effect::extractRenderQueue(const nlohmann::json& json)
 	m_queuePriority = int(q) + offset;
 }
 
-void Effect::extractRenderType(const nlohmann::json& json)
-{
-	s_renderTypes.get(json, m_renderType);
-}
-
 void Effect::extractProperties(const nlohmann::json& json)
 {
 	if (json.is_array()) {
@@ -157,24 +152,12 @@ void Effect::addPass(const nlohmann::json& json)
 	}
 }
 
-void Effect::pass::getName(const nlohmann::json& json)
-{
-	if (json.is_string()) {
-		name = json.get<std::string>();
-	}
-}
-
-void Effect::pass::getLightMode(const nlohmann::json& json)
-{
-	s_lightModes.get(json, mode);
-}
-
-void Effect::pass::getState(const nlohmann::json& json)
+void Effect::pass::extractState(const nlohmann::json& json)
 {
 	state.apply_json(json);
 }
 
-void Effect::pass::getProgram(const nlohmann::json& json)
+void Effect::pass::extractProgram(const nlohmann::json& json)
 {
 	program = Content::instance()->getPooledFromJson<ShaderProgram>(json);
 }

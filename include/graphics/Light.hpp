@@ -51,12 +51,6 @@ private:
 
 	static json_interpreter<Light> s_properties;
 	static keyword_helper<type> s_types;
-
-	void extractType(const nlohmann::json& json);
-	void extractColor(const nlohmann::json& json);
-	void extractIntensity(const nlohmann::json& json);
-	void extractRange(const nlohmann::json& json);
-	void extractPriority(const nlohmann::json& json);
 };
 
 #endif // LIGHT_HPP

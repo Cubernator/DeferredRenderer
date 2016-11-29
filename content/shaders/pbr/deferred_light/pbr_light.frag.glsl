@@ -2,8 +2,8 @@
 #pragma type fragment
 
 #include "common/lighting.glh"
+#include "pbr/pbr_brdf.glh"
 #include "pbr_light_common.glh"
-#include "pbr_brdf.glh"
 
 uniform sampler2D gbuf_diffuse;
 uniform sampler2D gbuf_specSmooth;
@@ -39,6 +39,7 @@ void main()
 
 	// apply BRDF
 	vec3 color = pbs_brdf(diffCol, specSmooth.rgb, lightColor, roughness, normal, v, l);
+	//vec3 color = vec3(1.0, 0.0, 0.0);
 
 	f_output = vec4(color, 1.0);
 }

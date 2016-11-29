@@ -11,10 +11,10 @@
 REGISTER_COMPONENT_CLASS(FlyCamera, "flyCamera");
 
 json_interpreter<FlyCamera> FlyCamera::s_properties({
-	{ "normalSpeed", &FlyCamera::extractNormalSpeed },
-	{ "fastSpeed", &FlyCamera::extractFastSpeed },
-	{ "sensitivityX", &FlyCamera::extractSensitivityX },
-	{ "sensitivityY", &FlyCamera::extractSensitivityY }
+	{ "normalSpeed", &FlyCamera::m_normalSpeed },
+	{ "fastSpeed", &FlyCamera::m_fastSpeed },
+	{ "sensitivityX", &FlyCamera::m_sensitivityX },
+	{ "sensitivityY", &FlyCamera::m_sensitivityY }
 });
 
 FlyCamera::FlyCamera(Entity* parent) : Component(parent), m_normalSpeed(1.0f), m_sensitivityX(1.0f), m_sensitivityY(1.0f), m_angleX(0.0f), m_angleY(0.0f) { }
@@ -84,25 +84,5 @@ void FlyCamera::update_impl()
 		trans->setPosition(pos);
 		trans->setRotation(rot);
 	}
-}
-
-void FlyCamera::extractNormalSpeed(const nlohmann::json& json)
-{
-	m_normalSpeed = json;
-}
-
-void FlyCamera::extractFastSpeed(const nlohmann::json& json)
-{
-	m_fastSpeed = json;
-}
-
-void FlyCamera::extractSensitivityX(const nlohmann::json& json)
-{
-	m_sensitivityX = json;
-}
-
-void FlyCamera::extractSensitivityY(const nlohmann::json& json)
-{
-	m_sensitivityY = json;
 }
 

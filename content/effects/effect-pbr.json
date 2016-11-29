@@ -20,14 +20,19 @@
       "default": "white"
     },
     {
-      "name": "smoothness",
-      "type": "float",
-      "default": 0.5
+      "name": "metallicMap",
+      "type": "texture2D",
+      "default": "white"
     },
     {
-      "name": "metallic",
+      "name": "smoothnessScale",
       "type": "float",
-      "default": 0.0
+      "default": 1.0
+    },
+    {
+      "name": "metallicScale",
+      "type": "float",
+      "default": 1.0
     },
     {
       "name": "dielectricReflec",

@@ -1,5 +1,6 @@
 #include "graphics/texture/Texture2D.hpp"
 #include "graphics/texture/raw_img_importer.hpp"
+#include "graphics/texture/stb_img_importer.hpp"
 #include "util/type_registry.hpp"
 #include "util/json_utils.hpp"
 #include "core/Content.hpp"
@@ -7,7 +8,8 @@
 REGISTER_OBJECT_TYPE_NO_EXT(Texture2D, "texture2D");
 
 keyword_helper<Texture2D::importer_factory> Texture2D::s_importers({
-	{ "raw", image_importer_factory<raw_img_importer>() }
+	{ "raw", image_importer_factory<raw_img_importer>() },
+	{ "stb", image_importer_factory<stb_img_importer>() }
 });
 
 keyword_helper<Texture2D::filter> Texture2D::s_filters({

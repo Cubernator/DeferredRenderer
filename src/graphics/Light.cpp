@@ -9,11 +9,11 @@
 REGISTER_COMPONENT_CLASS(Light, "light");
 
 json_interpreter<Light> Light::s_properties({
-	{ "lightType", &Light::extractType },
-	{ "color", &Light::extractColor },
-	{ "intensity", &Light::extractIntensity },
-	{ "range", &Light::extractRange },
-	{ "priority", &Light::extractPriority }
+	{ "lightType", {&Light::setType, &Light::s_types} },
+	{ "color", &Light::setColor },
+	{ "intensity", &Light::setIntensity },
+	{ "range", &Light::setRange },
+	{ "priority", &Light::setPriority }
 });
 
 keyword_helper<Light::type> Light::s_types({
@@ -71,30 +71,5 @@ void Light::apply_json_property_impl(const std::string& name, const nlohmann::js
 {
 	Component::apply_json_property_impl(name, json);
 	s_properties.interpret_property(name, this, json);
-}
-
-void Light::extractType(const nlohmann::json& json)
-{
-	s_types.get(json, m_type);
-}
-
-void Light::extractColor(const nlohmann::json& json)
-{
-	m_color = json_get<glm::vec4>(json);
-}
-
-void Light::extractIntensity(const nlohmann::json& json)
-{
-	m_intensity = json;
-}
-
-void Light::extractRange(const nlohmann::json& json)
-{
-	m_range = json;
-}
-
-void Light::extractPriority(const nlohmann::json& json)
-{
-	m_priority = json;
 }
 

@@ -1,8 +1,8 @@
 {
   "type": "effect",
   "name": "unlit",
-  "renderQueue": [ "geometry", 0 ],
-  "renderType": "opaque",
+  "renderQueue": [ "transparent", 0 ],
+  "renderType": "transparent",
   "properties": [
     {"name": "color", "type": "vec4", "default": "#ffffffff"}
   ],
@@ -11,11 +11,11 @@
       "name": "default",
       "lightMode": "forwardBase",
       "state": {
-        "cull": "back",
-        "depthTest": "less",
-        "depthWrite": true,
-        "depthOffset": [ 0, 0 ],
-        "blend": false
+        "depthWrite": false,
+        "blend": {
+          "source": "srcAlpha",
+          "dest": "oneMinusSrcAlpha"
+        }
       },
       "program": {
         "name": "unlit",

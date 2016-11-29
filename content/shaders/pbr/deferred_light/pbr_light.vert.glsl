@@ -12,9 +12,10 @@ out vertex_output v_output;
 void main()
 {
 	vec4 pos = transform * vec4(inPos, 1.0);
+	pos /= pos.w;
 
 	v_output.pos = pos.xy;
-	v_output.uv = (pos.xy + 1.0) * 0.5;
+	v_output.uv = (v_output.pos + 1.0) * 0.5;
 
 	gl_Position = pos;
 }

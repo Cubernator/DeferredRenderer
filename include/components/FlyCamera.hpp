@@ -22,10 +22,7 @@ private:
 
 	static json_interpreter<FlyCamera> s_properties;
 
-	void extractNormalSpeed(const nlohmann::json& json);
-	void extractFastSpeed(const nlohmann::json& json);
-	void extractSensitivityX(const nlohmann::json& json);
-	void extractSensitivityY(const nlohmann::json& json);
+	friend class json_interpreter<FlyCamera>;
 };
 
 #endif // FLYCAMERA_HPP

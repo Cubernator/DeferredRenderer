@@ -2,7 +2,7 @@
 #include "core/Entity.hpp"
 
 json_interpreter<Component> Component::s_properties({
-	{ "enabled", &Component::extractEnabled }
+	{ "enabled", &Component::setEnabled }
 });
 
 Component::Component(Entity* parent) : m_parent(parent) { }
@@ -16,11 +16,4 @@ bool Component::isActiveAndEnabled() const
 void Component::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
 {
 	s_properties.interpret_property(name, this, json);
-}
-
-void Component::extractEnabled(const nlohmann::json& json)
-{
-	if (json.is_boolean()) {
-		setEnabled(json);
-	}
 }
