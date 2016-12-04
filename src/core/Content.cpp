@@ -10,8 +10,8 @@ Content::Content()
 {
 	s_instance = this;
 
-	m_contentRoot = app_info::info.get<path>("contentRoot", "content");
-	m_shaderIncludeDirs = app_info::info.get<std::vector<path>>("shaderIncludeDirs");
+	m_contentRoot = app_info::get<path>("contentRoot", "content");
+	m_shaderIncludeDirs = app_info::get<std::vector<path>>("shaderIncludeDirs");
 
 	std::cout << "scanning content..." << std::endl;
 	scanContentFolder(m_contentRoot);

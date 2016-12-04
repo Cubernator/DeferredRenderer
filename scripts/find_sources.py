@@ -7,13 +7,14 @@
 # Run this script whenever you have added files to the project.
 
 filters = [
-#   | directory    | cmake variable    | regex pattern | filter name (appears in IDEs)
-# --------------------------------------------------------------------------------------------
-    ("include",     "HEADER_FILES",     "^.*\.h(pp)?$", ""              ),
-    ("src",         "SOURCE_FILES",     "^.*\.c(pp)?$", ""              ),
-    ("cmake",       "CMAKE_FILES",      ".*",           "CMake Files"   ),
-    ("scripts",     "SCRIPT_FILES",     ".*",           "Script Files"  ),
-    ("content",     "CONTENT_FILES",    ".*",           "Content Files" )
+#   | directory    | cmake variable    | regex pattern             | filter name (appears in IDEs)
+# ------------------------------------------------------------------------------------------------------
+    ("include",     "HEADER_FILES",     "^.*\.h(pp)?$",             ""              ),
+    ("src",         "SOURCE_FILES",     "^.*\.c(pp)?$",             ""              ),
+    ("cmake",       "CMAKE_FILES",      ".*",                       "CMake Files"   ),
+    ("scripts",     "SCRIPT_FILES",     ".*",                       "Script Files"  ),
+    ("content",     "SHADER_FILES",     "^.*\.((glsl)|(glh))$",     "Shader Files"  ),
+    ("content",     "CONTENT_FILES",    ".*(?<!glsl)(?<!glh)$",     "Content Files" )
 ]
 
 # Which file to write into (relative to project root)

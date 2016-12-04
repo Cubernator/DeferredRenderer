@@ -101,18 +101,7 @@ set(SCRIPT_FILES
 )
 source_group("Script Files" FILES ${SCRIPT_FILES})
 
-set(CONTENT_FILES
-	content/appinfo.json
-	content/effects/effect-deferred_light.json
-	content/effects/effect-diffuse.json
-	content/effects/effect-pbr.json
-	content/effects/effect-unlit.json
-	content/materials/brick.json
-	content/materials/debug.json
-	content/materials/steel.json
-	content/meshes/cube.fbx
-	content/meshes/sphere.fbx
-	content/scenes/scene-test.json
+set(SHADER_FILES
 	content/shaders/common/gbuffer.glh
 	content/shaders/common/input.glh
 	content/shaders/common/lighting.glh
@@ -138,6 +127,20 @@ set(CONTENT_FILES
 	content/shaders/unlit/unlit.frag.glsl
 	content/shaders/unlit/unlit.vert.glsl
 	content/shaders/unlit/unlit_common.glh
+)
+source_group("Shader Files" FILES ${SHADER_FILES})
+
+set(CONTENT_FILES
+	content/effects/effect-deferred_light.json
+	content/effects/effect-diffuse.json
+	content/effects/effect-pbr.json
+	content/effects/effect-unlit.json
+	content/materials/brick.json
+	content/materials/debug.json
+	content/materials/steel.json
+	content/meshes/cube.fbx
+	content/meshes/sphere.fbx
+	content/scenes/scene-test.json
 	content/textures/brick_albedo.jpg
 	content/textures/brick_albedo.json
 	content/textures/brick_normal.jpg
@@ -156,5 +159,6 @@ set(ALL_SOURCE_FILES
 	${SOURCE_FILES}
 	${CMAKE_FILES}
 	${SCRIPT_FILES}
+	${SHADER_FILES}
 	${CONTENT_FILES}
 )

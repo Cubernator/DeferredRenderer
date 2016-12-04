@@ -1,8 +1,22 @@
-uniform vec4 cm_light_color;
-uniform vec4 cm_light_dir;
-uniform float cm_light_radius;
-
+// ambient light color (alpha unused)
 uniform vec4 cm_light_ambient;
+
+// light color (alpha unused)
+uniform vec4 cm_light_color;
+
+// directional: light direction, w = 0.0
+// non-directional: light world space position, w = 1.0
+uniform vec4 cm_light_dir;
+
+// spotlights: spotlight direction (xyz), cosine of spotlight angle (w)
+uniform vec4 cm_light_spot;
+
+// x: squared light range
+// y: cosine of spotlight falloff threshold angle
+// z: 1 / (spot.w - atten.y)
+// w: unused
+uniform vec4 cm_light_atten;
+
 
 vec3 light_vec(vec3 pos)
 {
@@ -13,21 +27,34 @@ vec3 light_vec(vec3 pos)
 	return dir;
 }
 
-float light_attenuation(vec3 vec, float radius)
+float light_attenuation(vec3 vec, float sqrRange)
 {
-	float dist = length(vec);
-	float att = clamp(1.0 - (dist*dist)/(radius*radius), 0.0, 1.0);
+	float sqrDist = dot(vec, vec);
+	float att = clamp(1.0 - (sqrDist / sqrRange), 0.0, 1.0);
 	return att*att;
 }
 
 float light_attenuation_auto(vec3 vec)
 {
-	return light_attenuation(vec * cm_light_dir.w, cm_light_radius);
+	return (cm_light_dir.w > 0.0) ? light_attenuation(vec, cm_light_atten.x) : 1.0f;
 }
 
-vec3 light_attenuated_color(vec3 vec)
+float light_spot(vec3 vec, vec3 dir, float cosFalloff, float rcpFalloffDiff)
 {
-	return cm_light_color.rgb * light_attenuation_auto(vec);
+	float d = dot(normalize(vec), dir);
+	float f = min(d - cosFalloff, 0.0) * rcpFalloffDiff;
+	f = clamp(1.0 - f*f, 0.0, 1.0);
+	return f;
+}
+
+float light_spot_auto(vec3 vec)
+{
+	return (cm_light_spot.w < 0.0) ? 1.0 : light_spot(vec, cm_light_spot.xyz, cm_light_atten.y, cm_light_atten.z);
+}
+
+vec3 light_color_auto(vec3 vec)
+{
+	return cm_light_color.rgb * light_attenuation_auto(vec) * light_spot_auto(vec);
 }
 
 float light_lambert(vec3 normal, vec3 lightVec)

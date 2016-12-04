@@ -1,8 +1,8 @@
 {
   "type": "scene",
   "name": "test",
-  "backColor": "#2d64ad",
-  "ambientLight": "#2d64ad",
+  "backColor": "#304f82",
+  "ambientLight": "#304f82",
   "entities": [
     {
       "name": "floor",
@@ -40,7 +40,7 @@
       "components": [
         {
           "type": "transform",
-          "position": [ -3, 0, 2 ],
+          "position": [ -4, 0, 2 ],
           "rotation": [ 0, 20, 0 ]
         },
         {
@@ -70,7 +70,7 @@
         {
           "type": "transform",
           "position": [ 7, 0, 4 ],
-          "rotation": [ 0, -50, 0 ]
+          "rotation": [ 0, 50, 0 ]
         },
         {
           "type": "meshRenderer",
@@ -108,13 +108,14 @@
       "components": [
         {
           "type": "transform",
+          "position": [ -8, 3, 6 ],
           "rotation": [ -75, -20, 0 ]
         },
         {
           "type": "light",
           "lightType": "directional",
           "color": "#fffdf4",
-          "intensity": 0.8
+          "intensity": 0.5
         }
       ]
     },
@@ -130,8 +131,8 @@
           "type": "light",
           "lightType": "point",
           "color": "#89beff",
-          "range": 5,
-          "intensity": 1
+          "range": 8,
+          "intensity": 1.1
         }
       ]
     },
@@ -141,14 +142,16 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 8, 0, 6 ]
+          "position": [ 9, 3, 8 ],
+          "rotation": [ -70, 10, 0 ]
         },
         {
           "type": "light",
-          "lightType": "point",
-          "color": "#ff4626",
-          "range": 4,
-          "intensity": 0.4
+          "lightType": "spot",
+          "color": "#ff6646",
+          "intensity": 2,
+          "range": 20,
+          "spotAngle": 35
         }
       ]
     }

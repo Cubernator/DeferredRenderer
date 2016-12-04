@@ -18,6 +18,8 @@ link_directories(${CMAKE_BINARY_DIR}/lib)
 
 include(source_files)
 
+set(ADDITIONAL_FILES "app-info.json")
+
 option(WINDOWS_HIDE_CONSOLE "Whether to hide the console window in windows builds" OFF)
 
 if(WIN32)
@@ -29,7 +31,7 @@ if(WIN32)
 	endif()
 endif()
 
-add_executable(DeferredRenderer ${WIN32FLAG} ${ALL_SOURCE_FILES})
+add_executable(DeferredRenderer ${WIN32FLAG} ${ALL_SOURCE_FILES} ${ADDITIONAL_FILES})
 
 set(LINK_LIBRARIES glew32 glfw3dll opengl32 assimp)
 
@@ -51,7 +53,7 @@ endif()
 set(OUT_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>)
 
 set(TIMESTAMPS "")
-set(TIMESTAMP_DIR ${CMAKE_CURRENT_BINARY_DIR})
+set(TIMESTAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/content.dir)
 
 foreach(lib_file ${SHARED_LIB_FILES})
 	get_filename_component(lib_filename ${lib_file} NAME)
@@ -66,7 +68,9 @@ foreach(lib_file ${SHARED_LIB_FILES})
 	list(APPEND TIMESTAMPS ${timestamp})
 endforeach()
 
-foreach(content_file ${CONTENT_FILES})
+set(ALL_CONTENT_FILES ${SHADER_FILES} ${CONTENT_FILES} ${ADDITIONAL_FILES})
+
+foreach(content_file ${ALL_CONTENT_FILES})
 	set(file_src ${CMAKE_CURRENT_SOURCE_DIR}/${content_file})
 	set(file_dst ${OUT_DIR}/${content_file})
 	set(timestamp ${TIMESTAMP_DIR}/${content_file}.stamp)

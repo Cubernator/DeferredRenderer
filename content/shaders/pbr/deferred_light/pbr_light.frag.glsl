@@ -34,7 +34,7 @@ void main()
 	vec3 l = normalize(lightVec);
 	vec3 v = normalize(cm_cam_pos - worldPos);
 
-	vec3 lightColor = light_attenuated_color(lightVec);
+	vec3 lightColor = light_color_auto(lightVec);
 	float roughness = getRealRoughness(specSmooth.a);
 
 	// apply BRDF

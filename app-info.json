@@ -1,7 +1,9 @@
 {
   "title": "Deferred Renderer",
   "resolution": [ 1280, 720 ],
+  "vSync": true,
   "fullscreen": false,
+  "windowedFullscreen": true,
   "contentRoot": "content",
   "shaderIncludeDirs": [ "shaders" ],
   "deferredLightEffect": "deferred_light",

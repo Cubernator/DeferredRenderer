@@ -18,8 +18,6 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 {
 	s_instance = this;
 
-	const app_info& ai = app_info::info;
-
 	glfwSetErrorCallback([](int err, const char* msg) {
 		std::cout << msg << std::endl;
 	});
@@ -30,17 +28,32 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 		return;
 	}
 
-	auto resolution = ai.get("resolution", glm::ivec2(640, 480));
-	auto title = ai.get<std::string>("title", "Untitled");
+	auto title = app_info::get<std::string>("title", "Untitled");
+	auto resolution = app_info::get("resolution", glm::ivec2(640, 480));
+	bool fullscreen = app_info::get("fullscreen", false);
+	bool windowedFullscreen = app_info::get("windowedFullscreen", false);
+
+	GLFWmonitor* monitor = nullptr;
+
+	if (fullscreen) {
+		monitor = glfwGetPrimaryMonitor();
+
+		if (windowedFullscreen) {
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+			glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+			glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+			glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+			glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+			resolution = { mode->width, mode->height };
+		}
+	}
 
 	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
 	// create window
-	m_window = glfwCreateWindow(
-		resolution.x,
-		resolution.y,
-		title.c_str(),
-		NULL, NULL);
+	m_window = glfwCreateWindow(resolution.x, resolution.y, title.c_str(), monitor, nullptr);
 
 	if (!m_window) {
 		m_error = -2;
@@ -48,7 +61,9 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 	}
 
 	glfwMakeContextCurrent(m_window);
-	glfwSwapInterval(1);
+
+	bool vsync = app_info::get("vSync", false);
+	glfwSwapInterval(vsync ? 1 : 0);
 	
 	glfwSetFramebufferSizeCallback(m_window, resizeCallback);
 
@@ -67,7 +82,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 
 	createDefaultResources();
 
-	auto firstSceneName = ai.get<std::string>("firstScene", "scene0");
+	auto firstSceneName = app_info::get<std::string>("firstScene", "scene0");
 	loadScene(firstSceneName);
 }
 

@@ -2,6 +2,7 @@ set(BOOST_VERSION 1.62.0)
 set(BOOST_COMPONENTS
 	system
 	filesystem
+	program_options
 )
 
 string(REPLACE "." "_" BOOST_FOLDER ${BOOST_VERSION})

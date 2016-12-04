@@ -19,22 +19,28 @@
 
 #define DEF_UNIFORM_ID(name) const uniform_id g_##name##_id = uniform_name_to_id(#name)
 
+// Basic matrices
 DEF_UNIFORM_ID(cm_mat_proj);
 DEF_UNIFORM_ID(cm_mat_view);
 DEF_UNIFORM_ID(cm_mat_world);
 
+// Combined matrices
 DEF_UNIFORM_ID(cm_mat_tiworld);
 DEF_UNIFORM_ID(cm_mat_vp);
 DEF_UNIFORM_ID(cm_mat_ivp);
 DEF_UNIFORM_ID(cm_mat_wvp);
 
+// Vectors
 DEF_UNIFORM_ID(cm_cam_pos);
 
+// Light parameters
+DEF_UNIFORM_ID(cm_light_ambient);
 DEF_UNIFORM_ID(cm_light_color);
 DEF_UNIFORM_ID(cm_light_dir);
-DEF_UNIFORM_ID(cm_light_radius);
-DEF_UNIFORM_ID(cm_light_ambient);
+DEF_UNIFORM_ID(cm_light_spot);
+DEF_UNIFORM_ID(cm_light_atten);
 
+// Deferred Light parameters
 DEF_UNIFORM_ID(transform);
 DEF_UNIFORM_ID(gbuf_diffuse);
 DEF_UNIFORM_ID(gbuf_specSmooth);
@@ -99,7 +105,7 @@ void RenderEngine::setupDeferredPath()
 
 	createCombinedLightMesh();
 
-	auto lightEffectName = app_info::info.get<std::string>("deferredLightEffect", "deferred_light");
+	auto lightEffectName = app_info::get<std::string>("deferredLightEffect", "deferred_light");
 	m_deferredLightEffect = Content::instance()->getFromDisk<Effect>(lightEffectName);
 
 	if (m_deferredLightEffect) {
@@ -486,9 +492,13 @@ void RenderEngine::drawDeferredLight(Light* light, ShaderProgram* program)
 			// TODO: improve this test and add frustum culling
 			if ((-lpos.z - lr) > m_camera->getNearPlane()) {
 				transform = m_objUniforms.vp * lt->getRigidMatrix() * glm::scale(glm::vec3(r));
-				if (t == Light::type_point) {
+				// TODO: add spot light mesh
+				switch (t) {
+				case Light::type_point:
+				case Light::type_spot:
 					c = m_sphereCount;
 					o = m_sphereOffset;
+					break;
 				}
 			}
 		}
@@ -508,9 +518,12 @@ void RenderEngine::bindPass(const Effect::pass* pass, Material* material)
 void RenderEngine::applyLight(Light* light, ShaderProgram* program)
 {
 	if (light) {
-		program->setUniform(g_cm_light_color_id, light->getPremultipliedColor());
-		program->setUniform(g_cm_light_dir_id, light->getShaderProp());
-		program->setUniform(g_cm_light_radius_id, light->getRange());
+		glm::vec4 color, dir, atten, spot;
+		light->getUniforms(color, dir, atten, spot);
+		program->setUniform(g_cm_light_color_id, color);
+		program->setUniform(g_cm_light_dir_id, dir);
+		program->setUniform(g_cm_light_atten_id, atten);
+		program->setUniform(g_cm_light_spot_id, spot);
 	}
 }
 

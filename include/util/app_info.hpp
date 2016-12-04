@@ -3,20 +3,17 @@
 
 #include <string>
 
-#include "import.hpp"
-#include "util/json_utils.hpp"
-#include "util/json_initializable.hpp"
+#include "path.hpp"
+#include "json_utils.hpp"
 
-struct app_info : public json_initializable<app_info>
+struct app_info
 {
-	static const app_info info;
-
 	template<typename T>
-	bool find(const std::string& propName, T& value) const
+	static bool find(const std::string& propName, T& value)
 	{
-		auto it = properties.find(propName);
+		auto it = s_properties.find(propName);
 		try {
-			if (it != properties.end()) {
+			if (it != s_properties.end()) {
 				value = json_get<T>(*it);
 				return true;
 			}
@@ -26,7 +23,7 @@ struct app_info : public json_initializable<app_info>
 	}
 
 	template<typename T>
-	T get(const std::string& propName, const T& def) const
+	static T get(const std::string& propName, const T& def)
 	{
 		T result(def);
 		find<T>(propName, result);
@@ -34,7 +31,7 @@ struct app_info : public json_initializable<app_info>
 	}
 
 	template<typename T>
-	T get(const std::string& propName, T&& def) const
+	static T get(const std::string& propName, T&& def)
 	{
 		T result(std::move(def));
 		find<T>(propName, result);
@@ -42,22 +39,15 @@ struct app_info : public json_initializable<app_info>
 	}
 
 	template<typename T>
-	T get(const std::string& propName) const
+	static T get(const std::string& propName)
 	{
 		return get<T>(propName, {});
 	}
 
+	static void load(const path& p);
+
 private:
-	nlohmann::json properties;
-
-	void apply_json_impl(const nlohmann::json& json)
-	{
-		properties = json;
-	}
-
-	static app_info load();
-
-	friend struct json_initializable<app_info>;
+	static nlohmann::json s_properties;
 };
 
 #endif // APP_INFO_HPP

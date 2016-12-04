@@ -19,5 +19,6 @@ glm::vec4 parse_color(const std::string s)
 	if (maxSize < 4) // assume full opacity if no alpha value is specified
 		color.a = 1.0f;
 
-	return color;
+	// assume all input color values are in sRGB space
+	return glm::convertSRGBToLinear(color);
 }

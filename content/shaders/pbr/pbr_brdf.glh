@@ -56,5 +56,5 @@ vec3 pbs_brdf(vec3 diffColor, vec3 specColor, vec3 lightColor, float roughness, 
 
 vec3 pbs_brdf_ambient(vec3 diffColor, vec3 lightColor)
 {
-	return diffColor * lightColor / PI;
+	return diffColor * lightColor;
 }
