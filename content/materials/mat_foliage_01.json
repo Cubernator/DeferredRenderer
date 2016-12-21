@@ -1,0 +1,17 @@
+{
+  "type": "material",
+  "name": "mat_foliage_01",
+  "effect": "pbr_s",
+  "properties": {
+    "color": "#E7E7E7FF",
+    "albedoMap": "veg_foliage_01_d",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "specColor": "#333333FF",
+    "smoothnessScale": 0.0
+  }
+}

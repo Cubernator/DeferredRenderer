@@ -1,6 +1,7 @@
 #include "graphics/texture/Texture2D.hpp"
 #include "graphics/texture/raw_img_importer.hpp"
 #include "graphics/texture/stb_img_importer.hpp"
+#include "graphics/texture/tiff_img_importer.hpp"
 #include "util/type_registry.hpp"
 #include "util/json_utils.hpp"
 #include "core/Content.hpp"
@@ -9,7 +10,8 @@ REGISTER_OBJECT_TYPE_NO_EXT(Texture2D, "texture2D");
 
 keyword_helper<Texture2D::importer_factory> Texture2D::s_importers({
 	{ "raw", image_importer_factory<raw_img_importer>() },
-	{ "stb", image_importer_factory<stb_img_importer>() }
+	{ "stb", image_importer_factory<stb_img_importer>() },
+	{ "tif", image_importer_factory<tiff_img_importer>() }
 });
 
 keyword_helper<Texture2D::filter> Texture2D::s_filters({
@@ -32,6 +34,13 @@ void Texture2D::setData(const void* data, unsigned int w, unsigned int h, GLint 
 {
 	bind();
 	glTexImage2D(m_target, 0, imgFormat, w, h, 0, pxFormat, pxType, data);
+	unbind();
+}
+
+void Texture2D::setCompressedData(const void* data, unsigned int dataSize, unsigned int w, unsigned int h, GLint format)
+{
+	bind();
+	glCompressedTexImage2D(m_target, 0, format, w, h, 0, dataSize, data);
 	unbind();
 }
 
@@ -68,7 +77,7 @@ void Texture2D::setParams(bool mipmaps, filter filtering, wrap wrapping, const g
 void Texture2D::apply_json_impl(const nlohmann::json& json)
 {
 	bool genMipmaps = get_value<bool>(json, "mipmaps", false);
-	float anisotropic = get_value<float>(json, "anisotropic", 0.0f);
+	float anisotropic = get_value<float>(json, "anisotropic", 1.0f);
 	glm::vec4 borderColor = get_value<glm::vec4>(json, "borderColor", glm::vec4(0.0f));
 
 	filter filtering = filter_point;
@@ -93,8 +102,7 @@ void Texture2D::apply_json_impl(const nlohmann::json& json)
 
 				importer_ptr importer = make_importer(file, importOptions);
 				if (importer->getStatus()) {
-					setData(importer->getData(), importer->getWidth(), importer->getHeight(),
-						importer->getImageFormat(), importer->getPixelFormat(), importer->getPixelType());
+					importer->uploadData(this);
 
 					if (genMipmaps) {
 						bind();

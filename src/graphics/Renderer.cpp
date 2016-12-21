@@ -3,7 +3,7 @@
 #include "core/Content.hpp"
 
 json_interpreter<Renderer> Renderer::s_properties({
-	{ "material", &Renderer::extractMaterial }
+	{ "materials", &Renderer::extractMaterials }
 });
 
 
@@ -15,7 +15,13 @@ void Renderer::apply_json_property_impl(const std::string& name, const nlohmann:
 	s_properties.interpret_property(name, this, json);
 }
 
-void Renderer::extractMaterial(const nlohmann::json& json)
+void Renderer::extractMaterials(const nlohmann::json& json)
 {
-	setMaterial(Content::instance()->getPooledFromJson<Material>(json));
+	if (json.is_array()) {
+		clearMaterials();
+
+		for (const auto& m : json) {
+			addMaterial(Content::instance()->getPooledFromJson<Material>(m));
+		}
+	}
 }

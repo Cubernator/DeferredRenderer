@@ -1,0 +1,13 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "prop_plankpath_01_p1",
+    "prop_plankpath_01_p2",
+    "prop_plankpath_01_p3",
+    "prop_plankpath_01_p4",
+    "prop_plankpath_01_p5",
+    "prop_plankpath_01_p6",
+    "prop_plankpath_01_p7",
+    "prop_plankpath_01_p8"
+  ]
+}

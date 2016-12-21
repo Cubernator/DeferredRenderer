@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_sword_shovel_halberd_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#FEFEFEFF",
+    "albedoMap": "prop_sword_shovel_halberd_01_d",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_sword_shovel_halberd_01_n",
+    "glossMap": "prop_sword_shovel_halberd_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

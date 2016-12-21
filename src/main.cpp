@@ -3,7 +3,7 @@
 
 #include "boost/program_options.hpp"
 
-#if defined(_WIN32) && !defined(HIDE_CONSOLE)
+#if defined(_WIN32) && defined(HIDE_CONSOLE)
 #define USE_WINMAIN
 #include <windows.h>
 #endif

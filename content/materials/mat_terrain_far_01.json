@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_terrain_far_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#CDCDC4FF",
+    "albedoMap": "terrain_far_01_a2",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "terrain_01_n",
+    "glossMap": "terrain_far_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

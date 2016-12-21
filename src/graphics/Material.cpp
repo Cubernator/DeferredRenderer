@@ -34,6 +34,11 @@ const shader_property* Material::getProperty(uniform_id id) const
 	return nullptr;
 }
 
+void Material::apply(const ShaderProgram* p) const
+{
+	m_effect->applyProperties(p, this);
+}
+
 void Material::apply_json_impl(const nlohmann::json& json)
 {
 	auto eit = json.find("effect");

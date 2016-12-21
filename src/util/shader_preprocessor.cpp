@@ -112,7 +112,7 @@ struct pp_line_visitor : boost::static_visitor<bool>
 
 	bool operator() (const pp_pragma& pragma) const {
 		pp->pragma_type(pragma);
-		return true;
+		return false;
 	}
 };
 
@@ -184,14 +184,37 @@ void shader_preprocessor::include(const path& file)
 
 	auto st = pp.shader_type();
 	if (st) {
-		if (m_shaderType) {
+		if (!m_shaderType) {
+			m_shaderType = st;
+		} else {
 			// TODO: print warning about multiple shader type definitions
 		}
-		pragma_type(st);
 	}
 }
 
 void shader_preprocessor::pragma_type(Shader::shader_type type)
 {
 	m_shaderType = type;
+	auto fmt = boost::format("#define %1%\n") % get_type_macro(type);
+	m_processed.append(fmt.str());
+}
+
+std::string shader_preprocessor::get_type_macro(Shader::shader_type type) const
+{
+	switch (type) {
+	case Shader::type_vertex:
+		return "VERTEX_SHADER";
+	case Shader::type_fragment:
+		return "FRAGMENT_SHADER";
+	case Shader::type_geometry:
+		return "GEOMETRY_SHADER";
+	case Shader::type_tess_control:
+		return "TESS_CONTROL_SHADER";
+	case Shader::type_tess_evaluation:
+		return "TESS_EVALUATION_SHADER";
+	case Shader::type_compute:
+		return "COMPUTE_SHADER";
+	default:
+		return "UNDEFINED_SHADER";
+	}
 }

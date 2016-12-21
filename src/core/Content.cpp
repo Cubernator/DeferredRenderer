@@ -4,9 +4,11 @@
 
 #include "boost/filesystem.hpp"
 
+#include <algorithm>
+
 Content* Content::s_instance = nullptr;
 
-Content::Content()
+Content::Content() : m_logIndentLevel(0)
 {
 	s_instance = this;
 
@@ -85,10 +87,19 @@ void Content::scanContentFolder(const path& p)
 {
 	using namespace boost::filesystem;
 
+	for (unsigned int i = 0; i < m_logIndentLevel; ++i) std::cout << "  ";
+	std::cout << p.filename().string() << ": ";
+
 	if (is_directory(p)) {
+		std::cout << std::endl;
+
+		++m_logIndentLevel;
+
 		for (auto dit = directory_iterator(p); dit != directory_iterator(); ++dit) {
 			scanContentFolder(dit->path());
 		}
+
+		--m_logIndentLevel;
 	} else if (is_regular_file(p)) {
 		addFile(p);
 	}
@@ -99,13 +110,14 @@ void Content::addFile(const path& p)
 	std::string name;
 
 	std::string ext = p.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
 	registered_type type = type_registry::findByExtension(ext);
 
 	if (type) {
 		name = p.stem().string();
 	} else {
-		boost::filesystem::ifstream f(p);
 		try {
+			boost::filesystem::ifstream f(p);
 			if (f) {
 				nlohmann::json j;
 				j << f;
@@ -116,13 +128,15 @@ void Content::addFile(const path& p)
 			}
 		} catch (std::invalid_argument&) {
 			m_genericRegistry.emplace(p.filename().string(), p);
-			std::cout << "found generic file: " << p << std::endl;
+			std::cout << "found generic file";
 		}
 	}
 
 	if (type) {
 		m_registry[type.type][name] = p;
-		std::cout << "found object \"" << name << "\" of type \"" << type.name << "\": " << p << std::endl;
+		std::cout << "found " << type.name << " \"" << name << "\"";
 	}
+
+	std::cout << std::endl;
 }
 

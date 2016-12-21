@@ -1,12 +1,10 @@
 #include "components/FlyCamera.hpp"
-#include "util/component_registry.hpp"
-#include "core/Entity.hpp"
-#include "core/Input.hpp"
 #include "core/Engine.hpp"
+#include "core/Entity.hpp"
 #include "core/Transform.hpp"
 #include "graphics/RenderEngine.hpp"
-
-#include "GLFW/glfw3.h"
+#include "util/component_registry.hpp"
+#include "core/Input.hpp"
 
 REGISTER_COMPONENT_CLASS(FlyCamera, "flyCamera");
 
@@ -29,18 +27,7 @@ void FlyCamera::update_impl()
 {
 	Transform* trans = getEntity()->getTransform();
 	Engine* engine = Engine::instance();
-	RenderEngine* graphics = RenderEngine::instance();
 	Input* input = Input::instance();
-
-	if (input->getKeyPressed(GLFW_KEY_ESCAPE)) {
-		engine->stop();
-	}
-
-	if (input->getKeyPressed(GLFW_KEY_P)) {
-		bool d = !graphics->isDeferredEnabled();
-		graphics->setDeferredEnabled(d);
-		std::cout << "Rendering path: " << (d ? "Deferred" : "Forward") << std::endl;
-	}
 
 	bool locked = input->isCursorLocked();
 	if (input->getMouseButtonPressed(GLFW_MOUSE_BUTTON_1)) {

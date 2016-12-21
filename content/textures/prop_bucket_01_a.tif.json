@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "prop_bucket_01_a",
+  "file": "prop_bucket_01_a.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "srgba"
+  },
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 9
+}

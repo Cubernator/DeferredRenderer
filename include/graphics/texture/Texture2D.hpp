@@ -46,10 +46,12 @@ public:
 		setData(data, w, h, image_format<T>(), pixel_format<T>(), pixel_type<T>());
 	}
 
+	void setCompressedData(const void* data, unsigned int dataSize, unsigned int w, unsigned int h, GLint format);
+
 	void setParams(bool mipmaps, filter filtering, wrap wrapping, const glm::vec4& borderColor, float anisotropic);
 	void setParams(bool mipmaps, filter filtering, wrap wrapping)
 	{
-		setParams(mipmaps, filtering, wrapping, glm::vec4(0.f), 0.f);
+		setParams(mipmaps, filtering, wrapping, glm::vec4(0.f), 1.f);
 	}
 
 	unsigned int width() const { return m_width; }

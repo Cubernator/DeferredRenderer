@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_shield_03",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#FFFFFFFF",
+    "albedoMap": "prop_shield_03_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_shield_03_n",
+    "glossMap": "prop_shield_03_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

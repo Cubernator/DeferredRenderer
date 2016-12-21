@@ -1,0 +1,18 @@
+{
+  "type": "material",
+  "name": "mat_fence_02",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#E1F1FFFF",
+    "albedoMap": "prop_fence_02_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_fence_02_n",
+    "specColor": "#333333FF",
+    "smoothnessScale": 0.065
+  }
+}

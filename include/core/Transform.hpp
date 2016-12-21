@@ -18,7 +18,7 @@ public:
 	void setRotation(const glm::quat& rotation) { m_rotation = rotation; m_dirty = true; }
 	void setScale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; }
 
-	const glm::mat4& getMatrix();
+	const glm::mat4& getMatrix() const;
 	glm::mat4 getRigidMatrix() const;
 	glm::mat4 getInverseRigidMatrix() const;
 
@@ -32,9 +32,8 @@ private:
 	glm::quat m_rotation;
 	glm::vec3 m_scale;
 
-	glm::mat4 m_cachedMatrix;
-
-	bool m_dirty;
+	mutable glm::mat4 m_cachedMatrix;
+	mutable bool m_dirty;
 
 	static json_interpreter<Transform> s_properties;
 };

@@ -1,0 +1,7 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "build_bighouse_01",
+    "build_bighouse_01_dragonhead_01"
+  ]
+}

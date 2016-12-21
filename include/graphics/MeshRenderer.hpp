@@ -5,6 +5,7 @@
 #include "util/json_interpreter.hpp"
 
 class Mesh;
+class SubMesh;
 
 class MeshRenderer : public Renderer
 {
@@ -17,12 +18,8 @@ public:
 	void setMesh(Mesh* mesh) { m_mesh = mesh; }
 
 protected:
-	virtual void bind_impl() override;
-	virtual void draw_impl() override;
-	virtual void unbind_impl() override;
+	virtual const Renderable* getRenderable_impl(unsigned int index) const override;
 	virtual bool hasGeometry() const override;
-	virtual aabb getBounds_impl() const override;
-
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
 
 private:

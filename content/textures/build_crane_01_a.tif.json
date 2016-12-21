@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "build_crane_01_a",
+  "file": "build_crane_01_a.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "srgba"
+  },
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 9
+}

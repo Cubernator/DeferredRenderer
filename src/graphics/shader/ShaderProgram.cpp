@@ -83,6 +83,8 @@ void ShaderProgram::getUniforms()
 
 	auto buf = std::make_unique<GLchar[]>(maxLength);
 
+	GLuint nextUnit = 0;
+
 	GLsizei l;
 	GLint s;
 	GLenum t;
@@ -93,10 +95,10 @@ void ShaderProgram::getUniforms()
 		uniform_id id = uniform_name_to_id(name);
 
 		GLenum texTarget = sampler_type_to_target(t);
-		GLuint loc = glGetUniformLocation(m_glObj, buf.get());
+		GLint loc = glGetUniformLocation(m_glObj, buf.get());
 		
 		if (texTarget != 0) {
-			m_textures.emplace(id, loc);
+			m_textures.emplace(id, tex_unit{ nextUnit++, loc });
 		} else {
 			m_uniforms.emplace(id, loc);
 		}
@@ -144,17 +146,20 @@ void ShaderProgram::setTexture(uniform_id id, const Texture* texture) const
 	if (texture) {
 		auto it = m_textures.find(id);
 		if (it != m_textures.end()) {
-			set_uniform(it->second, texture_unit_manager::bindTexture(texture));
+			GLuint glObj = texture->glObj();
+			const auto& u = it->second;
+			glBindTextures(u.unit, 1, &glObj);
+			set_uniform(u.location, GLint(u.unit));
 		}
 	}
 }
 
-void ShaderProgram::bind()
+void ShaderProgram::bind() const
 {
 	if (isGood()) glUseProgram(m_glObj);
 }
 
-void ShaderProgram::unbind()
+void ShaderProgram::unbind() const
 {
 	glUseProgram(0);
 }

@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_boardwalk_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#C4C9CEFF",
+    "albedoMap": "prop_boardwalk_01_d",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_boardwalk_01_n",
+    "glossMap": "prop_boardwalk_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_building_02_darker",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#A5B3C3FF",
+    "albedoMap": "build_building_02_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_building_02_n",
+    "glossMap": "build_building_02_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

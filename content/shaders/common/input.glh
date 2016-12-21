@@ -1,8 +1,0 @@
-struct vertex_input {
-	vec3 position;
-	vec3 normal;
-	vec3 tangent;
-	vec2 uv;
-};
-
-layout(location = 0) in vertex_input v_input;

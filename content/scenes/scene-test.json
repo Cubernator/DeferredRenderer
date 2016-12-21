@@ -9,84 +9,47 @@
       "components": [
         {
           "type": "transform",
-          "position": [ 0, -2, 0 ],
-          "scale": [ 10, 1, 10 ]
+          "position": [ 0, -1, 0 ],
+          "scale": [ 20, 1, 20 ]
         },
         {
           "type": "meshRenderer",
           "mesh": "cube",
-          "material": "brick"
+          "materials": [ "brick" ]
         }
       ]
     },
     {
-      "name": "platform01",
+      "name": "obj0",
       "components": [
         {
           "type": "transform",
-          "position": [ 0, 1, -4 ],
-          "rotation": [ 0, 12, 0 ],
-          "scale": [ 6, 2, 3.5 ]
+          "position": [ -7, 1, 4 ]
         },
         {
           "type": "meshRenderer",
           "mesh": "cube",
-          "material": "brick"
+          "materials": [ "steel" ]
         }
       ]
     },
     {
-      "name": "cube01",
+      "name": "obj1",
       "components": [
         {
           "type": "transform",
-          "position": [ -4, 0, 2 ],
-          "rotation": [ 0, 20, 0 ]
+          "position": [ 2, 1, -5 ]
         },
         {
           "type": "meshRenderer",
           "mesh": "cube",
-          "material": "steel"
-        }
-      ]
-    },
-    {
-      "name": "cube02",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ 0, 0, 3 ]
-        },
-        {
-          "type": "meshRenderer",
-          "mesh": "cube",
-          "material": "steel"
-        }
-      ]
-    },
-    {
-      "name": "cube03",
-      "components": [
-        {
-          "type": "transform",
-          "position": [ 7, 0, 4 ],
-          "rotation": [ 0, 50, 0 ]
-        },
-        {
-          "type": "meshRenderer",
-          "mesh": "cube",
-          "material": "steel"
+          "materials": [ "steel" ]
         }
       ]
     },
     {
       "name": "camera",
       "components": [
-        {
-          "type": "transform",
-          "position": [ 0, 4, 8 ],
-          "rotation": [ 0, 0, 0 ]
-        },
         {
           "type": "camera",
           "fov": 60,
@@ -109,13 +72,13 @@
         {
           "type": "transform",
           "position": [ -8, 3, 6 ],
-          "rotation": [ -75, -20, 0 ]
+          "rotation": [ 75, 20, 0 ]
         },
         {
           "type": "light",
           "lightType": "directional",
           "color": "#fffdf4",
-          "intensity": 0.5
+          "intensity": 0.8
         }
       ]
     },
@@ -125,7 +88,7 @@
       "components": [
         {
           "type": "transform",
-          "position": [ -0.3, -0.5, 1 ]
+          "position": [ -0.3, 0.5, 1 ]
         },
         {
           "type": "light",
@@ -143,7 +106,7 @@
         {
           "type": "transform",
           "position": [ 9, 3, 8 ],
-          "rotation": [ -70, 10, 0 ]
+          "rotation": [ 70, -10, 0 ]
         },
         {
           "type": "light",

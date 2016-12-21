@@ -1,0 +1,8 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "build_crane_01",
+    "build_crane_01_metalpiece",
+    "build_crane_01_wheel"
+  ]
+}

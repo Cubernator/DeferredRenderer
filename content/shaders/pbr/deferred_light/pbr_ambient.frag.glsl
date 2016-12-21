@@ -40,7 +40,7 @@ void main()
 	// apply BRDF
 	//vec3 color = pbs_brdf(diffCol, specSmooth.rgb, lightColor, roughness, normal, v, l);
 
-	vec3 color = pbs_brdf_ambient(diffCol, lightColor);
+	vec3 color = pbr_brdf_ambient(diffCol, lightColor);
 
 	f_output = vec4(color, 1.0);
 	gl_FragDepth = depth;

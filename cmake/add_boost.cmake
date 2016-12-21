@@ -79,8 +79,3 @@ ExternalProject_Add_Step(
 	BYPRODUCTS "<SOURCE_DIR>/b2.exe"
 	COMMENT "Running bootstrap script..."
 )
-
-add_dependencies(DeferredRenderer boost)
-target_link_libraries(DeferredRenderer ${BOOST_LIBS})
-
-add_definitions( -DBOOST_ALL_NO_LIB )

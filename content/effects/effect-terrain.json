@@ -1,0 +1,93 @@
+{
+  "type": "effect",
+  "name": "terrain",
+  "renderQueue": [ "geometry", 0 ],
+  "renderType": "opaque",
+  "properties": [
+    {
+      "name": "albedoMap",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "normalMap",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "glossMap",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "albedoMap2",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "normalMap2",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "glossMap2",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "detailMask",
+      "type": "texture2D",
+      "default": "black"
+    },
+    {
+      "name": "uv_transform0",
+      "type": "vec4",
+      "default": [ 1, 1, 0, 0 ]
+    },
+    {
+      "name": "uv_transform1",
+      "type": "vec4",
+      "default": [ 1, 1, 0, 0 ]
+    },
+    {
+      "name": "uv_transform2",
+      "type": "vec4",
+      "default": [ 1, 1, 0, 0 ]
+    },
+    {
+      "name": "dielectricReflec",
+      "type": "float",
+      "default": 0.22
+    }
+  ],
+  "passes": [
+    {
+      "name": "fwdBase",
+      "lightMode": "forwardBase",
+      "program": {
+        "name": "terrainFwd",
+        "shaders": [ "std_forward.vert", "terrain_forward.frag" ]
+      }
+    },
+    {
+      "name": "fwdAdd",
+      "lightMode": "forwardAdd",
+      "state": {
+        "depthTest": "lequal",
+        "depthWrite": false,
+        "blend": {
+          "source": "one",
+          "dest": "one"
+        }
+      },
+      "program": "terrainFwd"
+    },
+    {
+      "name": "deferred",
+      "lightMode": "deferred",
+      "program": {
+        "shaders": [ "std_deferred.vert", "terrain_deferred.frag" ]
+      }
+    }
+  ]
+}

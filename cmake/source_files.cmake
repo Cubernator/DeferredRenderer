@@ -3,7 +3,10 @@ set(HEADER_FILES
 	include/path.hpp
 	include/stb_image.h
 	include/uuid.hpp
+	include/components/DayNightController.hpp
 	include/components/FlyCamera.hpp
+	include/components/LightingTest.hpp
+	include/components/LightRandomiser.hpp
 	include/core/Component.hpp
 	include/core/Content.hpp
 	include/core/Engine.hpp
@@ -19,6 +22,7 @@ set(HEADER_FILES
 	include/graphics/Material.hpp
 	include/graphics/Mesh.hpp
 	include/graphics/MeshRenderer.hpp
+	include/graphics/Renderable.hpp
 	include/graphics/RenderEngine.hpp
 	include/graphics/Renderer.hpp
 	include/graphics/render_state.hpp
@@ -27,6 +31,7 @@ set(HEADER_FILES
 	include/graphics/shader/ShaderProgram.hpp
 	include/graphics/shader/shader_property.hpp
 	include/graphics/shader/uniform_id.hpp
+	include/graphics/texture/compressed_img_importer.hpp
 	include/graphics/texture/image_importer.hpp
 	include/graphics/texture/pixel_format_helper.hpp
 	include/graphics/texture/pixel_types.hpp
@@ -36,6 +41,8 @@ set(HEADER_FILES
 	include/graphics/texture/Texture.hpp
 	include/graphics/texture/Texture2D.hpp
 	include/graphics/texture/texture_unit_manager.hpp
+	include/graphics/texture/tiff_img_importer.hpp
+	include/graphics/texture/uncompressed_img_importer.hpp
 	include/util/app_info.hpp
 	include/util/bounds.hpp
 	include/util/component_registry.hpp
@@ -47,13 +54,17 @@ set(HEADER_FILES
 	include/util/keyword_helper.hpp
 	include/util/object_pool.hpp
 	include/util/property_interpreter.hpp
+	include/util/random.hpp
 	include/util/shader_preprocessor.hpp
 	include/util/type_registry.hpp
 )
 
 set(SOURCE_FILES
 	src/main.cpp
+	src/components/DayNightController.cpp
 	src/components/FlyCamera.cpp
+	src/components/LightingTest.cpp
+	src/components/LightRandomiser.cpp
 	src/core/Component.cpp
 	src/core/Content.cpp
 	src/core/Engine.cpp
@@ -67,23 +78,28 @@ set(SOURCE_FILES
 	src/graphics/Material.cpp
 	src/graphics/Mesh.cpp
 	src/graphics/MeshRenderer.cpp
+	src/graphics/Renderable.cpp
 	src/graphics/RenderEngine.cpp
 	src/graphics/Renderer.cpp
 	src/graphics/render_state.cpp
 	src/graphics/shader/Shader.cpp
 	src/graphics/shader/ShaderProgram.cpp
 	src/graphics/shader/shader_property.cpp
+	src/graphics/texture/compressed_img_importer.cpp
 	src/graphics/texture/image_importer.cpp
 	src/graphics/texture/pixel_format_helper.cpp
 	src/graphics/texture/raw_img_importer.cpp
 	src/graphics/texture/stb_img_importer.cpp
 	src/graphics/texture/Texture2D.cpp
 	src/graphics/texture/texture_unit_manager.cpp
+	src/graphics/texture/tiff_img_importer.cpp
+	src/graphics/texture/uncompressed_img_importer.cpp
 	src/util/app_info.cpp
 	src/util/component_registry.cpp
 	src/util/intersection_tests.cpp
 	src/util/json_utils.cpp
 	src/util/object_pool.cpp
+	src/util/random.cpp
 	src/util/shader_preprocessor.cpp
 	src/util/type_registry.cpp
 )
@@ -103,27 +119,40 @@ source_group("Script Files" FILES ${SCRIPT_FILES})
 
 set(SHADER_FILES
 	content/shaders/common/gbuffer.glh
-	content/shaders/common/input.glh
 	content/shaders/common/lighting.glh
 	content/shaders/common/uniforms.glh
 	content/shaders/common/utils.glh
+	content/shaders/common/vertex_input.glh
+	content/shaders/common/vertex_output.glh
+	content/shaders/common/vertex_transform.glh
 	content/shaders/diffuse/diffuse.frag.glsl
 	content/shaders/diffuse/diffuse.vert.glsl
 	content/shaders/diffuse/diffuse_common.glh
 	content/shaders/pbr/pbr_brdf.glh
-	content/shaders/pbr/pbr_utils.glh
-	content/shaders/pbr/deferred/pbr_deferred.frag.glsl
-	content/shaders/pbr/deferred/pbr_deferred.vert.glsl
-	content/shaders/pbr/deferred/pbr_deferred_common.glh
+	content/shaders/pbr/pbr_data.glh
+	content/shaders/pbr/pbr_gbuf.glh
+	content/shaders/pbr/pbr_input.glh
+	content/shaders/pbr/deferred/pbr_deferred_frag.glh
+	content/shaders/pbr/deferred/pbr_deferred_m.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_mn.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_s.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_sn.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_ambient.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_ambient.vert.glsl
 	content/shaders/pbr/deferred_light/pbr_ambient_common.glh
 	content/shaders/pbr/deferred_light/pbr_light.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_light.vert.glsl
 	content/shaders/pbr/deferred_light/pbr_light_common.glh
-	content/shaders/pbr/forward/pbr_forward.frag.glsl
-	content/shaders/pbr/forward/pbr_forward.vert.glsl
-	content/shaders/pbr/forward/pbr_forward_common.glh
+	content/shaders/pbr/forward/pbr_forward_frag.glh
+	content/shaders/pbr/forward/pbr_forward_m.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_mn.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_s.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_sn.frag.glsl
+	content/shaders/std/std_deferred.vert.glsl
+	content/shaders/std/std_forward.vert.glsl
+	content/shaders/terrain/terrain_deferred.frag.glsl
+	content/shaders/terrain/terrain_forward.frag.glsl
+	content/shaders/terrain/terrain_input.glh
 	content/shaders/unlit/unlit.frag.glsl
 	content/shaders/unlit/unlit.vert.glsl
 	content/shaders/unlit/unlit_common.glh
@@ -133,24 +162,365 @@ source_group("Shader Files" FILES ${SHADER_FILES})
 set(CONTENT_FILES
 	content/effects/effect-deferred_light.json
 	content/effects/effect-diffuse.json
-	content/effects/effect-pbr.json
+	content/effects/effect-pbr_m.json
+	content/effects/effect-pbr_mn.json
+	content/effects/effect-pbr_s.json
+	content/effects/effect-pbr_sn.json
+	content/effects/effect-terrain.json
 	content/effects/effect-unlit.json
 	content/materials/brick.json
 	content/materials/debug.json
+	content/materials/mat_barrel_01.json
+	content/materials/mat_boardwalk_01.json
+	content/materials/mat_boat_01.json
+	content/materials/mat_boat_scaffold_01.json
+	content/materials/mat_boulder_01.json
+	content/materials/mat_bucket_01.json
+	content/materials/mat_building_01.json
+	content/materials/mat_building_01_darker.json
+	content/materials/mat_building_02.json
+	content/materials/mat_building_02_darker.json
+	content/materials/mat_build_village_fence_01.json
+	content/materials/mat_crane_01.json
+	content/materials/mat_crane_02.json
+	content/materials/mat_dragonhead_01.json
+	content/materials/mat_dragonhead_01_darker.json
+	content/materials/mat_fence_02.json
+	content/materials/mat_fish_01.json
+	content/materials/mat_foliage_01.json
+	content/materials/mat_fx_water_01.json
+	content/materials/mat_gate_01.json
+	content/materials/mat_gate_02.json
+	content/materials/mat_logpile_01.json
+	content/materials/mat_menhir_01.json
+	content/materials/mat_plank_01.json
+	content/materials/mat_roofbeams_01.json
+	content/materials/mat_rune_01.json
+	content/materials/mat_shield_01.json
+	content/materials/mat_shield_02.json
+	content/materials/mat_shield_03.json
+	content/materials/mat_skull_01.json
+	content/materials/mat_skull_02.json
+	content/materials/mat_strawroof_01.json
+	content/materials/mat_strawroof_cutout_01.json
+	content/materials/mat_sword_shovel_halberd_01.json
+	content/materials/mat_terrain_far_01.json
+	content/materials/mat_terrain_near_01.json
+	content/materials/mat_terrain_near_02.json
+	content/materials/mat_torch_01.json
+	content/materials/mat_tower_01.json
+	content/materials/mat_tower_02.json
+	content/materials/mat_tower_03.json
 	content/materials/steel.json
-	content/meshes/cube.fbx
-	content/meshes/sphere.fbx
+	content/meshes/build_barracks_01.fbx
+	content/meshes/build_barracks_01.fbx.opt
+	content/meshes/build_barracks_single_01.fbx
+	content/meshes/build_barracks_single_01.fbx.opt
+	content/meshes/build_bighouse_01.fbx
+	content/meshes/build_bighouse_01.fbx.opt
+	content/meshes/build_bighouse_02.FBX
+	content/meshes/build_bighouse_02.FBX.opt
+	content/meshes/build_big_storage_01.fbx
+	content/meshes/build_big_storage_01.fbx.opt
+	content/meshes/build_blacksmith_01.fbx
+	content/meshes/build_blacksmith_01.fbx.opt
+	content/meshes/build_boat_01.FBX
+	content/meshes/build_boat_01.FBX.opt
+	content/meshes/build_crane_01.FBX
+	content/meshes/build_crane_01.FBX.opt
+	content/meshes/build_gate_01.fbx
+	content/meshes/build_gate_01.fbx.opt
+	content/meshes/build_small_house_01.FBX
+	content/meshes/build_small_house_01.FBX.opt
+	content/meshes/build_small_house_straw_roof_01.FBX
+	content/meshes/build_small_house_straw_roof_01.FBX.opt
+	content/meshes/build_small_house_tall_roof_01.FBX
+	content/meshes/build_small_house_tall_roof_01.FBX.opt
+	content/meshes/build_storage_01.fbx
+	content/meshes/build_storage_01.fbx.opt
+	content/meshes/build_tower_01.FBX
+	content/meshes/build_tower_01.FBX.opt
+	content/meshes/build_wall_corner_01.FBX
+	content/meshes/build_wall_corner_01.FBX.opt
+	content/meshes/build_wall_panel_01.FBX
+	content/meshes/build_wall_panel_01.FBX.opt
+	content/meshes/cube.blend
+	content/meshes/ocean_plane.FBX
+	content/meshes/ocean_plane.FBX.opt
+	content/meshes/prop_barrels_01.fbx
+	content/meshes/prop_barrels_01.fbx.opt
+	content/meshes/prop_barrels_02.fbx
+	content/meshes/prop_barrels_02.fbx.opt
+	content/meshes/prop_barrel_01.fbx
+	content/meshes/prop_barrel_01.fbx.opt
+	content/meshes/prop_boardwalk_01.FBX
+	content/meshes/prop_boardwalk_01.FBX.opt
+	content/meshes/prop_boulder_01.fbx
+	content/meshes/prop_boulder_01.fbx.opt
+	content/meshes/prop_boulder_02.fbx
+	content/meshes/prop_boulder_02.fbx.opt
+	content/meshes/prop_buckets_01.fbx
+	content/meshes/prop_buckets_01.fbx.opt
+	content/meshes/prop_bucket_01.fbx
+	content/meshes/prop_bucket_01.fbx.opt
+	content/meshes/prop_fence_01.fbx
+	content/meshes/prop_fence_01.fbx.opt
+	content/meshes/prop_fence_01_double.fbx
+	content/meshes/prop_fence_01_double.fbx.opt
+	content/meshes/prop_fence_01_tripple.fbx
+	content/meshes/prop_fence_01_tripple.fbx.opt
+	content/meshes/prop_fence_02.FBX
+	content/meshes/prop_fence_02.FBX.opt
+	content/meshes/prop_fence_02_double.fbx
+	content/meshes/prop_fence_02_double.fbx.opt
+	content/meshes/prop_fence_02_quad.fbx
+	content/meshes/prop_fence_02_quad.fbx.opt
+	content/meshes/prop_fish_01.fbx
+	content/meshes/prop_fish_01.fbx.opt
+	content/meshes/prop_halberd_01.fbx
+	content/meshes/prop_halberd_01.fbx.opt
+	content/meshes/prop_logpile_01.fbx
+	content/meshes/prop_logpile_01.fbx.opt
+	content/meshes/prop_menhir_01.fbx
+	content/meshes/prop_menhir_01.fbx.opt
+	content/meshes/prop_pillar_03.fbx
+	content/meshes/prop_pillar_03.fbx.opt
+	content/meshes/prop_pillar_04.fbx
+	content/meshes/prop_pillar_04.fbx.opt
+	content/meshes/prop_pillar_05.fbx
+	content/meshes/prop_pillar_05.fbx.opt
+	content/meshes/prop_pillar_06.fbx
+	content/meshes/prop_pillar_06.fbx.opt
+	content/meshes/prop_plankpath_01.FBX
+	content/meshes/prop_plankpath_01.FBX.opt
+	content/meshes/prop_plankpile_01.fbx
+	content/meshes/prop_plankpile_01.fbx.opt
+	content/meshes/prop_plankpile_02.fbx
+	content/meshes/prop_plankpile_02.fbx.opt
+	content/meshes/prop_plankpile_03.fbx
+	content/meshes/prop_plankpile_03.fbx.opt
+	content/meshes/prop_plank_01.fbx
+	content/meshes/prop_plank_01.fbx.opt
+	content/meshes/prop_plank_02.fbx
+	content/meshes/prop_plank_02.fbx.opt
+	content/meshes/prop_plank_03.fbx
+	content/meshes/prop_plank_03.fbx.opt
+	content/meshes/prop_rune_01.fbx
+	content/meshes/prop_rune_01.fbx.opt
+	content/meshes/prop_scaffold_01.fbx
+	content/meshes/prop_scaffold_01.fbx.opt
+	content/meshes/prop_shed_01.fbx
+	content/meshes/prop_shed_01.fbx.opt
+	content/meshes/prop_shed_02.fbx
+	content/meshes/prop_shed_02.fbx.opt
+	content/meshes/prop_shield_01.fbx
+	content/meshes/prop_shield_01.fbx.opt
+	content/meshes/prop_shovel_01.fbx
+	content/meshes/prop_shovel_01.fbx.opt
+	content/meshes/prop_skull_01.fbx
+	content/meshes/prop_skull_01.fbx.opt
+	content/meshes/prop_sword_01.fbx
+	content/meshes/prop_sword_01.fbx.opt
+	content/meshes/prop_torch_01.fbx
+	content/meshes/prop_torch_01.fbx.opt
+	content/meshes/prop_wall_logs_04.FBX
+	content/meshes/prop_wall_logs_04.FBX.opt
+	content/meshes/terrain_01.fbx
+	content/meshes/terrain_01.fbx.opt
+	content/meshes/veg_clovers_01.fbx
+	content/meshes/veg_clovers_01.fbx.opt
+	content/meshes/veg_clovers_purple_01.fbx
+	content/meshes/veg_clovers_purple_01.fbx.opt
+	content/meshes/veg_clovers_white_01.fbx
+	content/meshes/veg_clovers_white_01.fbx.opt
+	content/meshes/veg_plant_02.fbx
+	content/meshes/veg_plant_02.fbx.opt
 	content/scenes/scene-test.json
-	content/textures/brick_albedo.jpg
-	content/textures/brick_albedo.json
-	content/textures/brick_normal.jpg
-	content/textures/brick_normal.json
-	content/textures/steel_albedo.json
-	content/textures/steel_albedo.png
-	content/textures/steel_metallic.json
-	content/textures/steel_metallic.png
-	content/textures/steel_normal.json
-	content/textures/steel_normal.png
+	content/scenes/The_Viking_Village.json
+	content/textures/build_boat_01_a.tif
+	content/textures/build_boat_01_a.tif.json
+	content/textures/build_boat_01_n.tif
+	content/textures/build_boat_01_n.tif.json
+	content/textures/build_boat_01_sg.tif
+	content/textures/build_boat_01_sg.tif.json
+	content/textures/build_boat_02_a.tif
+	content/textures/build_boat_02_a.tif.json
+	content/textures/build_boat_02_n.tif
+	content/textures/build_boat_02_n.tif.json
+	content/textures/build_building_01_a.tif
+	content/textures/build_building_01_a.tif.json
+	content/textures/build_building_01_n.tif
+	content/textures/build_building_01_n.tif.json
+	content/textures/build_building_01_sg.tif
+	content/textures/build_building_01_sg.tif.json
+	content/textures/build_building_02_a.tif
+	content/textures/build_building_02_a.tif.json
+	content/textures/build_building_02_n.tif
+	content/textures/build_building_02_n.tif.json
+	content/textures/build_building_02_sg.tif
+	content/textures/build_building_02_sg.tif.json
+	content/textures/build_crane_01_a.tif
+	content/textures/build_crane_01_a.tif.json
+	content/textures/build_crane_01_n.tif
+	content/textures/build_crane_01_n.tif.json
+	content/textures/build_crane_02_n.tif
+	content/textures/build_crane_02_n.tif.json
+	content/textures/build_crane_02_sg.tif
+	content/textures/build_crane_02_sg.tif.json
+	content/textures/build_dragonhead_01_a.tif
+	content/textures/build_dragonhead_01_a.tif.json
+	content/textures/build_dragonhead_01_n.tif
+	content/textures/build_dragonhead_01_n.tif.json
+	content/textures/build_gate_01_a.tif
+	content/textures/build_gate_01_a.tif.json
+	content/textures/build_gate_01_n.tif
+	content/textures/build_gate_01_n.tif.json
+	content/textures/build_gate_02_a.tif
+	content/textures/build_gate_02_a.tif.json
+	content/textures/build_gate_02_n.tif
+	content/textures/build_gate_02_n.tif.json
+	content/textures/build_gate_02_sg.tif
+	content/textures/build_gate_02_sg.tif.json
+	content/textures/build_strawroofs_01_a.tif
+	content/textures/build_strawroofs_01_a.tif.json
+	content/textures/build_strawroofs_01_n.tif
+	content/textures/build_strawroofs_01_n.tif.json
+	content/textures/build_tower_01_a.tif
+	content/textures/build_tower_01_a.tif.json
+	content/textures/build_tower_01_n.tif
+	content/textures/build_tower_01_n.tif.json
+	content/textures/build_tower_01_SG.tif
+	content/textures/build_tower_01_SG.tif.json
+	content/textures/build_tower_02_a.tif
+	content/textures/build_tower_02_a.tif.json
+	content/textures/build_tower_02_n.tif
+	content/textures/build_tower_02_n.tif.json
+	content/textures/build_tower_03_a.tif
+	content/textures/build_tower_03_a.tif.json
+	content/textures/build_tower_03_n.tif
+	content/textures/build_tower_03_n.tif.json
+	content/textures/build_tower_03_sg.tif
+	content/textures/build_tower_03_sg.tif.json
+	content/textures/build_village_fence_01_a.tif
+	content/textures/build_village_fence_01_a.tif.json
+	content/textures/build_village_fence_01_n.tif
+	content/textures/build_village_fence_01_n.tif.json
+	content/textures/build_village_fence_01_sg.tif
+	content/textures/build_village_fence_01_sg.tif.json
+	content/textures/prop_barrel_01_a.tif
+	content/textures/prop_barrel_01_a.tif.json
+	content/textures/prop_barrel_01_n.tif
+	content/textures/prop_barrel_01_n.tif.json
+	content/textures/prop_barrel_01_sg.tif
+	content/textures/prop_barrel_01_sg.tif.json
+	content/textures/prop_boardwalk_01_d.tif
+	content/textures/prop_boardwalk_01_d.tif.json
+	content/textures/prop_boardwalk_01_n.tif
+	content/textures/prop_boardwalk_01_n.tif.json
+	content/textures/prop_boardwalk_01_sg.tif
+	content/textures/prop_boardwalk_01_sg.tif.json
+	content/textures/prop_boulder_01_d.tif
+	content/textures/prop_boulder_01_d.tif.json
+	content/textures/prop_boulder_01_n.tif
+	content/textures/prop_boulder_01_n.tif.json
+	content/textures/prop_bucket_01_a.tif
+	content/textures/prop_bucket_01_a.tif.json
+	content/textures/prop_bucket_01_n.tif
+	content/textures/prop_bucket_01_n.tif.json
+	content/textures/prop_bucket_01_sg.tif
+	content/textures/prop_bucket_01_sg.tif.json
+	content/textures/prop_fence_02_a.tif
+	content/textures/prop_fence_02_a.tif.json
+	content/textures/prop_fence_02_n.tif
+	content/textures/prop_fence_02_n.tif.json
+	content/textures/prop_fish_01_d.tif
+	content/textures/prop_fish_01_d.tif.json
+	content/textures/prop_fish_01_n.tif
+	content/textures/prop_fish_01_n.tif.json
+	content/textures/prop_fish_01_sg.tif
+	content/textures/prop_fish_01_sg.tif.json
+	content/textures/prop_logpile_01_d.tif
+	content/textures/prop_logpile_01_d.tif.json
+	content/textures/prop_menhir_01_d.tif
+	content/textures/prop_menhir_01_d.tif.json
+	content/textures/prop_menhir_01_n.tif
+	content/textures/prop_menhir_01_n.tif.json
+	content/textures/prop_rune_01_d.tif
+	content/textures/prop_rune_01_d.tif.json
+	content/textures/prop_rune_01_n.tif
+	content/textures/prop_rune_01_n.tif.json
+	content/textures/prop_rune_01_sg.tif
+	content/textures/prop_rune_01_sg.tif.json
+	content/textures/prop_shield_01_d.tif
+	content/textures/prop_shield_01_d.tif.json
+	content/textures/prop_shield_01_n.tif
+	content/textures/prop_shield_01_n.tif.json
+	content/textures/prop_shield_01_sg.tif
+	content/textures/prop_shield_01_sg.tif.json
+	content/textures/prop_shield_02_d.tif
+	content/textures/prop_shield_02_d.tif.json
+	content/textures/prop_shield_03_a.tif
+	content/textures/prop_shield_03_a.tif.json
+	content/textures/prop_shield_03_n.tif
+	content/textures/prop_shield_03_n.tif.json
+	content/textures/prop_shield_03_sg.tif
+	content/textures/prop_shield_03_sg.tif.json
+	content/textures/prop_skull_01_d.tif
+	content/textures/prop_skull_01_d.tif.json
+	content/textures/prop_skull_01_n.tif
+	content/textures/prop_skull_01_n.tif.json
+	content/textures/prop_skull_01_sg.tif
+	content/textures/prop_skull_01_sg.tif.json
+	content/textures/prop_sword_shovel_halberd_01_d.tif
+	content/textures/prop_sword_shovel_halberd_01_d.tif.json
+	content/textures/prop_sword_shovel_halberd_01_n.tif
+	content/textures/prop_sword_shovel_halberd_01_n.tif.json
+	content/textures/prop_sword_shovel_halberd_01_sg.tif
+	content/textures/prop_sword_shovel_halberd_01_sg.tif.json
+	content/textures/terrain_01_m.tif
+	content/textures/terrain_01_m.tif.json
+	content/textures/terrain_01_n.tif
+	content/textures/terrain_01_n.tif.json
+	content/textures/terrain_01_o.tif
+	content/textures/terrain_01_o.tif.json
+	content/textures/terrain_far_01_a2.tif
+	content/textures/terrain_far_01_a2.tif.json
+	content/textures/terrain_far_01_sg.tif
+	content/textures/terrain_far_01_sg.tif.json
+	content/textures/terrain_grass_01_a.tif
+	content/textures/terrain_grass_01_a.tif.json
+	content/textures/terrain_grass_01_n.tif
+	content/textures/terrain_grass_01_n.tif.json
+	content/textures/terrain_grass_01_sg.tif
+	content/textures/terrain_grass_01_sg.tif.json
+	content/textures/terrain_mudslide_01_a.tif
+	content/textures/terrain_mudslide_01_a.tif.json
+	content/textures/terrain_mudslide_01_n.tif
+	content/textures/terrain_mudslide_01_n.tif.json
+	content/textures/terrain_mudslide_01_sg.tif
+	content/textures/terrain_mudslide_01_sg.tif.json
+	content/textures/terrain_wetmud_01_a.tif
+	content/textures/terrain_wetmud_01_a.tif.json
+	content/textures/terrain_wetmud_01_n.tif
+	content/textures/terrain_wetmud_01_n.tif.json
+	content/textures/terrain_wetmud_01_sg.tif
+	content/textures/terrain_wetmud_01_sg.tif.json
+	content/textures/veg_foliage_01_d.tif
+	content/textures/veg_foliage_01_d.tif.json
+	content/textures/wood_tiled_02_a.tif
+	content/textures/wood_tiled_02_a.tif.json
+	content/textures/wood_tiled_02_n.tif
+	content/textures/wood_tiled_02_n.tif.json
+	content/textures/brick/brick_albedo.jpg
+	content/textures/brick/brick_albedo.json
+	content/textures/brick/brick_normal.jpg
+	content/textures/brick/brick_normal.json
+	content/textures/steel/steel_albedo.json
+	content/textures/steel/steel_albedo.png
+	content/textures/steel/steel_metallic.json
+	content/textures/steel/steel_metallic.png
+	content/textures/steel/steel_normal.json
+	content/textures/steel/steel_normal.png
 )
 source_group("Content Files" FILES ${CONTENT_FILES})
 

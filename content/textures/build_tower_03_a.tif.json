@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "build_tower_03_a",
+  "file": "build_tower_03_a.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "srgba"
+  },
+  "mipmaps": true,
+  "filter": "bilinear",
+  "wrap": "repeat",
+  "anisotropic": 1
+}

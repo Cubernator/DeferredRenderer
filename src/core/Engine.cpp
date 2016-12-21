@@ -1,14 +1,15 @@
 #include "core/Engine.hpp"
+#include "core/Content.hpp"
 #include "core/Scene.hpp"
 #include "core/Entity.hpp"
-#include "core/Input.hpp"
-#include "core/Content.hpp"
 #include "graphics/RenderEngine.hpp"
 #include "graphics/texture/Texture2D.hpp"
 #include "util/app_info.hpp"
 
-#include "GL\glew.h"
-#include "GLFW\glfw3.h"
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
+
+#include "core/Input.hpp"
 
 #include <iostream>
 
@@ -178,7 +179,13 @@ const Scene * Engine::getScene() const
 
 void Engine::setScene(std::unique_ptr<Scene> scene)
 {
+	if (m_scene)
+		m_scene->setActive(false);
+
 	m_scene = std::move(scene);
+
+	if (m_scene)
+		m_scene->setActive(true);
 }
 
 void Engine::loadScene(const std::string& sceneName)

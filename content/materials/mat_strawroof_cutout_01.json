@@ -1,0 +1,18 @@
+{
+  "type": "material",
+  "name": "mat_strawroof_cutout_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#FFFFFFFF",
+    "albedoMap": "build_strawroofs_01_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_strawroofs_01_n",
+    "specColor": "#373737FF",
+    "smoothnessScale": 0.05
+  }
+}

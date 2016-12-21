@@ -1,0 +1,41 @@
+#include "uniforms.glh"
+#include "utils.glh"
+#include "lighting.glh"
+#include "vertex_input.glh"
+#include "vertex_output.glh"
+
+void vertex_transform()
+{
+	vec4 pos = vec4(v_input.position, 1.0);
+	vec4 normal = vec4(v_input.normal, 0.0);
+	vec4 tangent = vec4(v_input.tangent, 0.0);
+
+#ifdef PATH_FORWARD
+	// world space position
+	vec4 wp = cm_mat_world * pos;
+
+	// world space light vector
+	v_output.lightVec = light_vec(wp.xyz);
+
+	// world space view vector
+	v_output.viewVec = cm_cam_pos - wp.xyz;
+#endif
+
+	// world space normal
+	vec4 wn = cm_mat_tiworld * normal;
+	v_output.tangentSpace[2] = normalize(wn.xyz);
+
+	// world space tangent
+	vec4 wt = cm_mat_tiworld * tangent;
+	v_output.tangentSpace[0] = normalize(wt.xyz);
+
+	// world space bitangent from cross product
+	v_output.tangentSpace[1] = cross(v_output.tangentSpace[2], v_output.tangentSpace[0]);
+
+	// texture coordinates
+	v_output.uv0 = v_input.uv0;
+	//v_output.uv1 = v_input.uv1;
+
+	// clip space position
+	gl_Position = cm_mat_wvp * pos;
+}

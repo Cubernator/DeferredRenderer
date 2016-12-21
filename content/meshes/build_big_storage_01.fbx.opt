@@ -1,0 +1,10 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "build_big_storage_01_fence_02",
+    "build_big_storage_01_pillars_01",
+    "build_big_storage_01_straw_roof_002",
+    "build_big_storage_01_walls_down",
+    "build_big_storage_01_walls_up"
+  ]
+}

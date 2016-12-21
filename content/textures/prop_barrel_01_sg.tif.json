@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "prop_barrel_01_sg",
+  "file": "prop_barrel_01_sg.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "srgba"
+  },
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 9
+}

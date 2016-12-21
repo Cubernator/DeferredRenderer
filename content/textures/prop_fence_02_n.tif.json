@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "prop_fence_02_n",
+  "file": "prop_fence_02_n.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "rgba"
+  },
+  "mipmaps": true,
+  "filter": "bilinear",
+  "wrap": "repeat",
+  "anisotropic": 1
+}

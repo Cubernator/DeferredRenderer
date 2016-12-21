@@ -1,0 +1,17 @@
+{
+  "type": "material",
+  "name": "mat_torch_01",
+  "effect": "pbr_s",
+  "properties": {
+    "color": "#272727FF",
+    "albedoMap": "white",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "specColor": "#333333FF",
+    "smoothnessScale": 0.0
+  }
+}

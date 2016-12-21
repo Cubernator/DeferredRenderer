@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_build_village_fence_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#FFFFFFFF",
+    "albedoMap": "build_village_fence_01_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_village_fence_01_n",
+    "glossMap": "build_village_fence_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

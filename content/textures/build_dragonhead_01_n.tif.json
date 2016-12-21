@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "build_dragonhead_01_n",
+  "file": "build_dragonhead_01_n.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "rgba"
+  },
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 1
+}

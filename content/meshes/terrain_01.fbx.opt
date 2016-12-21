@@ -1,0 +1,7 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "terrain_far_01",
+    "terrain_near_01"
+  ]
+}

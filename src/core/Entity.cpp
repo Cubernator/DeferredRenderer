@@ -14,13 +14,22 @@ json_interpreter<Entity> Entity::s_properties({
 	{ "components", &Entity::extractComponents }
 });
 
-Entity::Entity() : m_id(boost::uuids::random_generator()()), m_active(true), m_transform(nullptr)
+Entity::Entity() : m_id(boost::uuids::random_generator()()), m_active(true), m_transform(nullptr), m_parentScene(nullptr)
 {
 	m_transform = addComponent<Transform>();
 }
 
+void Entity::start()
+{
+	for (auto& c : m_components) {
+		c->start();
+	}
+}
+
 void Entity::update()
 {
+	if (!m_active) return;
+
 	for (auto& c : m_components) {
 		c->update();
 	}

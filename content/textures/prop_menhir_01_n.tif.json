@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "prop_menhir_01_n",
+  "file": "prop_menhir_01_n.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "rgba"
+  },
+  "mipmaps": true,
+  "filter": "bilinear",
+  "wrap": "repeat",
+  "anisotropic": 1
+}

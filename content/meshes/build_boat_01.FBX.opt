@@ -1,0 +1,9 @@
+{
+  "scale": 1.0,
+  "includedMeshes": [
+    "build_boat_01",
+    "build_boat_dragonhead_01",
+    "build_boat_dragonhead_02",
+    "build_boat_scaffold_01"
+  ]
+}

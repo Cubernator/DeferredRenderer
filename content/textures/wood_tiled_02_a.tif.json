@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "wood_tiled_02_a",
+  "file": "wood_tiled_02_a.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "srgba"
+  },
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 8
+}

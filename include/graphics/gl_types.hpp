@@ -5,7 +5,7 @@
 
 #include <cstdint>
 
-template<typename> constexpr GLenum gl_type() { return 0; }
+template<typename> inline constexpr GLenum gl_type() { return 0; }
 
 template<> inline constexpr GLenum gl_type<uint8_t>() { return GL_UNSIGNED_BYTE; }
 template<> inline constexpr GLenum gl_type<uint16_t>() { return GL_UNSIGNED_SHORT; }

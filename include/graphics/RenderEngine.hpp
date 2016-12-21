@@ -2,16 +2,30 @@
 #define RENDERENGINE_HPP
 
 #include "graphics/Effect.hpp"
+#include "graphics/Material.hpp"
 #include "graphics/Buffer.hpp"
+#include "graphics/Light.hpp"
 #include "graphics/render_state.hpp"
+#include "util/bounds.hpp"
+
+#include "boost/multi_index_container.hpp"
+#include "boost/multi_index/indexed_by.hpp"
+#include "boost/multi_index/ordered_index.hpp"
+#include "boost/multi_index/composite_key.hpp"
+#include "boost/multi_index/member.hpp"
+#include "boost/multi_index/mem_fun.hpp"
 
 #include <unordered_set>
 #include <set>
 #include <vector>
 
+namespace mi = boost::multi_index;
+
 class Engine;
 class Entity;
+class Transform;
 class Renderer;
+class Renderable;
 class Light;
 class Camera;
 class ShaderProgram;
@@ -29,21 +43,19 @@ public:
 	bool isDeferredEnabled() const { return m_enableDeferred; }
 	void setDeferredEnabled(bool val) { m_enableDeferred = val; }
 
+	bool isVFCEnabled() const { return m_enableViewFrustumCulling; }
+	void setVFCEnabled(bool val) { m_enableViewFrustumCulling = val; }
+
 	void render();
 
-	void addEntity(Entity* entity);
-	void removeEntity(Entity* entity);
+	void addEntity(const Entity* entity);
+	void removeEntity(const Entity* entity);
 
 	void onResize(int width, int height);
 
 	static RenderEngine* instance() { return s_instance; }
 
 private:
-	struct light_priority_comparer
-	{
-		bool operator() (const Light* lhs, const Light* rhs) const;
-	};
-
 	struct uniforms_per_obj
 	{
 		glm::mat4 world, view, proj;
@@ -52,35 +64,84 @@ private:
 		glm::mat4 tiworld;
 		glm::vec3 camPos;
 
-		void setProjView(Camera* camera, float w, float h);
-		void setWorld(Entity* entity);
-		void apply(ShaderProgram* program) const;
+		void setPerFrame(const Camera* camera, float w, float h);
+		void setPerObject(const Transform* transform);
+		void apply(const ShaderProgram* program) const;
 	};
 
-	struct render_obj
+	struct render_job
 	{
-		Renderer* renderer;
+		const Transform* transform;
+		const Renderable* obj;
+		const Material* material;
 		const Effect::pass* pass;
+		const Light* light;
 
-		render_obj(Renderer* r, const Effect::pass* p) : renderer(r), pass(p) { }
+		const Effect* effect() const { return material->getEffect(); }
+		int priority() const { return effect()->getQueuePriority(); }
+		unsigned int lightMode() const { return pass->mode; }
+		const ShaderProgram* program() const { return pass->program; }
 	};
 
-	using light_queue = std::multiset<Light*, light_priority_comparer>;
-	using renderer_queue = std::vector<render_obj>;
+	struct deferred_queue_indices : public mi::indexed_by<
+		mi::ordered_non_unique<mi::composite_key<render_job,
+			mi::const_mem_fun<render_job, int, &render_job::priority>,
+			mi::const_mem_fun<render_job, const ShaderProgram*, &render_job::program>,
+			mi::member<render_job, const Effect::pass*, &render_job::pass>,
+			mi::member<render_job, const Material*, &render_job::material>,
+			mi::member<render_job, const Renderable*, &render_job::obj>
+		>>
+	> { };
+
+	using deferred_queue = mi::multi_index_container<
+		render_job,
+		deferred_queue_indices
+	>;
+
+	struct forward_queue_indices : public mi::indexed_by<
+		mi::ordered_non_unique<mi::composite_key<render_job,
+			mi::const_mem_fun<render_job, int, &render_job::priority>,
+			mi::const_mem_fun<render_job, const ShaderProgram*, &render_job::program>,
+			mi::const_mem_fun<render_job, unsigned int, &render_job::lightMode>,
+			mi::member<render_job, const Effect::pass*, &render_job::pass>,
+			mi::member<render_job, const Material*, &render_job::material>,
+			mi::member<render_job, const Renderable*, &render_job::obj>
+		>>
+	> { };
+
+	using forward_queue = mi::multi_index_container<
+		render_job,
+		forward_queue_indices
+	>;
+
+	struct light_queue_indices : public mi::indexed_by<
+		mi::ordered_non_unique<mi::composite_key<Light,
+			mi::const_mem_fun<Light, Light::type, &Light::getType>,
+			mi::const_mem_fun<Light, int, &Light::getPriority>
+		>>
+	> { };
+
+	using light_queue = mi::multi_index_container<
+		const Light*,
+		light_queue_indices
+	>;
 
 	Engine *m_parent;
-	std::vector<Renderer*> m_renderers;
-	std::vector<Light*> m_lights;
+	std::vector<const Renderer*> m_renderers;
+	std::vector<const Light*> m_lights;
+
+	int m_width, m_height;
 
 	Camera* m_camera;
+	frustum m_viewFrustum;
 
 	glm::vec4 m_clearColor;
 
-	renderer_queue m_deferredQueue, m_forwardQueue;
+	deferred_queue m_deferredQueue;
+	forward_queue m_forwardQueue;
 
 	GLuint m_gBufFBO;
 	std::unique_ptr<Texture2D> m_gBufDiff, m_gBufSpec, m_gBufNorm, m_gBufDepth;
-	GLenum m_gDrawBufs[3];
 	float m_gClearColor[4];
 	float m_gClearDepth;
 
@@ -95,15 +156,15 @@ private:
 	std::size_t m_quadOffset, m_sphereOffset;
 	std::size_t m_quadCount, m_sphereCount;
 
-	light_queue m_dirLights, m_posLights;
-	std::vector<Light*> m_lightQueue;
+	light_queue m_lightQueue;
 
 	render_state m_renderState;
 	uniforms_per_obj m_objUniforms;
-	unsigned int m_maxLights;
+	unsigned int m_maxFwdLights;
 	glm::vec4 m_ambientLight;
 
 	bool m_enableDeferred;
+	bool m_enableViewFrustumCulling;
 
 	static RenderEngine* s_instance;
 
@@ -111,15 +172,33 @@ private:
 	void setupDeferredPath();
 	void createCombinedLightMesh();
 
+	void fillQueues();
+
 	void renderDeferred();
+	void deferredGPass();
+	void deferredLPass();
+
 	void renderForward();
 
-	void bindPass(const Effect::pass* pass, Material* material);
-	void applyLight(Light* light, ShaderProgram* program);
-	void applyAmbient(bool enabled, ShaderProgram* program);
+	void applyLight(const Light* light, const ShaderProgram* program);
+	void applyAmbient(bool enabled, const ShaderProgram* program);
 	void updateRenderState(const render_state& newState);
 	void bindDeferredLightPass(const Effect::pass* pass);
-	void drawDeferredLight(Light* light, ShaderProgram* program);
+	void drawDeferredLight(const Light* light, const ShaderProgram* program);
+
+	void computeViewFrustum();
+
+	bool checkIntersection(const Light* light, const Transform* transform, const Renderable* obj) const;
+	bool checkIntersection(const frustum& viewFrustum, const Transform* transform, const Renderable* obj) const;
+	bool checkIntersection(const frustum& viewFrustum, const Light* light) const;
+
+
+	static void debugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+	friend void GLAPIENTRY glDbgMsg(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
+
+	static std::string dbgSourceString(GLenum v);
+	static std::string dbgTypeString(GLenum v);
+	static std::string dbgSeverityString(GLenum v);
 };
 
 #endif // RENDERENGINE_HPP

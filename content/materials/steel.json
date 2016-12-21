@@ -1,11 +1,11 @@
 {
   "type": "material",
   "name": "steel",
-  "effect": "pbr",
+  "effect": "pbr_mn",
   "properties": {
     "color": "#ffffff",
-    "mainTex": "steel_albedo",
+    "albedoMap": "steel_albedo",
     "normalMap": "steel_normal",
-    "metallicMap": "steel_metallic"
+    "glossMap": "steel_metallic"
   }
 }

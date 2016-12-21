@@ -49,7 +49,7 @@ Effect::Effect() : m_renderType(type_opaque), m_queuePriority(queue_geometry) { 
 Effect::pass::pass() : mode(light_forward_base), program(nullptr) { }
 
 
-const Effect::pass* Effect::getPass(light_mode mode)
+const Effect::pass* Effect::getPass(light_mode mode) const
 {
 	auto& by_mode_index = m_passes.get<by_mode>();
 	auto it = by_mode_index.find(mode);
@@ -59,7 +59,7 @@ const Effect::pass* Effect::getPass(light_mode mode)
 	return nullptr;
 }
 
-const Effect::pass* Effect::getPass(const std::string& name)
+const Effect::pass* Effect::getPass(const std::string& name) const
 {
 	auto& by_name_index = m_passes.get<by_name>();
 	auto it = by_name_index.find(name);
@@ -69,7 +69,7 @@ const Effect::pass* Effect::getPass(const std::string& name)
 	return nullptr;
 }
 
-void Effect::applyProperties(const pass* p, const Material* m)
+void Effect::applyProperties(const ShaderProgram* p, const Material* m) const
 {
 	for (const shader_property& prop : m_properties) {
 		const shader_property* matProp = m->getProperty(prop.id);
@@ -77,7 +77,7 @@ void Effect::applyProperties(const pass* p, const Material* m)
 		if (!matProp)
 			matProp = &prop;
 
-		matProp->applyTo(p->program);
+		matProp->applyTo(p);
 	}
 }
 
@@ -140,14 +140,16 @@ void Effect::addPass(const nlohmann::json& json)
 		pass newPass;
 		newPass.apply_json(json);
 
-		if (!newPass.program->isGood()) {
-			std::cout << "shader program has errors (" << newPass.name << "):" << std::endl;
-			std::cout << newPass.program->getLog() << std::endl;
-		}
+		if (newPass.program) {
+			if (!newPass.program->isGood()) {
+				std::cout << "shader program has errors (" << newPass.name << "):" << std::endl;
+				std::cout << newPass.program->getLog() << std::endl;
+			}
 
-		auto p = m_passes.insert(std::move(newPass));
-		if (!p.second) {
-			// TODO: print warning
+			auto p = m_passes.insert(std::move(newPass));
+			if (!p.second) {
+				// TODO: print warning
+			}
 		}
 	}
 }

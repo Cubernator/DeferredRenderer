@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_bucket_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#E9E9F6FF",
+    "albedoMap": "prop_bucket_01_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_bucket_01_n",
+    "glossMap": "prop_bucket_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "terrain_grass_01_n",
+  "file": "terrain_grass_01_n.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "rgba"
+  },
+  "mipmaps": true,
+  "filter": "bilinear",
+  "wrap": "repeat",
+  "anisotropic": 3
+}

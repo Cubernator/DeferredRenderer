@@ -1,0 +1,32 @@
+{
+  "type": "material",
+  "name": "mat_terrain_near_01",
+  "effect": "terrain",
+  "properties": {
+    "albedoMap": "terrain_grass_01_a",
+    "albedoMap2": "terrain_wetmud_01_a",
+    "normalMap": "terrain_grass_01_n",
+    "normalMap2": "terrain_wetmud_01_n",
+    "glossMap": "terrain_grass_01_sg",
+    "glossMap2": "terrain_wetmud_01_sg",
+    "detailMask": "terrain_01_m",
+    "uv_transform0": [
+      40.0,
+      40.0,
+      0.0,
+      0.0
+    ],
+    "uv_transform1": [
+      40.0,
+      40.0,
+      0.0,
+      0.0
+    ],
+    "uv_transform2": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ]
+  }
+}

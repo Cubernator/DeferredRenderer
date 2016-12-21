@@ -69,10 +69,13 @@ public:
 	render_type getRenderType() const { return m_renderType; }
 	void setRenderType(render_type val) { m_renderType = val; }
 
-	const pass* getPass(light_mode mode);
-	const pass* getPass(const std::string& name);
+	int getQueuePriority() const { return m_queuePriority; }
+	void setQueuePriority(int val) { m_queuePriority = val; }
 
-	void applyProperties(const pass* p, const Material* m);
+	const pass* getPass(light_mode mode) const;
+	const pass* getPass(const std::string& name) const;
+
+	void applyProperties(const ShaderProgram* p, const Material* m) const;
 
 	shader_property_map::const_iterator begin_properties() const { return m_properties.cbegin(); }
 	shader_property_map::const_iterator end_properties() const { return m_properties.cend(); }

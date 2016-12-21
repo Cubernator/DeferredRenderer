@@ -12,7 +12,9 @@
 #include "graphics/Light.hpp"
 #include "graphics/texture/Texture2D.hpp"
 #include "util/app_info.hpp"
+#include "util/intersection_tests.hpp"
 
+#include "boost/format.hpp"
 #include "GL/glew.h"
 
 #include <vector>
@@ -50,13 +52,19 @@ DEF_UNIFORM_ID(gbuf_depth);
 RenderEngine* RenderEngine::s_instance = nullptr;
 
 RenderEngine::RenderEngine(Engine* parent)
-	: m_parent(parent), m_maxLights(8), m_gBufFBO(0), m_lightMeshVAO(0),
+	: m_parent(parent), m_maxFwdLights(8), m_gBufFBO(0), m_lightMeshVAO(0),
 	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
-	m_enableDeferred(true)
+	m_enableDeferred(true), m_enableViewFrustumCulling(true)
 {
 	s_instance = this;
 
-	m_lightQueue.reserve(m_maxLights);
+#ifdef _DEBUG
+	glEnable(GL_DEBUG_OUTPUT);
+	//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(&glDbgMsg, nullptr);
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
+#endif
+
 	setupDeferredPath();
 	m_renderState.apply();
 	glEnable(GL_FRAMEBUFFER_SRGB);
@@ -90,9 +98,12 @@ void RenderEngine::setupDeferredPath()
 		std::cout << "ERROR: Deferred framebuffer object is incomplete!" << std::endl;
 	}
 
-	m_gDrawBufs[0] = GL_COLOR_ATTACHMENT0;
-	m_gDrawBufs[1] = GL_COLOR_ATTACHMENT1;
-	m_gDrawBufs[2] = GL_COLOR_ATTACHMENT2;
+	GLenum drawBuffers[] = {
+		GL_COLOR_ATTACHMENT0,
+		GL_COLOR_ATTACHMENT1,
+		GL_COLOR_ATTACHMENT2
+	};
+	glDrawBuffers(3, drawBuffers);
 
 	m_gClearColor[0] = 0.0f;
 	m_gClearColor[1] = 0.0f;
@@ -136,10 +147,10 @@ void RenderEngine::createCombinedLightMesh()
 	baseIndex = indices.size();
 	b = vertices.size();
 	vertices.insert(vertices.end(), {
-		{ -1.f, -1.f, 0.f },
-		{ 1.f, -1.f, 0.f },
-		{ -1.f, 1.f, 0.f },
-		{ 1.f, 1.f, 0.f }
+		{ -1.f, -1.f, -1.f },
+		{ 1.f, -1.f, -1.f },
+		{ -1.f, 1.f, -1.f },
+		{ 1.f, 1.f, -1.f }
 	});
 	indices.insert(indices.end(), {
 		b+0, b+1, b+2,
@@ -233,12 +244,15 @@ RenderEngine::~RenderEngine()
 
 void RenderEngine::onResize(int width, int height)
 {
-	glViewport(0, 0, width, height);
+	m_width = width;
+	m_height = height;
 
-	m_gBufDiff->setData<pixel::rgb32f>(nullptr, width, height);
-	m_gBufSpec->setData<pixel::rgba32f>(nullptr, width, height);
-	m_gBufNorm->setData<pixel::rgb10a2>(nullptr, width, height);
-	m_gBufDepth->setData<pixel::depth32>(nullptr, width, height);
+	glViewport(0, 0, m_width, m_height);
+
+	m_gBufDiff->setData<pixel::rgb32f>(nullptr, m_width, m_height);
+	m_gBufSpec->setData<pixel::rgba32f>(nullptr, m_width, m_height);
+	m_gBufNorm->setData<pixel::rgb10a2>(nullptr, m_width, m_height);
+	m_gBufDepth->setData<pixel::depth32>(nullptr, m_width, m_height);
 }
 
 void RenderEngine::render()
@@ -256,66 +270,13 @@ void RenderEngine::render()
 	m_camera = Camera::main();
 	if (!m_camera) return; // can't render anything without a camera!
 
-	int sw, sh;
-	m_parent->getScreenSize(sw, sh);
+	m_objUniforms.setPerFrame(m_camera, float(m_width), float(m_height));
 
-	m_objUniforms.setProjView(m_camera, float(sw), float(sh));
+	if (m_enableViewFrustumCulling)
+		computeViewFrustum();
 
-	m_dirLights.clear();
-	m_posLights.clear();
-
-	// sort lights by type
-	for (Light* light : m_lights) {
-		if (!light->isActiveAndEnabled()) continue;
-
-		if (light->getType() == Light::type_directional) {
-			m_dirLights.insert(light);
-		} else {
-			m_posLights.insert(light);
-		}
-	}
-
-	m_deferredQueue.clear();
-	m_forwardQueue.clear();
-
-	m_deferredQueue.reserve(m_renderers.size());
-	m_forwardQueue.reserve(m_renderers.size());
-
-	// TODO: implement render queues and render types
-
-	// sort objects into render queues
-	for (Renderer* renderer : m_renderers) {
-		if (!(renderer->isActiveAndEnabled() && renderer->isVisible()))
-			continue;
-
-		Material* material = renderer->getMaterial();
-		if (!material)
-			continue;
-
-		Effect* effect = material->getEffect();
-		if (!effect)
-			continue;
-
-		// TODO: view frustum culling
-
-		// if the object is not transparent and has a deferred pass, put it into deferred queue (deferred pass will be ignored in transparent effects)
-		if (m_enableDeferred && (effect->getRenderType() != Effect::type_transparent)) {
-			const Effect::pass* passDeferred = effect->getPass(Effect::light_deferred);
-			if (passDeferred && passDeferred->program) {
-				m_deferredQueue.emplace_back(renderer, passDeferred);
-				continue;
-			}
-		}
-
-		// if not, check if forward pass is present
-		const Effect::pass* passFwdBase = effect->getPass(Effect::light_forward_base);
-		if (passFwdBase && passFwdBase->program) {
-			m_forwardQueue.emplace_back(renderer, passFwdBase);
-			continue;
-		}
-
-		// skip it otherwise (something probably went wrong while initializing this object)
-	}
+	// fill light and render queues
+	fillQueues();
 
 	// render all objects that support deferred shading
 	renderDeferred();
@@ -324,32 +285,153 @@ void RenderEngine::render()
 	renderForward();
 }
 
+void RenderEngine::fillQueues()
+{
+	m_lightQueue.clear();
+
+	// sort lights by type and priority
+	for (const Light* light : m_lights) {
+		if (!light->isActiveAndEnabled())
+			continue;
+
+		if (m_enableViewFrustumCulling && !checkIntersection(m_viewFrustum, light))
+			continue;
+
+		m_lightQueue.insert(light);
+	}
+
+	m_deferredQueue.clear();
+	m_forwardQueue.clear();
+
+	// sort objects into render paths and fill render queues
+	for (const Renderer* renderer : m_renderers) {
+		if (!(renderer->isActiveAndEnabled() && renderer->isVisible()))
+			continue;
+
+		const Transform* transform = renderer->getEntity()->getTransform();
+
+		for (unsigned int i = 0; i < renderer->materialCount(); ++i) {
+
+			const Material* material = renderer->getMaterial(i);
+			if (!material)
+				continue;
+
+			const Effect* effect = material->getEffect();
+			if (!effect)
+				continue;
+
+			const Renderable* obj = renderer->getRenderable(i);
+			if (!obj)
+				continue;
+
+			// Frustum culling
+			if (m_enableViewFrustumCulling && !checkIntersection(m_viewFrustum, transform, obj))
+				continue;
+
+			// if the object is not transparent and has a deferred pass, put it into deferred queue (deferred pass will be ignored in transparent effects)
+			if (m_enableDeferred && (effect->getRenderType() != Effect::type_transparent)) {
+				const Effect::pass* passDeferred = effect->getPass(Effect::light_deferred);
+				if (passDeferred && passDeferred->program) {
+					m_deferredQueue.insert({ transform, obj, material, passDeferred, nullptr });
+					continue;
+				}
+			}
+
+			// if not, check if forward pass is present
+			const Effect::pass* passFwdBase = effect->getPass(Effect::light_forward_base);
+			if (passFwdBase && passFwdBase->program) {
+				const Light* firstLight = nullptr;
+
+				auto lit = m_lightQueue.begin();
+				if (!m_lightQueue.empty()) firstLight = *lit;
+				++lit;
+
+				m_forwardQueue.insert({ transform, obj, material, passFwdBase, firstLight });
+
+				unsigned int lc = 1;
+
+				const Effect::pass* passFwdAdd = effect->getPass(Effect::light_forward_add);
+				if (passFwdAdd && passFwdAdd->program) {
+					while ((lc <= m_maxFwdLights) && (lit != m_lightQueue.end())) {
+						if (checkIntersection(*lit, transform, obj)) {
+							m_forwardQueue.insert({ transform, obj, material, passFwdAdd, *lit });
+							++lc;
+						}
+						++lit;
+					}
+				}
+
+				continue;
+			}
+
+			// skip it otherwise (something probably went wrong while initializing this object)
+		}
+	}
+}
+
 void RenderEngine::renderDeferred()
 {
 	if (m_deferredQueue.empty() || !(m_deferredAmbientPass && m_deferredAmbientPass->program)) return;
 
 	// G-Buffer pass
+	deferredGPass();
+
+	// Lighting pass
+	deferredLPass();
+}
+
+void RenderEngine::deferredGPass()
+{
 	glBindFramebuffer(GL_FRAMEBUFFER, m_gBufFBO);
-	glDrawBuffers(3, m_gDrawBufs);
 
 	glClearBufferfv(GL_COLOR, 0, m_gClearColor);
 	glClearBufferfv(GL_COLOR, 1, m_gClearColor);
 	glClearBufferfv(GL_COLOR, 2, m_gClearColor);
 	glClearBufferfv(GL_DEPTH, 0, &m_gClearDepth);
 
-	for (const auto& obj : m_deferredQueue) {
-		m_objUniforms.setWorld(obj.renderer->getEntity());
-		Material* material = obj.renderer->getMaterial();
-		bindPass(obj.pass, material);
-		updateRenderState(obj.pass->state);
-		obj.renderer->bind();
-		obj.renderer->draw();
-		obj.renderer->unbind();
+	const ShaderProgram* curProgram = nullptr;
+	const Effect::pass* curPass = nullptr;
+	const Material* curMat = nullptr;
+	const Renderable* curObj = nullptr;
+	const Transform* curTransform = nullptr;
+
+	for (const auto& job : m_deferredQueue) {
+		if (job.program() != curProgram) {
+			curProgram = job.program();
+			curProgram->bind();
+			// need to re-apply transform if program is new
+			curTransform = nullptr;
+		}
+
+		if (job.pass != curPass) {
+			curPass = job.pass;
+			updateRenderState(curPass->state);
+		}
+
+		if (job.material != curMat) {
+			curMat = job.material;
+			curMat->apply(curProgram);
+		}
+
+		if (job.obj != curObj) {
+			curObj = job.obj;
+			curObj->bind();
+		}
+
+		if (job.transform != curTransform) {
+			curTransform = job.transform;
+			m_objUniforms.setPerObject(curTransform);
+			m_objUniforms.apply(curProgram);
+		}
+
+		curObj->draw();
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
-	// Lighting pass
+void RenderEngine::deferredLPass()
+{
 	glBindVertexArray(m_lightMeshVAO);
 	m_lightMeshIbuf.bind();
 
@@ -364,11 +446,7 @@ void RenderEngine::renderDeferred()
 	bindDeferredLightPass(m_deferredLightPass);
 	applyAmbient(false, m_deferredLightPass->program);
 
-	// First directional lights, then positional lights
-	m_lightQueue.assign(m_dirLights.begin(), m_dirLights.end());
-	m_lightQueue.insert(m_lightQueue.end(), m_posLights.begin(), m_posLights.end());
-
-	for (Light* light : m_lightQueue) {
+	for (const Light* light : m_lightQueue) {
 		applyLight(light, m_deferredLightPass->program);
 		drawDeferredLight(light, m_deferredLightPass->program);
 	}
@@ -378,92 +456,137 @@ void RenderEngine::renderForward()
 {
 	if (m_forwardQueue.empty()) return;
 
-	// render objects
-	for (const auto& obj : m_forwardQueue) {
-		m_lightQueue.clear();
+	const ShaderProgram* curProgram = nullptr;
+	const Effect::pass* curPass = nullptr;
+	const Material* curMat = nullptr;
+	const Light* curLight = nullptr;
+	const Renderable* curObj = nullptr;
+	const Transform* curTransform = nullptr;
 
-		// first try applying all directional lights
-		for (Light* light : m_dirLights) {
-			if (m_lightQueue.size() >= m_maxLights) break;
-			m_lightQueue.push_back(light);
+	for (const auto& job : m_forwardQueue) {
+		if (job.program() != curProgram) {
+			curProgram = job.program();
+			curProgram->bind();
+			// need to re-apply transform and light if program is new
+			curTransform = nullptr;
+			curLight = nullptr;
 		}
 
-		// then all intersecting non-directional lights
-		for (Light* light : m_posLights) {
-			if (m_lightQueue.size() >= m_maxLights) break;
-			if (light->checkIntersection(obj.renderer)) // only if object intersects light's sphere of influence
-				m_lightQueue.push_back(light);
+		if (job.pass != curPass) {
+			curPass = job.pass;
+			updateRenderState(curPass->state);
+			applyAmbient(curPass->mode == Effect::light_forward_base, curProgram);
 		}
 
-		// if no lights are affecting this object, draw at least once with no light so it won't be invisible
-		if (m_lightQueue.empty()) m_lightQueue.push_back(nullptr);
-
-		m_objUniforms.setWorld(obj.renderer->getEntity());
-
-		Material* material = obj.renderer->getMaterial();
-		auto lit = m_lightQueue.begin();
-
-		// render first light with base pass
-		bindPass(obj.pass, material);
-		updateRenderState(obj.pass->state);
-		applyLight(*lit, obj.pass->program);
-		applyAmbient(true, obj.pass->program);
-		obj.renderer->bind();
-		obj.renderer->draw();
-		++lit;
-
-		// then render all remaining lights with additive pass (different depth test, no depth writing and additive blending)
-		const Effect::pass* passFwdAdd = material->getEffect()->getPass(Effect::light_forward_add);
-		if (passFwdAdd && passFwdAdd->program) {
-			if (passFwdAdd->program != obj.pass->program) // no need to re-bind shader and re-apply uniforms if program is the same
-				bindPass(passFwdAdd, material);
-
-			// disable ambient light in additive pass
-			applyAmbient(false, passFwdAdd->program);
-			updateRenderState(passFwdAdd->state);
-
-			while (lit != m_lightQueue.end()) {
-				applyLight(*lit, passFwdAdd->program);
-				obj.renderer->draw();
-				++lit;
-			}
+		if (job.material != curMat) {
+			curMat = job.material;
+			curMat->apply(curProgram);
 		}
 
-		obj.renderer->unbind();
+		if (job.obj != curObj) {
+			curObj = job.obj;
+			curObj->bind();
+		}
+
+		if (job.transform != curTransform) {
+			curTransform = job.transform;
+			m_objUniforms.setPerObject(curTransform);
+			m_objUniforms.apply(curProgram);
+		}
+
+		if (job.light != curLight) {
+			curLight = job.light;
+			applyLight(curLight, curProgram);
+		}
+
+		curObj->draw();
 	}
 }
 
-void RenderEngine::addEntity(Entity* entity)
+void RenderEngine::addEntity(const Entity* entity)
 {
-	Renderer* r = entity->getComponent<Renderer>();
+	const Renderer* r = entity->getComponent<Renderer>();
 	if (r) {
 		m_renderers.push_back(r);
 	}
 
-	Light* l = entity->getComponent<Light>();
+	const Light* l = entity->getComponent<Light>();
 	if (l) {
 		m_lights.push_back(l);
 	}
 }
 
-void RenderEngine::removeEntity(Entity* entity)
+void RenderEngine::removeEntity(const Entity* entity)
 {
-	Renderer* r = entity->getComponent<Renderer>();
+	const Renderer* r = entity->getComponent<Renderer>();
 	if (r) {
 		m_renderers.erase(std::remove(m_renderers.begin(), m_renderers.end(), r), m_renderers.end());
 	}
 
-	Light* l = entity->getComponent<Light>();
+	const Light* l = entity->getComponent<Light>();
 	if (l) {
 		m_lights.erase(std::remove(m_lights.begin(), m_lights.end(), l), m_lights.end());
 	}
 }
 
-void RenderEngine::bindDeferredLightPass(const Effect::pass * pass)
+bool RenderEngine::checkIntersection(const Light* light, const Transform* transform, const Renderable* obj) const
+{
+	if (light->getType() == Light::type_directional) return true;
+
+	const Transform* lTrans = light->getEntity()->getTransform();
+
+	// get light position relative to renderer's coordinate system (without scale)
+	glm::vec4 lp(lTrans->getPosition(), 1.0f);
+	lp = transform->getInverseRigidMatrix() * lp;
+	glm::vec3 lPos(lp);
+
+	// apply renderer's scale directly to bounds
+	aabb rBounds = obj->bounds();
+	rBounds *= transform->getScale();
+
+	// intersect aabb (renderer's bounds) with lights's sphere of influence
+	return intersect_aabb_sphere(rBounds, { lPos, light->getRange() });
+}
+
+void RenderEngine::computeViewFrustum()
+{
+	for (unsigned int p = 0; p < 3; ++p) {
+		for (unsigned int i = 0; i < 4; ++i) {
+			m_viewFrustum.planes[p*2+0][i] = m_objUniforms.vp[i][3] + m_objUniforms.vp[i][p];
+			m_viewFrustum.planes[p*2+1][i] = m_objUniforms.vp[i][3] - m_objUniforms.vp[i][p];
+		}
+	}
+
+	m_viewFrustum.normalize();
+}
+
+bool RenderEngine::checkIntersection(const frustum& viewFrustum, const Transform* transform, const Renderable* obj) const
+{
+	glm::quat rot = transform->getRotation();
+	aabb scaledBounds = obj->bounds() * glm::abs(transform->getScale());
+	glm::vec3 rmin = rot * scaledBounds.min, rmax = rot * scaledBounds.max;
+	obb rBounds{
+		transform->getPosition() + (rmax + rmin) * 0.5f,
+		scaledBounds.extents(),
+		glm::mat3_cast(rot)
+	};
+
+	return intersect_obb_frustum(rBounds, viewFrustum);
+}
+
+bool RenderEngine::checkIntersection(const frustum& viewFrustum, const Light* light) const
+{
+	if (light->getType() == Light::type_directional) return true;
+
+	const Transform* lTrans = light->getEntity()->getTransform();
+	return intersect_sphere_frustum({ lTrans->getPosition(), light->getRange() }, viewFrustum);
+}
+
+void RenderEngine::bindDeferredLightPass(const Effect::pass* pass)
 {
 	updateRenderState(pass->state);
 
-	ShaderProgram* program = pass->program;
+	const ShaderProgram* program = pass->program;
 	program->bind();
 	program->setUniform(g_cm_mat_ivp_id, m_objUniforms.ivp);
 	program->setUniform(g_cm_cam_pos_id, m_objUniforms.camPos);
@@ -473,7 +596,7 @@ void RenderEngine::bindDeferredLightPass(const Effect::pass * pass)
 	program->setTexture(g_gbuf_depth_id, m_gBufDepth.get());
 }
 
-void RenderEngine::drawDeferredLight(Light* light, ShaderProgram* program)
+void RenderEngine::drawDeferredLight(const Light* light, const ShaderProgram* program)
 {
 	glm::mat4 transform;
 	auto o = m_quadOffset;
@@ -485,11 +608,10 @@ void RenderEngine::drawDeferredLight(Light* light, ShaderProgram* program)
 		if (t != Light::type_directional) {
 			float r = light->getRange();
 			float lr = r * m_lightMeshRadius;
-			Transform* lt = light->getEntity()->getTransform();
+			const Transform* lt = light->getEntity()->getTransform();
 			glm::vec4 lp = {lt->getPosition(), 1.0f};
 			glm::vec3 lpos = m_objUniforms.view * lp;
 			
-			// TODO: improve this test and add frustum culling
 			if ((-lpos.z - lr) > m_camera->getNearPlane()) {
 				transform = m_objUniforms.vp * lt->getRigidMatrix() * glm::scale(glm::vec3(r));
 				// TODO: add spot light mesh
@@ -508,14 +630,7 @@ void RenderEngine::drawDeferredLight(Light* light, ShaderProgram* program)
 	glDrawElements(GL_TRIANGLES, c, GL_UNSIGNED_INT, reinterpret_cast<void*>(o));
 }
 
-void RenderEngine::bindPass(const Effect::pass* pass, Material* material)
-{
-	pass->program->bind();
-	m_objUniforms.apply(pass->program);
-	material->getEffect()->applyProperties(pass, material);
-}
-
-void RenderEngine::applyLight(Light* light, ShaderProgram* program)
+void RenderEngine::applyLight(const Light* light, const ShaderProgram* program)
 {
 	if (light) {
 		glm::vec4 color, dir, atten, spot;
@@ -527,7 +642,7 @@ void RenderEngine::applyLight(Light* light, ShaderProgram* program)
 	}
 }
 
-void RenderEngine::applyAmbient(bool enabled, ShaderProgram* program)
+void RenderEngine::applyAmbient(bool enabled, const ShaderProgram* program)
 {
 	program->setUniform(g_cm_light_ambient_id, enabled ? m_ambientLight : glm::vec4(0.f));
 }
@@ -538,14 +653,9 @@ void RenderEngine::updateRenderState(const render_state& newState)
 	m_renderState = newState;
 }
 
-bool RenderEngine::light_priority_comparer::operator()(const Light* lhs, const Light* rhs) const
+void RenderEngine::uniforms_per_obj::setPerFrame(const Camera* camera, float w, float h)
 {
-	return lhs->getPriority() > rhs->getPriority();
-}
-
-void RenderEngine::uniforms_per_obj::setProjView(Camera* camera, float w, float h)
-{
-	Transform* camTrans = camera->getEntity()->getTransform();
+	const Transform* camTrans = camera->getEntity()->getTransform();
 	proj = camera->getProjectionMatrix(w, h);
 	view = camTrans->getInverseRigidMatrix();
 	vp = proj * view;
@@ -553,14 +663,14 @@ void RenderEngine::uniforms_per_obj::setProjView(Camera* camera, float w, float 
 	camPos = camTrans->getPosition();
 }
 
-void RenderEngine::uniforms_per_obj::setWorld(Entity* entity)
+void RenderEngine::uniforms_per_obj::setPerObject(const Transform* transform)
 {
-	world = entity->getTransform()->getMatrix();
+	world = transform->getMatrix();
 	tiworld = glm::transpose(glm::inverse(world));
 	wvp = vp * world;
 }
 
-void RenderEngine::uniforms_per_obj::apply(ShaderProgram* program) const
+void RenderEngine::uniforms_per_obj::apply(const ShaderProgram* program) const
 {
 	program->setUniform(g_cm_mat_proj_id, proj);
 	program->setUniform(g_cm_mat_view_id, view);
@@ -570,4 +680,80 @@ void RenderEngine::uniforms_per_obj::apply(ShaderProgram* program) const
 	program->setUniform(g_cm_mat_ivp_id, ivp);
 	program->setUniform(g_cm_mat_wvp_id, wvp);
 	program->setUniform(g_cm_cam_pos_id, camPos);
+}
+
+
+void RenderEngine::debugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	auto msg = boost::format("OpenGL Message [%s]: %s %s (ID %i): %s")
+		% dbgSeverityString(severity)
+		% dbgSourceString(source)
+		% dbgTypeString(type)
+		% id
+		% message;
+
+	std::cout << msg << std::endl;
+}
+
+void GLAPIENTRY glDbgMsg(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	RenderEngine::debugMessage(source, type, id, severity, length, message, userParam);
+}
+
+std::string RenderEngine::dbgSourceString(GLenum v)
+{
+	switch (v) {
+	case GL_DEBUG_SOURCE_API:
+		return "API";
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+		return "Window System";
+	case GL_DEBUG_SOURCE_SHADER_COMPILER:
+		return "Shader Compiler";
+	case GL_DEBUG_SOURCE_THIRD_PARTY:
+		return "Third Party";
+	case GL_DEBUG_SOURCE_APPLICATION:
+		return "Application";
+	case GL_DEBUG_SOURCE_OTHER:
+		return "Other";
+	default:
+		return "Unknown";
+	}
+}
+
+std::string RenderEngine::dbgTypeString(GLenum v)
+{
+	switch (v) {
+	case GL_DEBUG_TYPE_ERROR:
+		return "Error";
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		return "Deprecated Behaviour";
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		return "Undefined Behaviour";
+	case GL_DEBUG_TYPE_PORTABILITY:
+		return "Portability";
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		return "Performance";
+	case GL_DEBUG_TYPE_MARKER:
+		return "Marker";
+	case GL_DEBUG_TYPE_OTHER:
+		return "Other";
+	default:
+		return "Unknown";
+	}
+}
+
+std::string RenderEngine::dbgSeverityString(GLenum v)
+{
+	switch (v) {
+	case GL_DEBUG_SEVERITY_HIGH:
+		return "High";
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		return "Medium";
+	case GL_DEBUG_SEVERITY_LOW:
+		return "Low";
+	case GL_DEBUG_SEVERITY_NOTIFICATION:
+		return "Notification";
+	default:
+		return "Unknown";
+	}
 }

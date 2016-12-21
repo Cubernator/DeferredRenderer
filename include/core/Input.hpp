@@ -4,8 +4,7 @@
 #include <unordered_map>
 
 #include "glm.hpp"
-
-struct GLFWwindow;
+#include "GLFW/glfw3.h"
 
 class Input
 {

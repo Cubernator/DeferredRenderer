@@ -1,0 +1,15 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "prop_boardwalk_01",
+    "prop_boardwalk_02",
+    "prop_boardwalk_03",
+    "prop_boardwalk_04",
+    "prop_boardwalk_05",
+    "prop_boardwalk_06",
+    "prop_boardwalk_07",
+    "prop_boardwalk_08",
+    "prop_boardwalk_09",
+    "prop_boardwalk_10"
+  ]
+}

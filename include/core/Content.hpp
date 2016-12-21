@@ -102,6 +102,8 @@ private:
 
 	std::vector<path> m_shaderIncludeDirs;
 
+	unsigned int m_logIndentLevel;
+
 	static Content* s_instance;
 
 

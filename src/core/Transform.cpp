@@ -13,7 +13,7 @@ json_interpreter<Transform> Transform::s_properties({
 
 Transform::Transform(Entity* parent) : Component(parent), m_scale(1.0f), m_dirty(true) { }
 
-const glm::mat4& Transform::getMatrix()
+const glm::mat4& Transform::getMatrix() const
 {
 	if (m_dirty) {
 		m_cachedMatrix = glm::translate(m_position) * glm::toMat4(m_rotation) * glm::scale(m_scale);

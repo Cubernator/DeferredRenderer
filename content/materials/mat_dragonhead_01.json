@@ -1,0 +1,18 @@
+{
+  "type": "material",
+  "name": "mat_dragonhead_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#FFFFFFFF",
+    "albedoMap": "build_dragonhead_01_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_dragonhead_01_n",
+    "specColor": "#333333FF",
+    "smoothnessScale": 0.119
+  }
+}

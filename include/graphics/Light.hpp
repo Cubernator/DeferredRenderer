@@ -37,16 +37,8 @@ public:
 	void setPriority(int val) { m_priority = val; }
 
 	bool isVisible() const;
-	/*
-	glm::vec4 getDirUniform() const;
-	glm::vec4 getSpotUniform() const;
-	glm::vec4 getAttenUniform() const;
-	glm::vec4 getPremultipliedColor() const;
-	*/
 
 	void getUniforms(glm::vec4& color, glm::vec4& dir, glm::vec4& atten, glm::vec4& spot) const;
-
-	bool checkIntersection(const Renderer* renderer) const;
 
 protected:
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;

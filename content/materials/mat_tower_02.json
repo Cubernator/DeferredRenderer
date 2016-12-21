@@ -1,0 +1,18 @@
+{
+  "type": "material",
+  "name": "mat_tower_02",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#FFFFFFFF",
+    "albedoMap": "build_tower_02_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_tower_02_n",
+    "specColor": "#343435FF",
+    "smoothnessScale": 0.183
+  }
+}

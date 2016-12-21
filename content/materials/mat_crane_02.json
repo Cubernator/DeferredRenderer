@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_crane_02",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#515151FF",
+    "albedoMap": "white",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_crane_02_n",
+    "glossMap": "build_crane_02_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

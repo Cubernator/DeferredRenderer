@@ -1,0 +1,7 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "prop_skull_01",
+    "prop_skull_jaw_01"
+  ]
+}

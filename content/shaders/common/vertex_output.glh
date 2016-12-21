@@ -1,0 +1,19 @@
+struct vertex_output {
+	vec3 tangentSpace[3];
+
+#ifdef PATH_FORWARD
+	vec3 viewVec;
+	vec3 lightVec;
+#endif
+
+	vec2 uv0;
+	//vec2 uv1;
+};
+
+#if defined VERTEX_SHADER
+out vertex_output v_output;
+
+#elif defined FRAGMENT_SHADER
+in vertex_output v_output;
+
+#endif

@@ -1,0 +1,13 @@
+{
+  "type": "texture2D",
+  "name": "terrain_wetmud_01_sg",
+  "file": "terrain_wetmud_01_sg.tif",
+  "importer": "tif",
+  "importOptions": {
+    "convertTo": "srgba"
+  },
+  "mipmaps": true,
+  "filter": "bilinear",
+  "wrap": "repeat",
+  "anisotropic": 3
+}

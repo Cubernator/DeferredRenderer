@@ -1,0 +1,47 @@
+#ifndef PBR_DATA_GLH
+#define PBR_DATA_GLH
+
+uniform float dielectricReflec;
+
+struct pbr_data
+{
+	vec3 albedo;
+#ifdef WORKFLOW_SPECULAR
+	vec3 specular;
+#else
+	float metallic;
+#endif
+	float smoothness;
+	vec3 normal;
+};
+
+void get_diff_spec_from_metallic(vec3 albedo, float metallic, out vec3 diff, out vec3 spec)
+{
+	// calculate diffuse and specular colors depending on metallic factor and according to energy conservation
+	float omd = 1.0 - dielectricReflec;
+	diff = albedo * (omd - metallic * omd);
+
+	// The BRDF treats the specular color as the component-wise reflectance at 0°
+	// For non-metallic (dielectric) materials the reflectance is defined by the "dielectricReflec" uniform (in most cases constant at 0.22).
+	// For metals the specular color is "tinted" by the surface color (albedo).
+	// These values are blended together depending of the metallic value.
+	spec = mix(vec3(dielectricReflec), albedo, metallic);
+}
+
+vec3 get_diff_from_specular(vec3 albedo, vec3 specCol)
+{
+	// ensure energy conservation
+	return albedo * (1.0 - specCol);
+}
+
+void pbr_get_diff_spec(pbr_data data, out vec3 diff, out vec3 spec)
+{
+#ifdef WORKFLOW_SPECULAR
+	spec = data.specular;
+	diff = get_diff_from_specular(data.albedo, data.specular);
+#else
+	get_diff_spec_from_metallic(data.albedo, data.metallic, diff, spec);
+#endif
+}
+
+#endif // PBR_DATA_GLH

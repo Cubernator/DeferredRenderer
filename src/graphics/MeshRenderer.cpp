@@ -12,32 +12,17 @@ json_interpreter<MeshRenderer> MeshRenderer::s_properties({
 
 MeshRenderer::MeshRenderer(Entity* parent) : Renderer(parent) { }
 
-void MeshRenderer::bind_impl()
-{
-	m_mesh->bindVAO();
-	m_mesh->bindIndices();
-}
-
-void MeshRenderer::draw_impl()
-{
-	m_mesh->draw();
-}
-
-void MeshRenderer::unbind_impl()
-{
-	m_mesh->unbindIndices();
-	m_mesh->unbindVAO();
-}
-
 bool MeshRenderer::hasGeometry() const
 {
 	return m_mesh != nullptr;
 }
 
-aabb MeshRenderer::getBounds_impl() const
+const Renderable* MeshRenderer::getRenderable_impl(unsigned int index) const
 {
-	if (m_mesh) return m_mesh->getBounds();
-	return aabb();
+	if (index >= m_mesh->subMeshCount())
+		return nullptr;
+	
+	return m_mesh->getSubMesh(index);
 }
 
 void MeshRenderer::apply_json_property_impl(const std::string& name, const nlohmann::json& json)

@@ -1,0 +1,8 @@
+#include "common/gbuffer.glh"
+
+void pbr_set_gbuffer(vec3 diff, vec3 spec, float smoothness, vec3 normal)
+{
+	gbuf_diffuse.rgb = diff;
+	gbuf_specSmooth = vec4(spec, smoothness);
+	gbuf_normal.rgb = normal * 0.5 + 0.5;
+}

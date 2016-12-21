@@ -1,10 +1,10 @@
 {
   "type": "material",
   "name": "brick",
-  "effect": "pbr",
+  "effect": "pbr_mn",
   "properties": {
     "color": "#ffffff",
-    "mainTex": "brick_albedo",
+    "albedoMap": "brick_albedo",
     "normalMap": "brick_normal",
     "metallicScale": 0.0,
     "smoothnessScale": 0.2

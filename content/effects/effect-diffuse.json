@@ -10,7 +10,7 @@
       "default": "#ffffffff"
     },
     {
-      "name": "mainTex",
+      "name": "albedoMap",
       "type": "texture2D",
       "default": "white"
     }

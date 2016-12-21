@@ -2,18 +2,13 @@
 #include "graphics/gl_types.hpp"
 #include "util/type_registry.hpp"
 
-#include "assimp/Importer.hpp"
-#include "assimp/postprocess.h"
-#include "assimp/scene.h"
-#include "assimp/mesh.h"
-
 #include <numeric>
 
-REGISTER_OBJECT_TYPE(Mesh, "mesh", ".fbx");
+REGISTER_OBJECT_TYPE(Mesh, "mesh", ".rbm");
 
-Mesh::Mesh() : m_vao(0) { }
+SubMesh::SubMesh() : m_vao(0) { }
 
-Mesh::Mesh(Mesh&& other)
+SubMesh::SubMesh(SubMesh&& other)
 	: m_vao(other.m_vao),
 	m_positions(std::move(other.m_positions)),
 	m_normals(std::move(other.m_normals)),
@@ -24,7 +19,7 @@ Mesh::Mesh(Mesh&& other)
 	other.m_vao = 0;
 }
 
-Mesh& Mesh::operator=(Mesh&& other)
+SubMesh& SubMesh::operator=(SubMesh&& other)
 {
 	if (this != &other) {
 		m_vao = other.m_vao;
@@ -39,32 +34,32 @@ Mesh& Mesh::operator=(Mesh&& other)
 	return *this;
 }
 
-Mesh::~Mesh()
+SubMesh::~SubMesh()
 {
 	if (m_vao) glDeleteVertexArrays(1, &m_vao);
 }
 
-void Mesh::bindVAO() const
+void SubMesh::bindVAO() const
 {
 	glBindVertexArray(m_vao);
 }
 
-void Mesh::unbindVAO() const
+void SubMesh::unbindVAO() const
 {
 	glBindVertexArray(0);
 }
 
-void Mesh::bindIndices() const
+void SubMesh::bindIndices() const
 {
 	m_indices->bind();
 }
 
-void Mesh::unbindIndices() const
+void SubMesh::unbindIndices() const
 {
 	m_indices->unbind();
 }
 
-void Mesh::updateVAO()
+void SubMesh::updateVAO()
 {
 	if (!m_vao) {
 		glCreateVertexArrays(1, &m_vao);
@@ -78,7 +73,7 @@ void Mesh::updateVAO()
 	unbindVAO();
 }
 
-void Mesh::setVertices(std::size_t count, const position_type* positions, const normal_type* normals, const tangent_type* tangents, const uv_type* uvs)
+void SubMesh::setVertices(std::size_t count, const position_type* positions, const normal_type* normals, const tangent_type* tangents, const uv_type* uvs)
 {
 	fillBuffer(count, m_positions, positions);
 	fillBuffer(count, m_normals, normals);
@@ -88,21 +83,33 @@ void Mesh::setVertices(std::size_t count, const position_type* positions, const 
 	updateVAO();
 }
 
-void Mesh::setIndices(std::size_t count, const index_type* indices)
+void SubMesh::setIndices(std::size_t count, const index_type* indices)
 {
 	fillBuffer(count, m_indices, indices);
 
 	updateBounds();
 }
 
-void Mesh::draw()
+void SubMesh::bind() const
+{
+	bindVAO();
+	bindIndices();
+}
+
+void SubMesh::unbind() const
+{
+	unbindVAO();
+	unbindIndices();
+}
+
+void SubMesh::draw() const
 {
 	glDrawElements(GL_TRIANGLES, m_indices->count(), gl_type<index_type>(), nullptr);
 }
 
-aabb Mesh::computeBounds() const
+aabb SubMesh::computeBounds() const
 {
-	glm::vec3 min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::min());
+	glm::vec3 min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::lowest());
 
 	const index_type* indices = m_indices->mapReadOnly();
 	const position_type* vertices = m_positions->mapReadOnly();
@@ -111,13 +118,8 @@ aabb Mesh::computeBounds() const
 	for (std::size_t i = 0; i < numIndices; ++i) {
 		position_type pos = vertices[indices[i]];
 
-		if (pos.x < min.x) min.x = pos.x;
-		if (pos.y < min.y) min.y = pos.y;
-		if (pos.z < min.z) min.z = pos.z;
-
-		if (pos.x > max.x) max.x = pos.x;
-		if (pos.y > max.y) max.y = pos.y;
-		if (pos.z > max.z) max.z = pos.z;
+		min = glm::min(min, pos);
+		max = glm::max(max, pos);
 	}
 
 	m_positions->unmap();
@@ -126,58 +128,84 @@ aabb Mesh::computeBounds() const
 	return aabb{ min, max };
 }
 
-void Mesh::updateBounds()
+void SubMesh::updateBounds()
 {
 	m_bounds = computeBounds();
+}
+
+void Mesh::addSubMesh(std::unique_ptr<SubMesh> subMesh)
+{
+	m_bounds = aabb_union(m_bounds, subMesh->getBounds());
+	m_subMeshes.push_back(std::move(subMesh));
+}
+
+void Mesh::clearSubMeshes()
+{
+	m_subMeshes.clear();
+	m_bounds = aabb();
 }
 
 template<>
 std::unique_ptr<Mesh> import_object(const path& filename)
 {
-	using namespace Assimp;
-
-	unsigned int importFlags = aiProcessPreset_TargetRealtime_MaxQuality;
-
-	Importer importer;
-	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
-	const aiScene* scene = importer.ReadFile(filename.string(), importFlags);
-
-	if (scene && scene->mNumMeshes > 0) {
-		if (scene->mNumMeshes > 1) {
-			std::cout << "WARNING: only one mesh per file can be imported! (" << filename << ")" << std::endl;
-		}
-
-		const aiMesh* mesh = scene->mMeshes[0];
-
-		auto positions = reinterpret_cast<const Mesh::position_type*>(mesh->mVertices);
-		auto normals = reinterpret_cast<const Mesh::normal_type*>(mesh->mNormals);
-		auto tangents = reinterpret_cast<const Mesh::tangent_type*>(mesh->mTangents);
-
-		std::vector<Mesh::uv_type> uvData;
-		if (mesh->HasTextureCoords(0)) {
-			for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
-				uvData.emplace_back(
-					mesh->mTextureCoords[0][i].x,
-					mesh->mTextureCoords[0][i].y
-				);
-			}
-		}
-
-		const Mesh::uv_type* uvs = uvData.empty() ? nullptr : uvData.data();
-
-		std::vector<Mesh::index_type> indices;
-		for (unsigned int f = 0; f < mesh->mNumFaces; ++f) {
-			auto& face = mesh->mFaces[f];
-			if (face.mNumIndices != 3) continue; // only triangles!
-			indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
-		}
-
+	boost::filesystem::ifstream file(filename, std::ios::binary);
+	if (file) {
 		auto newMesh = std::make_unique<Mesh>();
 
-		newMesh->setVertices(mesh->mNumVertices, positions, normals, tangents, uvs);
-		newMesh->setIndices(indices.size(), indices.data());
+		unsigned int subMeshCount;
+		file.read(reinterpret_cast<char*>(&subMeshCount), sizeof(subMeshCount));
 
-		return newMesh;
+		for (unsigned int i = 0; i < subMeshCount; ++i) {
+			unsigned int vertexCount, indexCount;
+			unsigned char compMask;
+
+			file.read(reinterpret_cast<char*>(&vertexCount), sizeof(vertexCount));
+			file.read(reinterpret_cast<char*>(&indexCount), sizeof(indexCount));
+
+			file.read(reinterpret_cast<char*>(&compMask), sizeof(compMask));
+
+			bool hasVertices = (compMask & 0x80u) == 0x80u;
+			bool hasNormals = (compMask & 0x40u) == 0x40u;
+			bool hasTangents = (compMask & 0x20u) == 0x20u;
+			bool hasUvs = (compMask & 0x10u) == 0x10u;
+
+			std::vector<SubMesh::position_type> vertices;
+			std::vector<SubMesh::normal_type> normals;
+			std::vector<SubMesh::tangent_type> tangents;
+			std::vector<SubMesh::uv_type> uvs;
+
+			if (hasVertices) {
+				vertices.resize(vertexCount);
+				file.read(reinterpret_cast<char*>(vertices.data()), sizeof(SubMesh::position_type) * vertexCount);
+			}
+			if (hasNormals) {
+				normals.resize(vertexCount);
+				file.read(reinterpret_cast<char*>(normals.data()), sizeof(SubMesh::normal_type) * vertexCount);
+			}
+			if (hasTangents) {
+				tangents.resize(vertexCount);
+				file.read(reinterpret_cast<char*>(tangents.data()), sizeof(SubMesh::tangent_type) * vertexCount);
+			}
+			if (hasUvs) {
+				uvs.resize(vertexCount);
+				file.read(reinterpret_cast<char*>(uvs.data()), sizeof(SubMesh::uv_type) * vertexCount);
+			}
+
+			auto vertexData = hasVertices ? vertices.data() : nullptr;
+			auto normalData = hasNormals ? normals.data() : nullptr;
+			auto tangentData = hasTangents ? tangents.data() : nullptr;
+			auto uvData = hasUvs ? uvs.data() : nullptr;
+
+			std::vector<SubMesh::index_type> indices(indexCount);
+			file.read(reinterpret_cast<char*>(indices.data()), sizeof(SubMesh::index_type) * indexCount);
+
+			auto subMesh = std::make_unique<SubMesh>();
+			subMesh->setVertices(vertexCount, vertexData, normalData, tangentData, uvData);
+			subMesh->setIndices(indexCount, indices.data());
+			newMesh->addSubMesh(std::move(subMesh));
+		}
+
+		return std::move(newMesh);
 	}
 
 	return std::unique_ptr<Mesh>();

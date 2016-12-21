@@ -30,6 +30,7 @@ public:
 
 	bool isActiveAndEnabled() const;
 
+	void start() { start_impl(); }
 	void update() { update_impl(); }
 
 	COMPONENT_ALLOW_MULTIPLE;
@@ -37,6 +38,7 @@ public:
 protected:
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json);
 
+	virtual void start_impl() { }
 	virtual void update_impl() { }
 
 	friend struct json_initializable<Component>;

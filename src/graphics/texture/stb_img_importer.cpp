@@ -4,7 +4,7 @@
 #define STBI_FAILURE_USERMSG
 #include "stb_image.h"
 
-stb_img_importer::stb_img_importer(const path& file, const nlohmann::json& options) : image_importer(options)
+stb_img_importer::stb_img_importer(const path& file, const nlohmann::json& options) : uncompressed_img_importer(options), m_data(nullptr)
 {
 	int components = 0;
 	auto cit = options.find("components");
@@ -20,7 +20,8 @@ stb_img_importer::stb_img_importer(const path& file, const nlohmann::json& optio
 	}
 
 	if (m_data) {
-		setSize(w, h);
+		m_width = w;
+		m_height = h;
 
 		pixel_traits format;
 		switch (comp) {
@@ -42,7 +43,7 @@ stb_img_importer::stb_img_importer(const path& file, const nlohmann::json& optio
 			break;
 		}
 
-		setFormat(format);
+		m_format = format;
 		setSuccess();
 	} else {
 		std::cout << "stb texture import error: " << stbi_failure_reason() << std::endl;

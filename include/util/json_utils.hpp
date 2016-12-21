@@ -5,6 +5,7 @@
 #include <string>
 
 #include "glm.hpp"
+#include "bounds.hpp"
 
 glm::vec4 parse_color(const std::string s);
 
@@ -121,10 +122,21 @@ struct json_getter<glm::quat>
 {
 	static glm::quat get(const nlohmann::json& j)
 	{
-		glm::vec3 euler = json_getter<glm::vec3>::get(j);
-		return glm::angleAxis(glm::radians(euler.x), glm::vec3(1, 0, 0))
-			* glm::angleAxis(glm::radians(euler.y), glm::vec3(0, 1, 0))
-			* glm::angleAxis(glm::radians(euler.z), glm::vec3(0, 0, 1));
+		glm::vec3 euler = glm::radians(json_getter<glm::vec3>::get(j));
+		return glm::angleAxis(euler.y, glm::vec3(0, 1, 0))
+			* glm::angleAxis(euler.x, glm::vec3(1, 0, 0))
+			* glm::angleAxis(euler.z, glm::vec3(0, 0, 1));
+	}
+};
+
+template<>
+struct json_getter<aabb>
+{
+	static aabb get(const nlohmann::json& j)
+	{
+		aabb result;
+		json_get_array(j, &result.min, 2);
+		return result;
 	}
 };
 

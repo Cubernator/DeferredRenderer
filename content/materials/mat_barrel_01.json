@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_barrel_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#A7C9F7FF",
+    "albedoMap": "prop_barrel_01_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_barrel_01_n",
+    "glossMap": "prop_barrel_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

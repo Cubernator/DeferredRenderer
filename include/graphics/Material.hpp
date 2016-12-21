@@ -6,6 +6,7 @@
 #include "graphics/shader/shader_property.hpp"
 
 class Effect;
+class ShaderProgram;
 
 class Material : public json_initializable<Material>
 {
@@ -47,6 +48,8 @@ public:
 			});
 		}
 	}
+
+	void apply(const ShaderProgram* p) const;
 
 private:
 	Effect* m_effect;

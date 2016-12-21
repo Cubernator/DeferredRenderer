@@ -1,0 +1,18 @@
+{
+  "type": "material",
+  "name": "mat_menhir_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#D6D6D6FF",
+    "albedoMap": "prop_menhir_01_d",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "prop_menhir_01_n",
+    "specColor": "#333333FF",
+    "smoothnessScale": 0.103
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "type": "material",
+  "name": "mat_fx_water_01",
+  "effect": "FX/Water4",
+  "properties": null
+}

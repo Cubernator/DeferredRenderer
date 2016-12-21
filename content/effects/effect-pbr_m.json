@@ -1,0 +1,73 @@
+{
+  "type": "effect",
+  "name": "pbr_m",
+  "renderQueue": [ "geometry", 0 ],
+  "renderType": "opaque",
+  "properties": [
+    {
+      "name": "color",
+      "type": "vec4",
+      "default": "#ffffffff"
+    },
+    {
+      "name": "albedoMap",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "glossMap",
+      "type": "texture2D",
+      "default": "white"
+    },
+    {
+      "name": "uv_transform0",
+      "type": "vec4",
+      "default": [ 1, 1, 0, 0 ]
+    },
+    {
+      "name": "smoothnessScale",
+      "type": "float",
+      "default": 1.0
+    },
+    {
+      "name": "metallicScale",
+      "type": "float",
+      "default": 1.0
+    },
+    {
+      "name": "dielectricReflec",
+      "type": "float",
+      "default": 0.22
+    }
+  ],
+  "passes": [
+    {
+      "name": "fwdBase",
+      "lightMode": "forwardBase",
+      "program": {
+        "name": "pbrmFwd",
+        "shaders": [ "std_forward.vert", "pbr_forward_m.frag" ]
+      }
+    },
+    {
+      "name": "fwdAdd",
+      "lightMode": "forwardAdd",
+      "state": {
+        "depthTest": "lequal",
+        "depthWrite": false,
+        "blend": {
+          "source": "one",
+          "dest": "one"
+        }
+      },
+      "program": "pbrmFwd"
+    },
+    {
+      "name": "deferred",
+      "lightMode": "deferred",
+      "program": {
+        "shaders": [ "std_deferred.vert", "pbr_deferred_m.frag" ]
+      }
+    }
+  ]
+}

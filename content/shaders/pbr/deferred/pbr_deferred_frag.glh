@@ -1,0 +1,15 @@
+#define PATH_DEFERRED
+#define GLOSS_MAP
+
+#include "pbr/pbr_input.glh"
+#include "pbr/pbr_gbuf.glh"
+#include "common/vertex_output.glh"
+
+void main()
+{
+	pbr_data data = pbr_get_data(v_output.uv0, v_output.tangentSpace);
+	vec3 diff, spec;
+	pbr_get_diff_spec(data, diff, spec);
+	pbr_set_gbuffer(diff, spec, data.smoothness, data.normal);
+}
+

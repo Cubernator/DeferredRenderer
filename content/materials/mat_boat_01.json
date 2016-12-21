@@ -1,0 +1,19 @@
+{
+  "type": "material",
+  "name": "mat_boat_01",
+  "effect": "pbr_sn",
+  "properties": {
+    "color": "#A1B1CCFF",
+    "albedoMap": "build_boat_01_a",
+    "uv_transform0": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "normalMap": "build_boat_01_n",
+    "glossMap": "build_boat_01_sg",
+    "specColor": "#FFFFFFFF",
+    "smoothnessScale": 1.0
+  }
+}

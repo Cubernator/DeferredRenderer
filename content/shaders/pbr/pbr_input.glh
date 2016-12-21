@@ -1,0 +1,79 @@
+#include "pbr_data.glh"
+#include "common/utils.glh"
+
+uniform vec4 color;
+uniform vec4 specColor;
+uniform float smoothnessScale;
+uniform float metallicScale;
+
+uniform sampler2D albedoMap;
+
+uniform sampler2D normalMap;
+
+uniform vec4 uv_transform0;
+
+// This texture contains either metallic/smoothness or specColor/smoothness
+uniform sampler2D glossMap;
+
+vec3 get_albedo(vec2 uv)
+{
+	return texture(albedoMap, uv).rgb * color.rgb;
+}
+
+vec3 get_normal(vec2 uv, vec3 tangentSpace[3])
+{
+#ifdef NORMAL_MAP
+	vec3 normal = unpack_normal(texture(normalMap, uv));
+	return normal_tan2world(normal, tangentSpace);
+#else
+	return normalize(tangentSpace[2]);
+#endif
+}
+
+vec2 get_metallic_smoothness(vec2 uv)
+{
+#ifdef GLOSS_MAP
+	vec2 ms = texture(glossMap, uv).rg;
+	ms.r *= metallicScale;
+	ms.g *= smoothnessScale;
+	return ms;
+#else
+	return vec2(metallicScale, smoothnessScale);
+#endif
+}
+
+vec4 get_specular_smoothness(vec2 uv)
+{
+#ifdef GLOSS_MAP
+	vec4 ss = texture(glossMap, uv);
+	// TODO: remove this (potentially by implementing a proper multi-compilation system)
+	ss.rgb *= specColor.rgb;
+	ss.a *= smoothnessScale;
+	return ss;
+#else
+	return vec4(specColor.rgb, smoothnessScale);
+#endif
+}
+
+pbr_data pbr_get_data(vec2 uv, vec3 tangentSpace[3])
+{
+	pbr_data data;
+
+	uv = transform_uv(uv, uv_transform0);
+
+	data.albedo = get_albedo(uv);
+
+#ifdef WORKFLOW_SPECULAR
+	vec4 specSmooth = get_specular_smoothness(uv);
+	data.specular = specSmooth.rgb;
+	data.smoothness = specSmooth.a;
+#else
+	vec2 metallicSmooth = get_metallic_smoothness(uv);
+	data.metallic = metallicSmooth.r;
+	data.smoothness = metallicSmooth.g;
+#endif
+	
+	data.normal = get_normal(uv, tangentSpace);
+
+	return data;
+}

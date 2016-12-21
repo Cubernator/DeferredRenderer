@@ -7,5 +7,5 @@
   "contentRoot": "content",
   "shaderIncludeDirs": [ "shaders" ],
   "deferredLightEffect": "deferred_light",
-  "firstScene": "test"
+  "firstScene": "The_Viking_Village"
 }

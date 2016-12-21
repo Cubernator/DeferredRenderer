@@ -9,49 +9,28 @@
 #include "pixel_types.hpp"
 #include "util/keyword_helper.hpp"
 
+class Texture2D;
+
 class image_importer
 {
 public:
-	image_importer(const nlohmann::json& options);
-	virtual ~image_importer() { };
+	image_importer() : m_status(false), m_width(0), m_height(0) { }
+	virtual ~image_importer() { }
 
-	const char* getData() const { return getData_impl(); }
-
-	unsigned int getWidth() const { return m_width; }
-	unsigned int getHeight() const { return m_height; }
-
-	GLenum getPixelFormat() const { return m_format.pixelFormat; }
-	GLenum getPixelType() const { return m_format.pixelType; }
-	std::size_t getPixelSize() const { return m_format.pixelSize; }
+	void uploadData(Texture2D* texture) const
+	{
+		uploadData_impl(texture);
+	}
 
 	bool getStatus() const { return m_status; }
 
-	GLint getDefaultImageFormat() const {
-		return m_format.imageFormat;
-	}
-
-	GLint getImageFormat() const {
-		return (m_imgFormatOverride != 0) ? m_imgFormatOverride : getDefaultImageFormat();
-	}
-
 protected:
-	virtual const char* getData_impl() const = 0;
-
-	void setFormat(const pixel_traits& format) { m_format = format; }
-	void setStatus(bool status) { m_status = status; }
-	void setSize(unsigned int w, unsigned int h)
-	{
-		m_width = w;
-		m_height = h;
-	}
-
-	void setSuccess() { setStatus(true); }
-
-private:
-	unsigned int m_width, m_height;
-	pixel_traits m_format;
-	GLint m_imgFormatOverride;
 	bool m_status;
+	unsigned int m_width, m_height;
+
+	virtual void uploadData_impl(Texture2D* texture) const = 0;
+
+	void setSuccess() { m_status = true; }
 };
 
 template<typename T>

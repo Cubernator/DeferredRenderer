@@ -2,6 +2,7 @@
 #define RENDERER_HPP
 
 #include "core/Component.hpp"
+#include "Renderable.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/bounds.hpp"
 
@@ -12,38 +13,31 @@ class Renderer : public Component
 public:
 	Renderer(Entity* parent);
 
-	Material* getMaterial() { return m_material; }
-	const Material* getMaterial() const { return m_material; }
+	unsigned int materialCount() const { return m_materials.size(); }
 
-	void setMaterial(Material* material) { m_material = material; }
+	Material* getMaterial(unsigned int index) { return m_materials[index]; }
+	const Material* getMaterial(unsigned int index) const { return m_materials[index]; }
 
-	void bind() { bind_impl(); }
-	void unbind() { unbind_impl(); }
-	void draw() { draw_impl(); }
+	void addMaterial(Material* mat) { m_materials.push_back(mat); }
+	void clearMaterials() { m_materials.clear(); }
+
+	const Renderable* getRenderable(unsigned int index) const { return getRenderable_impl(index); }
 
 	bool isVisible() const { return hasGeometry(); }
-
-	aabb getBounds() const { return getBounds_impl(); }
 
 	COMPONENT_DISALLOW_MULTIPLE;
 
 protected:
-	virtual void bind_impl() { }
-	virtual void unbind_impl() { }
-
-	virtual void draw_impl() = 0;
+	virtual const Renderable* getRenderable_impl(unsigned int index) const = 0;
 	virtual bool hasGeometry() const = 0;
-
-	virtual aabb getBounds_impl() const = 0;
-
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
 
 private:
-	Material* m_material;
+	std::vector<Material*> m_materials;
 
 	static json_interpreter<Renderer> s_properties;
 
-	void extractMaterial(const nlohmann::json& json);
+	void extractMaterials(const nlohmann::json& json);
 };
 
 #endif // RENDERER_HPP

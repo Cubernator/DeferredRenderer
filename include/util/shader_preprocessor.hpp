@@ -39,6 +39,8 @@ private:
 	void include(const path& file);
 	void pragma_type(Shader::shader_type type);
 
+	std::string get_type_macro(Shader::shader_type type) const;
+
 	friend struct pp_line_visitor;
 };
 

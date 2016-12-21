@@ -16,10 +16,6 @@ class Texture;
 class texture_unit_manager
 {
 public:
-	static GLint bindTexture(const Texture* texture);
-
-	// TODO: add reservable units
-
 	static void emptyCache();
 
 private:
@@ -45,6 +41,8 @@ private:
 	static unit_cache s_cache;
 
 	static void init();
+
+	static GLint bindTexture(const Texture* texture);
 };
 
 #endif // TEXTURE_UNIT_MANAGER_HPP

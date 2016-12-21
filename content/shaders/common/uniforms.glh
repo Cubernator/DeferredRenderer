@@ -1,3 +1,6 @@
+#ifndef COMMON_UNIFORMS_GLH
+#define COMMON_UNIFORMS_GLH
+
 uniform mat4 cm_mat_proj;
 uniform mat4 cm_mat_view;
 uniform mat4 cm_mat_world;
@@ -9,3 +12,5 @@ uniform mat4 cm_mat_ivp;
 uniform mat4 cm_mat_wvp;
 
 uniform vec3 cm_cam_pos;
+
+#endif // COMMON_UNIFORMS_GLH

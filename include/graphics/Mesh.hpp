@@ -3,13 +3,14 @@
 
 #include <memory>
 
-#include "graphics/Buffer.hpp"
+#include "Buffer.hpp"
+#include "Renderable.hpp"
 #include "util/import.hpp"
 #include "util/bounds.hpp"
 
 #include "glm.hpp"
 
-class Mesh
+class SubMesh : public Renderable
 {
 public:
 	using position_type			= glm::vec3;
@@ -27,11 +28,11 @@ public:
 	using index_buffer_type		= IndexBuffer<index_type>;
 
 
-	Mesh();
-	~Mesh();
+	SubMesh();
+	~SubMesh();
 
-	Mesh(Mesh&& other);
-	Mesh& operator=(Mesh&& other);
+	SubMesh(SubMesh&& other);
+	SubMesh& operator=(SubMesh&& other);
 
 	void bindVAO() const;
 	void unbindVAO() const;
@@ -49,7 +50,11 @@ public:
 
 	void setIndices(std::size_t count, const index_type* indices);
 
-	void draw();
+	virtual void bind() const final;
+	virtual void unbind() const final;
+	virtual void draw() const final;
+
+	virtual aabb bounds() const final { return getBounds(); }
 
 	const aabb& getBounds() const { return m_bounds; }
 
@@ -90,6 +95,25 @@ private:
 			glDisableVertexAttribArray(index);
 		}
 	}
+};
+
+class Mesh
+{
+public:
+	unsigned int subMeshCount() const { return m_subMeshes.size(); }
+
+	SubMesh* getSubMesh(unsigned int index) { return m_subMeshes[index].get(); }
+	const SubMesh* getSubMesh(unsigned int index) const { return m_subMeshes[index].get(); }
+
+	void addSubMesh(std::unique_ptr<SubMesh> subMesh);
+	void clearSubMeshes();
+
+	const aabb& getBounds() const { return m_bounds; }
+
+private:
+	std::vector<std::unique_ptr<SubMesh>> m_subMeshes;
+
+	aabb m_bounds;
 };
 
 template<>

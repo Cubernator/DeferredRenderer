@@ -11,6 +11,7 @@
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
 
+class Scene;
 class Transform;
 
 class Entity : public json_initializable<Entity>
@@ -26,6 +27,11 @@ public:
 	bool isActive() const { return m_active; }
 	void setActive(bool val) { m_active = val; }
 
+	Scene* getParentScene() { return m_parentScene; }
+	const Scene* getParentScene() const { return m_parentScene; }
+	void setParentScene(Scene* scene) { m_parentScene = scene; }
+
+	void start();
 	void update();
 
 	Transform* getTransform() { return m_transform; }
@@ -84,6 +90,8 @@ private:
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform; // every entity must have a transform, so cache it here for fast access
+
+	Scene* m_parentScene;
 
 	static json_interpreter<Entity> s_properties;
 

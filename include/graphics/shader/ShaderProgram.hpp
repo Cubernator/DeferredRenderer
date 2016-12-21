@@ -50,15 +50,21 @@ public:
 
 	void setTexture(uniform_id id, const Texture* texture) const;
 
-	void bind();
-	void unbind();
+	void bind() const;
+	void unbind() const;
 
 private:
 	GLuint m_glObj;
 	std::vector<Shader*> m_shaders;
 
+	struct tex_unit
+	{
+		GLuint unit;
+		GLint location;
+	};
+
 	std::unordered_map<uniform_id, GLint> m_uniforms;
-	std::unordered_map<uniform_id, GLint> m_textures;
+	std::unordered_map<uniform_id, tex_unit> m_textures;
 
 	GLint m_linkerStatus;
 	std::string m_linkerLog;

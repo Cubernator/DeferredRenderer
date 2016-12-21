@@ -1,0 +1,7 @@
+{
+  "scale": 0.01,
+  "includedMeshes": [
+    "build_barracks_01",
+    "build_barracks_01_pillars"
+  ]
+}
