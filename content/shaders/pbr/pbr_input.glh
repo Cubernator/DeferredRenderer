@@ -5,6 +5,7 @@ uniform vec4 color;
 uniform vec4 specColor;
 uniform float smoothnessScale;
 uniform float metallicScale;
+uniform float alphaCutoff;
 
 uniform sampler2D albedoMap;
 
@@ -18,6 +19,11 @@ uniform sampler2D glossMap;
 vec3 get_albedo(vec2 uv)
 {
 	return texture(albedoMap, uv).rgb * color.rgb;
+}
+
+float get_alpha(vec2 uv)
+{
+	return texture(albedoMap, uv).a;
 }
 
 vec3 get_normal(vec2 uv, vec3 tangentSpace[3])
@@ -57,9 +63,14 @@ vec4 get_specular_smoothness(vec2 uv)
 
 pbr_data pbr_get_data(vec2 uv, vec3 tangentSpace[3])
 {
-	pbr_data data;
-
 	uv = transform_uv(uv, uv_transform0);
+
+#ifdef ALPHA_CUTOUT
+	float alpha = get_alpha(uv);
+	if (alpha < alphaCutoff) discard;
+#endif
+
+	pbr_data data;
 
 	data.albedo = get_albedo(uv);
 

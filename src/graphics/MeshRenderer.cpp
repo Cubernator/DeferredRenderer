@@ -17,7 +17,7 @@ bool MeshRenderer::hasGeometry() const
 	return m_mesh != nullptr;
 }
 
-const Renderable* MeshRenderer::getRenderable_impl(unsigned int index) const
+const Drawable* MeshRenderer::getDrawable_impl(unsigned int index) const
 {
 	if (index >= m_mesh->subMeshCount())
 		return nullptr;

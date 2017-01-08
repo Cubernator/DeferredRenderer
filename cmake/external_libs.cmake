@@ -82,8 +82,8 @@ add_project(json COMMANDS
 )
 
 add_project(zlib COMMANDS
-	URL "http://zlib.net/zlib-1.2.8.tar.gz"
-	URL_MD5 44d667c142d7cda120332623eab69f40
+	URL "http://zlib.net/zlib-1.2.10.tar.gz"
+	URL_HASH SHA256=8d7e9f698ce48787b6e1c67e6bff79e487303e66077e25cb9784ac8835978017
 	CMAKE_ARGS -DBUILD_SHARED_LIBS=ON
 )
 

@@ -65,6 +65,13 @@ void LightingTest::update_impl()
 		std::cout << "View frustum culling " << (vfc ? "Enabled" : "Disabled") << std::endl;
 	}
 
+	if (input->getKeyPressed(GLFW_KEY_G)) {
+		int om = int(graphics->getOutputMode());
+		om = (om + 1) % RenderEngine::output_mode_max;
+		graphics->setOutputMode(static_cast<RenderEngine::output_mode>(om));
+		std::cout << "Debug output: " << getOutputName(om) << std::endl;
+	}
+
 	if (input->getKeyPressed(GLFW_KEY_N)) {
 		setLightsEnabled(!m_lightsEnabled);
 	}
@@ -78,5 +85,24 @@ void LightingTest::setLightsEnabled(bool val)
 		for (Entity* e : m_lights) {
 			e->setActive(m_lightsEnabled);
 		}
+	}
+}
+
+std::string LightingTest::getOutputName(int o)
+{
+	auto om = static_cast<RenderEngine::output_mode>(o);
+	switch (om) {
+	case RenderEngine::output_default:
+		return "Default";
+	case RenderEngine::output_diffuse:
+		return "Diffuse Color";
+	case RenderEngine::output_specular:
+		return "Specular Color";
+	case RenderEngine::output_smoothness:
+		return "Smoothness";
+	case RenderEngine::output_normal:
+		return "Normals";
+	default:
+		return "???";
 	}
 }

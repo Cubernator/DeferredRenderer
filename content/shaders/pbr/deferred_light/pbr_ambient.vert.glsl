@@ -1,7 +1,7 @@
 #version 330
 #pragma type vertex
 
-#include "pbr_light_common.glh"
+#include "pbr_ambient_common.glh"
 
 uniform mat4 transform;
 

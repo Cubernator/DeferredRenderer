@@ -4,14 +4,12 @@
   "passes": [
     {
       "name": "ambient",
-      "lightMode": "deferredAmbient",
       "program": {
         "shaders": [ "pbr_ambient.vert", "pbr_ambient.frag" ]
       }
     },
     {
       "name": "light",
-      "lightMode": "deferredLight",
       "state": {
         "depthTest": "less",
         "depthWrite": false,
@@ -22,6 +20,12 @@
       },
       "program": {
         "shaders": [ "pbr_light.vert", "pbr_light.frag" ]
+      }
+    },
+    {
+      "name": "debug",
+      "program": {
+        "shaders": [ "pbr_ambient.vert", "pbr_defdbg.frag" ]
       }
     }
   ]

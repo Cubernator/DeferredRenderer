@@ -1,11 +1,9 @@
 #ifndef RENDERENGINE_HPP
 #define RENDERENGINE_HPP
 
-#include "graphics/Effect.hpp"
-#include "graphics/Material.hpp"
 #include "graphics/Buffer.hpp"
 #include "graphics/Light.hpp"
-#include "graphics/render_state.hpp"
+#include "graphics/RenderState.hpp"
 #include "util/bounds.hpp"
 
 #include "boost/multi_index_container.hpp"
@@ -25,7 +23,10 @@ class Engine;
 class Entity;
 class Transform;
 class Renderer;
-class Renderable;
+class Drawable;
+class Material;
+class Effect;
+class Pass;
 class Light;
 class Camera;
 class ShaderProgram;
@@ -34,6 +35,16 @@ class Texture2D;
 class RenderEngine
 {
 public:
+	enum output_mode
+	{
+		output_default,
+		output_diffuse,
+		output_specular,
+		output_smoothness,
+		output_normal,
+		output_mode_max
+	};
+
 	RenderEngine(Engine *parent);
 	~RenderEngine();
 
@@ -45,6 +56,9 @@ public:
 
 	bool isVFCEnabled() const { return m_enableViewFrustumCulling; }
 	void setVFCEnabled(bool val) { m_enableViewFrustumCulling = val; }
+
+	output_mode getOutputMode() const { return m_outputMode; }
+	void setOutputMode(output_mode val) { m_outputMode = val; }
 
 	void render();
 
@@ -72,24 +86,24 @@ private:
 	struct render_job
 	{
 		const Transform* transform;
-		const Renderable* obj;
+		const Drawable* obj;
 		const Material* material;
-		const Effect::pass* pass;
+		const Pass* pass;
 		const Light* light;
 
-		const Effect* effect() const { return material->getEffect(); }
-		int priority() const { return effect()->getQueuePriority(); }
-		unsigned int lightMode() const { return pass->mode; }
-		const ShaderProgram* program() const { return pass->program; }
+		const Effect* effect() const;
+		int priority() const;
+		unsigned int lightMode() const;
+		const ShaderProgram* program() const;
 	};
 
 	struct deferred_queue_indices : public mi::indexed_by<
 		mi::ordered_non_unique<mi::composite_key<render_job,
 			mi::const_mem_fun<render_job, int, &render_job::priority>,
 			mi::const_mem_fun<render_job, const ShaderProgram*, &render_job::program>,
-			mi::member<render_job, const Effect::pass*, &render_job::pass>,
+			mi::member<render_job, const Pass*, &render_job::pass>,
 			mi::member<render_job, const Material*, &render_job::material>,
-			mi::member<render_job, const Renderable*, &render_job::obj>
+			mi::member<render_job, const Drawable*, &render_job::obj>
 		>>
 	> { };
 
@@ -103,9 +117,9 @@ private:
 			mi::const_mem_fun<render_job, int, &render_job::priority>,
 			mi::const_mem_fun<render_job, const ShaderProgram*, &render_job::program>,
 			mi::const_mem_fun<render_job, unsigned int, &render_job::lightMode>,
-			mi::member<render_job, const Effect::pass*, &render_job::pass>,
+			mi::member<render_job, const Pass*, &render_job::pass>,
 			mi::member<render_job, const Material*, &render_job::material>,
-			mi::member<render_job, const Renderable*, &render_job::obj>
+			mi::member<render_job, const Drawable*, &render_job::obj>
 		>>
 	> { };
 
@@ -146,8 +160,9 @@ private:
 	float m_gClearDepth;
 
 	std::unique_ptr<Effect> m_deferredLightEffect;
-	const Effect::pass* m_deferredAmbientPass;
-	const Effect::pass* m_deferredLightPass;
+	const Pass* m_deferredAmbientPass;
+	const Pass* m_deferredLightPass;
+	const Pass* m_deferredDebugPass;
 
 	GLuint m_lightMeshVAO;
 	VertexBuffer<glm::vec3> m_lightMeshVbuf;
@@ -158,13 +173,14 @@ private:
 
 	light_queue m_lightQueue;
 
-	render_state m_renderState;
+	RenderState m_renderState;
 	uniforms_per_obj m_objUniforms;
 	unsigned int m_maxFwdLights;
 	glm::vec4 m_ambientLight;
 
 	bool m_enableDeferred;
 	bool m_enableViewFrustumCulling;
+	output_mode m_outputMode;
 
 	static RenderEngine* s_instance;
 
@@ -182,14 +198,14 @@ private:
 
 	void applyLight(const Light* light, const ShaderProgram* program);
 	void applyAmbient(bool enabled, const ShaderProgram* program);
-	void updateRenderState(const render_state& newState);
-	void bindDeferredLightPass(const Effect::pass* pass);
+	void updateRenderState(const RenderState& newState);
+	void bindDeferredLightPass(const Pass* pass);
 	void drawDeferredLight(const Light* light, const ShaderProgram* program);
 
 	void computeViewFrustum();
 
-	bool checkIntersection(const Light* light, const Transform* transform, const Renderable* obj) const;
-	bool checkIntersection(const frustum& viewFrustum, const Transform* transform, const Renderable* obj) const;
+	bool checkIntersection(const Light* light, const Transform* transform, const Drawable* obj) const;
+	bool checkIntersection(const frustum& viewFrustum, const Transform* transform, const Drawable* obj) const;
 	bool checkIntersection(const frustum& viewFrustum, const Light* light) const;
 
 

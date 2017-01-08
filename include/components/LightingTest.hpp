@@ -29,6 +29,8 @@ private:
 
 	static json_interpreter<LightingTest> s_properties;
 
+	static std::string getOutputName(int o);
+
 	friend class json_interpreter<LightingTest>;
 };
 

@@ -35,10 +35,9 @@ void main()
 	vec3 v = normalize(cm_cam_pos - worldPos);
 
 	vec3 lightColor = light_color_auto(lightVec);
-	float roughness = get_roughness(specSmooth.a);
 
 	// apply BRDF
-	vec3 color = pbr_brdf(diffCol, specSmooth.rgb, lightColor, roughness, normal, v, l);
+	vec3 color = pbr_brdf(diffCol, specSmooth.rgb, lightColor, specSmooth.a, normal, v, l);
 
 	f_output = vec4(color, 1.0);
 }

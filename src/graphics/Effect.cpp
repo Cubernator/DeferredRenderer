@@ -4,52 +4,53 @@
 #include "util/type_registry.hpp"
 #include "core/Content.hpp"
 
+namespace
+{
+	keyword_helper<render_queue> g_renderQueues({
+		{ "background",		queue_background },
+		{ "geometry",		queue_geometry },
+		{ "alphaTest",		queue_alpha_test },
+		{ "transparent",	queue_transparent },
+		{ "effect",			queue_effect },
+	});
+
+	keyword_helper<render_type> g_renderTypes({
+		{ "opaque",			type_opaque },
+		{ "cutout",			type_cutout },
+		{ "transparent",	type_transparent }
+	});
+
+	keyword_helper<light_mode> g_lightModes({
+		{ "forwardBase",		light_forward_base },
+		{ "forwardAdd",			light_forward_add },
+		{ "deferred",			light_deferred },
+		{ "shadowCast",			light_shadow_cast }
+	});
+}
+
 REGISTER_OBJECT_TYPE_NO_EXT(Effect, "effect");
 
 json_interpreter<Effect> Effect::s_properties({
 	{ "renderQueue",	&Effect::extractRenderQueue },
-	{ "renderType",		{&Effect::setRenderType, &Effect::s_renderTypes} },
+	{ "renderType",		{&Effect::setRenderType, &g_renderTypes} },
 	{ "properties",		&Effect::extractProperties },
 	{ "passes",			&Effect::extractPasses }
 });
 
-json_interpreter<Effect::pass> Effect::pass::s_properties({
-	{ "name",			&Effect::pass::name },
-	{ "lightMode",		{&Effect::pass::mode, &Effect::s_lightModes} },
-	{ "state",			&Effect::pass::extractState },
-	{ "program",		&Effect::pass::extractProgram },
-});
-
-keyword_helper<Effect::render_queue> Effect::s_renderQueues({
-	{ "background",		Effect::queue_background },
-	{ "geometry",		Effect::queue_geometry },
-	{ "alphaTest",		Effect::queue_alpha_test },
-	{ "transparent",	Effect::queue_transparent },
-	{ "effect",			Effect::queue_effect },
-});
-
-keyword_helper<Effect::render_type> Effect::s_renderTypes({
-	{ "opaque",			Effect::type_opaque },
-	{ "cutout",			Effect::type_cutout },
-	{ "transparent",	Effect::type_transparent }
-});
-
-keyword_helper<Effect::light_mode> Effect::s_lightModes({
-	{ "forwardBase",		Effect::light_forward_base },
-	{ "forwardAdd",			Effect::light_forward_add },
-	{ "deferred",			Effect::light_deferred },
-	{ "shadowCast",			Effect::light_shadow_cast },
-	{ "deferredAmbient",	Effect::light_deferred_ambient },
-	{ "deferredLight",		Effect::light_deferred_light }
+json_interpreter<Pass> Pass::s_properties({
+	{ "name",			&Pass::name },
+	{ "lightMode",		{&Pass::mode, &g_lightModes} },
+	{ "state",			&Pass::extractState },
+	{ "program",		&Pass::extractProgram },
 });
 
 
 Effect::Effect() : m_renderType(type_opaque), m_queuePriority(queue_geometry) { }
 
-Effect::pass::pass() : mode(light_forward_base), program(nullptr) { }
+Pass::Pass() : mode(light_forward_base), program(nullptr) { }
 
 
-const Effect::pass* Effect::getPass(light_mode mode) const
+const Pass* Effect::getPass(light_mode mode) const
 {
 	auto& by_mode_index = m_passes.get<by_mode>();
 	auto it = by_mode_index.find(mode);
@@ -59,7 +60,7 @@ const Effect::pass* Effect::getPass(light_mode mode) const
 	return nullptr;
 }
 
-const Effect::pass* Effect::getPass(const std::string& name) const
+const Pass* Effect::getPass(const std::string& name) const
 {
 	auto& by_name_index = m_passes.get<by_name>();
 	auto it = by_name_index.find(name);
@@ -81,7 +82,7 @@ void Effect::applyProperties(const ShaderProgram* p, const Material* m) const
 	}
 }
 
-void Effect::pass::apply_json_impl(const nlohmann::json& json)
+void Pass::apply_json_impl(const nlohmann::json& json)
 {
 	s_properties.interpret_all(this, json);
 }
@@ -97,13 +98,13 @@ void Effect::extractRenderQueue(const nlohmann::json& json)
 	int offset = 0;
 
 	if (json.is_string()) {
-		s_renderQueues.get(json.get<std::string>(), q);
+		g_renderQueues.get(json.get<std::string>(), q);
 
 	} else if (json.is_array() && json.size() >= 2) {
 		auto& j0 = json.at(0);
 		auto& j1 = json.at(1);
 		if (j0.is_string())
-			s_renderQueues.get(j0.get<std::string>(), q);
+			g_renderQueues.get(j0.get<std::string>(), q);
 		if (j1.is_number_integer())
 			offset = j1.get<int>();
 	}
@@ -137,7 +138,7 @@ void Effect::addProperty(const nlohmann::json& json)
 void Effect::addPass(const nlohmann::json& json)
 {
 	if (json.is_object()) {
-		pass newPass;
+		Pass newPass;
 		newPass.apply_json(json);
 
 		if (newPass.program) {
@@ -154,12 +155,12 @@ void Effect::addPass(const nlohmann::json& json)
 	}
 }
 
-void Effect::pass::extractState(const nlohmann::json& json)
+void Pass::extractState(const nlohmann::json& json)
 {
 	state.apply_json(json);
 }
 
-void Effect::pass::extractProgram(const nlohmann::json& json)
+void Pass::extractProgram(const nlohmann::json& json)
 {
 	program = Content::instance()->getPooledFromJson<ShaderProgram>(json);
 }

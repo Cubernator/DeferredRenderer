@@ -3,7 +3,7 @@
 
 #include "common/lighting.glh"
 #include "pbr/pbr_brdf.glh"
-#include "pbr_light_common.glh"
+#include "pbr_ambient_common.glh"
 
 uniform sampler2D gbuf_diffuse;
 uniform sampler2D gbuf_specSmooth;

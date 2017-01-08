@@ -2,7 +2,7 @@
 #define RENDERER_HPP
 
 #include "core/Component.hpp"
-#include "Renderable.hpp"
+#include "Drawable.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/bounds.hpp"
 
@@ -21,14 +21,14 @@ public:
 	void addMaterial(Material* mat) { m_materials.push_back(mat); }
 	void clearMaterials() { m_materials.clear(); }
 
-	const Renderable* getRenderable(unsigned int index) const { return getRenderable_impl(index); }
+	const Drawable* getDrawable(unsigned int index) const { return getDrawable_impl(index); }
 
 	bool isVisible() const { return hasGeometry(); }
 
 	COMPONENT_DISALLOW_MULTIPLE;
 
 protected:
-	virtual const Renderable* getRenderable_impl(unsigned int index) const = 0;
+	virtual const Drawable* getDrawable_impl(unsigned int index) const = 0;
 	virtual bool hasGeometry() const = 0;
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
 

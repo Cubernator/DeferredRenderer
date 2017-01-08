@@ -21,7 +21,7 @@ void main()
 	pbr_get_diff_spec(data, diff, spec);
 
 	vec3 lightColor = light_color_auto(v_output.lightVec);
-	vec3 color = pbr_brdf(diff, spec, lightColor, get_roughness(data.smoothness), data.normal, v, l);
+	vec3 color = pbr_brdf(diff, spec, lightColor, data.smoothness, data.normal, v, l);
 
 	color += pbr_brdf_ambient(diff, cm_light_ambient.rgb);
 

@@ -4,13 +4,13 @@
 #include <memory>
 
 #include "Buffer.hpp"
-#include "Renderable.hpp"
+#include "Drawable.hpp"
 #include "util/import.hpp"
 #include "util/bounds.hpp"
 
 #include "glm.hpp"
 
-class SubMesh : public Renderable
+class SubMesh : public Drawable
 {
 public:
 	using position_type			= glm::vec3;

@@ -8,8 +8,9 @@
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
 
-struct render_state : public json_initializable<render_state>
+class RenderState : public json_initializable<RenderState>
 {
+public:
 	enum cull_mode
 	{
 		cull_back			= GL_BACK,
@@ -82,13 +83,13 @@ struct render_state : public json_initializable<render_state>
 	blend_equation blendEquationAlpha;
 	glm::vec4 blendColor;
 
-	render_state();
+	RenderState();
 
 	void apply() const;
-	void differentialApply(const render_state& other) const;
+	void differentialApply(const RenderState& other) const;
 
 private:
-	static json_interpreter<render_state> s_properties;
+	static json_interpreter<RenderState> s_properties;
 
 	static keyword_helper<cull_mode> s_cullModes;
 	static keyword_helper<compare_function> s_compFunctions;
@@ -134,11 +135,11 @@ private:
 		glBlendFuncSeparate(blendSourceFunction, blendDestFunction, blendSourceAlphaFunction, blendDestAlphaFunction);
 	}
 
-	void applyCullingDiff(const render_state& other) const;
-	void applyDepthWriteDiff(const render_state& other) const;
-	void applyDepthOffsetDiff(const render_state& other) const;
-	void applyDepthTestDiff(const render_state& other) const;
-	void applyBlendDiff(const render_state& other) const;
+	void applyCullingDiff(const RenderState& other) const;
+	void applyDepthWriteDiff(const RenderState& other) const;
+	void applyDepthOffsetDiff(const RenderState& other) const;
+	void applyDepthTestDiff(const RenderState& other) const;
+	void applyBlendDiff(const RenderState& other) const;
 
 	void apply_json_impl(const nlohmann::json& json);
 
@@ -156,7 +157,7 @@ private:
 			glDisable(target);
 	}
 
-	friend struct json_initializable<render_state>;
+	friend struct json_initializable<RenderState>;
 };
 
 #endif // RENDER_STATE_HPP

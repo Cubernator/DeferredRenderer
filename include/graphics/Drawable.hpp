@@ -3,10 +3,10 @@
 
 #include "util/bounds.hpp"
 
-class Renderable
+class Drawable
 {
 public:
-	virtual ~Renderable() { }
+	virtual ~Drawable() { }
 
 	virtual void bind() const = 0;
 	virtual void unbind() const = 0;

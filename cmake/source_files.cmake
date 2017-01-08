@@ -16,16 +16,16 @@ set(HEADER_FILES
 	include/core/Transform.hpp
 	include/graphics/Buffer.hpp
 	include/graphics/Camera.hpp
+	include/graphics/Drawable.hpp
 	include/graphics/Effect.hpp
 	include/graphics/gl_types.hpp
 	include/graphics/Light.hpp
 	include/graphics/Material.hpp
 	include/graphics/Mesh.hpp
 	include/graphics/MeshRenderer.hpp
-	include/graphics/Renderable.hpp
 	include/graphics/RenderEngine.hpp
 	include/graphics/Renderer.hpp
-	include/graphics/render_state.hpp
+	include/graphics/RenderState.hpp
 	include/graphics/shader/set_uniform.hpp
 	include/graphics/shader/Shader.hpp
 	include/graphics/shader/ShaderProgram.hpp
@@ -78,10 +78,9 @@ set(SOURCE_FILES
 	src/graphics/Material.cpp
 	src/graphics/Mesh.cpp
 	src/graphics/MeshRenderer.cpp
-	src/graphics/Renderable.cpp
 	src/graphics/RenderEngine.cpp
 	src/graphics/Renderer.cpp
-	src/graphics/render_state.cpp
+	src/graphics/RenderState.cpp
 	src/graphics/shader/Shader.cpp
 	src/graphics/shader/ShaderProgram.cpp
 	src/graphics/shader/shader_property.cpp
@@ -136,10 +135,13 @@ set(SHADER_FILES
 	content/shaders/pbr/deferred/pbr_deferred_m.frag.glsl
 	content/shaders/pbr/deferred/pbr_deferred_mn.frag.glsl
 	content/shaders/pbr/deferred/pbr_deferred_s.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_sc.frag.glsl
 	content/shaders/pbr/deferred/pbr_deferred_sn.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_snc.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_ambient.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_ambient.vert.glsl
 	content/shaders/pbr/deferred_light/pbr_ambient_common.glh
+	content/shaders/pbr/deferred_light/pbr_defdbg.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_light.frag.glsl
 	content/shaders/pbr/deferred_light/pbr_light.vert.glsl
 	content/shaders/pbr/deferred_light/pbr_light_common.glh
@@ -147,7 +149,9 @@ set(SHADER_FILES
 	content/shaders/pbr/forward/pbr_forward_m.frag.glsl
 	content/shaders/pbr/forward/pbr_forward_mn.frag.glsl
 	content/shaders/pbr/forward/pbr_forward_s.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_sc.frag.glsl
 	content/shaders/pbr/forward/pbr_forward_sn.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_snc.frag.glsl
 	content/shaders/std/std_deferred.vert.glsl
 	content/shaders/std/std_forward.vert.glsl
 	content/shaders/terrain/terrain_deferred.frag.glsl
@@ -165,7 +169,9 @@ set(CONTENT_FILES
 	content/effects/effect-pbr_m.json
 	content/effects/effect-pbr_mn.json
 	content/effects/effect-pbr_s.json
+	content/effects/effect-pbr_sc.json
 	content/effects/effect-pbr_sn.json
+	content/effects/effect-pbr_snc.json
 	content/effects/effect-terrain.json
 	content/effects/effect-unlit.json
 	content/materials/brick.json

@@ -18,7 +18,7 @@ public:
 	void setMesh(Mesh* mesh) { m_mesh = mesh; }
 
 protected:
-	virtual const Renderable* getRenderable_impl(unsigned int index) const override;
+	virtual const Drawable* getDrawable_impl(unsigned int index) const override;
 	virtual bool hasGeometry() const override;
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
 

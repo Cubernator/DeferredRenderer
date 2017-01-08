@@ -6,7 +6,7 @@
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
 #include "shader/shader_property.hpp"
-#include "render_state.hpp"
+#include "RenderState.hpp"
 
 #include "boost/multi_index_container.hpp"
 
@@ -15,55 +15,54 @@ namespace mi = boost::multi_index;
 class ShaderProgram;
 class Material;
 
+enum light_mode
+{
+	light_forward_base,
+	light_forward_add,
+	light_deferred,
+	light_shadow_cast
+};
+
+enum render_queue
+{
+	queue_background = 0,
+	queue_geometry = 1000,
+	queue_alpha_test = 2000,
+	queue_transparent = 3000,
+	queue_effect = 4000
+};
+
+enum render_type
+{
+	type_opaque,
+	type_cutout,
+	type_transparent
+};
+
+class Pass : public json_initializable<Pass>
+{
+public:
+	std::string name;
+	light_mode mode;
+	RenderState state;
+	ShaderProgram* program;
+
+	Pass();
+
+private:
+	static json_interpreter<Pass> s_properties;
+
+	void apply_json_impl(const nlohmann::json& json);
+
+	void extractState(const nlohmann::json& json);
+	void extractProgram(const nlohmann::json& json);
+
+	friend struct json_initializable<Pass>;
+};
+
 class Effect : public json_initializable<Effect>
 {
 public:
-	enum light_mode
-	{
-		light_forward_base,
-		light_forward_add,
-		light_deferred,
-		light_shadow_cast,
-		light_deferred_ambient,
-		light_deferred_light
-	};
-
-	enum render_queue
-	{
-		queue_background = 0,
-		queue_geometry = 1000,
-		queue_alpha_test = 2000,
-		queue_transparent = 3000,
-		queue_effect = 4000
-	};
-
-	enum render_type
-	{
-		type_opaque,
-		type_cutout,
-		type_transparent
-	};
-
-	struct pass : public json_initializable<pass>
-	{
-		std::string name;
-		light_mode mode;
-		render_state state;
-		ShaderProgram* program;
-
-		pass();
-
-	private:
-		static json_interpreter<pass> s_properties;
-
-		void apply_json_impl(const nlohmann::json& json);
-
-		void extractState(const nlohmann::json& json);
-		void extractProgram(const nlohmann::json& json);
-
-		friend struct json_initializable<pass>;
-	};
-
 	Effect();
 
 	render_type getRenderType() const { return m_renderType; }
@@ -72,8 +71,8 @@ public:
 	int getQueuePriority() const { return m_queuePriority; }
 	void setQueuePriority(int val) { m_queuePriority = val; }
 
-	const pass* getPass(light_mode mode) const;
-	const pass* getPass(const std::string& name) const;
+	const Pass* getPass(light_mode mode) const;
+	const Pass* getPass(const std::string& name) const;
 
 	void applyProperties(const ShaderProgram* p, const Material* m) const;
 
@@ -85,12 +84,12 @@ private:
 	struct by_name { };
 
 	struct pass_container_indices : public mi::indexed_by<
-		mi::hashed_unique<mi::tag<by_mode>, mi::member<pass, light_mode, &pass::mode>>,
-		mi::hashed_unique<mi::tag<by_name>, mi::member<pass, std::string, &pass::name>>
+		mi::hashed_unique<mi::tag<by_name>, mi::member<Pass, std::string, &Pass::name>>,
+		mi::hashed_non_unique<mi::tag<by_mode>, mi::member<Pass, light_mode, &Pass::mode>>
 	> { };
 
 	using pass_container = mi::multi_index_container<
-		pass,
+		Pass,
 		pass_container_indices
 	>;
 
@@ -101,10 +100,6 @@ private:
 	pass_container m_passes;
 
 	static json_interpreter<Effect> s_properties;
-
-	static keyword_helper<render_queue> s_renderQueues;
-	static keyword_helper<render_type> s_renderTypes;
-	static keyword_helper<light_mode> s_lightModes;
 
 
 	void apply_json_impl(const nlohmann::json& json);

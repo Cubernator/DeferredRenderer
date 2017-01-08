@@ -1,21 +1,21 @@
-#include "graphics/render_state.hpp"
+#include "graphics/RenderState.hpp"
 #include "util/json_utils.hpp"
 
-json_interpreter<render_state> render_state::s_properties({
-	{ "cull",			&render_state::extractCull },
-	{ "depthTest",		&render_state::extractDepthTest },
-	{ "depthWrite",		&render_state::extractDepthWrite },
-	{ "depthOffset",	&render_state::extractDepthOffset },
-	{ "blend",			&render_state::extractBlend }
+json_interpreter<RenderState> RenderState::s_properties({
+	{ "cull",			&RenderState::extractCull },
+	{ "depthTest",		&RenderState::extractDepthTest },
+	{ "depthWrite",		&RenderState::extractDepthWrite },
+	{ "depthOffset",	&RenderState::extractDepthOffset },
+	{ "blend",			&RenderState::extractBlend }
 });
 
-keyword_helper<render_state::cull_mode> render_state::s_cullModes({
+keyword_helper<RenderState::cull_mode> RenderState::s_cullModes({
 	{ "back",			cull_back },
 	{ "front",			cull_front },
 	{ "frontAndBack",	cull_front_and_back }
 });
 
-keyword_helper<render_state::compare_function> render_state::s_compFunctions({
+keyword_helper<RenderState::compare_function> RenderState::s_compFunctions({
 	{ "never",		cmp_never },
 	{ "less",		cmp_less },
 	{ "equal",		cmp_equal },
@@ -26,7 +26,7 @@ keyword_helper<render_state::compare_function> render_state::s_compFunctions({
 	{ "always",		cmp_always }
 });
 
-keyword_helper<render_state::blend_function> render_state::s_blendFuncs({
+keyword_helper<RenderState::blend_function> RenderState::s_blendFuncs({
 	{ "zero",					blf_zero },
 	{ "one",					blf_one },
 	{ "srcColor",				blf_src_color },
@@ -44,7 +44,7 @@ keyword_helper<render_state::blend_function> render_state::s_blendFuncs({
 	{ "oneMinusConstantAlpha",	blf_one_minus_constant_alpha }
 });
 
-keyword_helper<render_state::blend_equation> render_state::s_blendEqtns({
+keyword_helper<RenderState::blend_equation> RenderState::s_blendEqtns({
 	{ "add",				ble_add },
 	{ "subtract",			ble_subtract },
 	{ "reverseSubtract",	ble_reverse_subtract },
@@ -53,7 +53,7 @@ keyword_helper<render_state::blend_equation> render_state::s_blendEqtns({
 });
 
 
-render_state::render_state()
+RenderState::RenderState()
 	: cullEnable(true), cullMode(cull_back),
 	depthWriteEnable(true),
 	depthOffsetFactor(0.0f), depthOffsetUnits(0.0f),
@@ -61,7 +61,7 @@ render_state::render_state()
 	blendEnable(false), blendSourceFunction(blf_one), blendDestFunction(blf_zero), blendSourceAlphaFunction(blf_one), blendDestAlphaFunction(blf_zero),
 	blendEquation(ble_add), blendEquationAlpha(ble_add), blendColor(0.0f, 0.0f, 0.0f, 0.0f) { }
 
-void render_state::apply() const
+void RenderState::apply() const
 {
 	applyCulling();
 	applyDepthWriting();
@@ -70,7 +70,7 @@ void render_state::apply() const
 	applyBlending();
 }
 
-void render_state::differentialApply(const render_state& other) const
+void RenderState::differentialApply(const RenderState& other) const
 {
 	applyCullingDiff(other);
 	applyDepthWriteDiff(other);
@@ -79,21 +79,21 @@ void render_state::differentialApply(const render_state& other) const
 	applyBlendDiff(other);
 }
 
-void render_state::applyCulling() const
+void RenderState::applyCulling() const
 {
 	setEnabled(GL_CULL_FACE, cullEnable);
 	if (cullEnable)
 		applyCullMode();
 }
 
-void render_state::applyDepthTest() const
+void RenderState::applyDepthTest() const
 {
 	setEnabled(GL_DEPTH_TEST, depthTestEnable);
 	if (depthTestEnable)
 		applyDepthTestFunc();
 }
 
-void render_state::applyBlending() const
+void RenderState::applyBlending() const
 {
 	setEnabled(GL_BLEND, blendEnable);
 	if (blendEnable) {
@@ -104,7 +104,7 @@ void render_state::applyBlending() const
 }
 
 
-void render_state::applyCullingDiff(const render_state& other) const
+void RenderState::applyCullingDiff(const RenderState& other) const
 {
 	if (other.cullEnable != cullEnable)
 		setEnabled(GL_CULL_FACE, cullEnable);
@@ -113,19 +113,19 @@ void render_state::applyCullingDiff(const render_state& other) const
 		applyCullMode();
 }
 
-void render_state::applyDepthWriteDiff(const render_state& other) const
+void RenderState::applyDepthWriteDiff(const RenderState& other) const
 {
 	if (other.depthWriteEnable != depthWriteEnable)
 		applyDepthWriting();
 }
 
-void render_state::applyDepthOffsetDiff(const render_state& other) const
+void RenderState::applyDepthOffsetDiff(const RenderState& other) const
 {
 	if ((other.depthOffsetFactor != depthOffsetFactor) || (other.depthOffsetUnits != depthOffsetUnits))
 		applyDepthOffset();
 }
 
-void render_state::applyDepthTestDiff(const render_state& other) const
+void RenderState::applyDepthTestDiff(const RenderState& other) const
 {
 	if (other.depthTestEnable != depthTestEnable)
 		setEnabled(GL_DEPTH_TEST, depthTestEnable);
@@ -134,7 +134,7 @@ void render_state::applyDepthTestDiff(const render_state& other) const
 		applyDepthTestFunc();
 }
 
-void render_state::applyBlendDiff(const render_state& other) const
+void RenderState::applyBlendDiff(const RenderState& other) const
 {
 	if (other.blendEnable != blendEnable)
 		setEnabled(GL_BLEND, blendEnable);
@@ -154,12 +154,12 @@ void render_state::applyBlendDiff(const render_state& other) const
 	}
 }
 
-void render_state::apply_json_impl(const nlohmann::json& json)
+void RenderState::apply_json_impl(const nlohmann::json& json)
 {
 	s_properties.interpret_all(this, json);
 }
 
-void render_state::extractCull(const nlohmann::json& json)
+void RenderState::extractCull(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		cullEnable = json.get<bool>();
@@ -168,7 +168,7 @@ void render_state::extractCull(const nlohmann::json& json)
 	}
 }
 
-void render_state::extractDepthTest(const nlohmann::json& json)
+void RenderState::extractDepthTest(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		depthTestEnable = json.get<bool>();
@@ -177,14 +177,14 @@ void render_state::extractDepthTest(const nlohmann::json& json)
 	}
 }
 
-void render_state::extractDepthWrite(const nlohmann::json& json)
+void RenderState::extractDepthWrite(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		depthWriteEnable = json.get<bool>();
 	}
 }
 
-void render_state::extractDepthOffset(const nlohmann::json& json)
+void RenderState::extractDepthOffset(const nlohmann::json& json)
 {
 	if (json.is_array()) {
 		unsigned int s = json.size();
@@ -199,7 +199,7 @@ void render_state::extractDepthOffset(const nlohmann::json& json)
 	}
 }
 
-void render_state::extractBlend(const nlohmann::json& json)
+void RenderState::extractBlend(const nlohmann::json& json)
 {
 	if (json.is_boolean()) {
 		blendEnable = json.get<bool>();

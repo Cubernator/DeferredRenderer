@@ -1,7 +1,7 @@
 {
   "type": "material",
   "name": "mat_fish_01",
-  "effect": "pbr_sn",
+  "effect": "pbr_snc",
   "properties": {
     "color": "#FFFFFFFF",
     "albedoMap": "prop_fish_01_d",
@@ -12,6 +12,7 @@
       0.0
     ],
     "normalMap": "prop_fish_01_n",
+    "alphaCutoff": 0.5,
     "glossMap": "prop_fish_01_sg",
     "specColor": "#FFFFFFFF",
     "smoothnessScale": 1.0
