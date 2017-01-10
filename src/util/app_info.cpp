@@ -1,4 +1,4 @@
-#include "util/app_info.hpp"
+#include "app_info.hpp"
 
 #include "boost/filesystem/fstream.hpp"
 

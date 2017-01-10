@@ -1,5 +1,5 @@
-#include "graphics/Mesh.hpp"
-#include "graphics/gl_types.hpp"
+#include "Mesh.hpp"
+#include "gl_types.hpp"
 #include "util/type_registry.hpp"
 
 #include <numeric>

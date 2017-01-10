@@ -1,4 +1,4 @@
-#include "graphics/RenderState.hpp"
+#include "RenderState.hpp"
 #include "util/json_utils.hpp"
 
 json_interpreter<RenderState> RenderState::s_properties({

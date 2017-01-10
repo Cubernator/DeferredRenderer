@@ -1,8 +1,10 @@
-#include "core/Scene.hpp"
-#include "core/Engine.hpp"
-#include "core/Entity.hpp"
+#include "Scene.hpp"
+#include "Engine.hpp"
+#include "Entity.hpp"
 #include "util/json_utils.hpp"
 #include "util/type_registry.hpp"
+
+#include "boost/format.hpp"
 
 REGISTER_OBJECT_TYPE_NO_EXT(Scene, "scene");
 
@@ -69,8 +71,16 @@ void Scene::apply_json_impl(const nlohmann::json& json)
 void Scene::extractEntities(const nlohmann::json& json)
 {
 	if (json.is_array()) {
+		unsigned int entityCount = json.size(), i = 0;
+
+		auto fmt = boost::format("[%1$2i%%]");
+
 		for (auto ej : json) {
+			int progress = int((float(i) / float(entityCount)) * 100.0f);
+			std::cout << (fmt % progress) << " loading scene..." << std::endl;
+
 			addEntity(json_to_object<Entity>(ej));
+			++i;
 		}
 	}
 }

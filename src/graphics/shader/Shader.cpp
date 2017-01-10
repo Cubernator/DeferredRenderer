@@ -1,4 +1,4 @@
-#include "graphics/shader/Shader.hpp"
+#include "Shader.hpp"
 #include "util/shader_preprocessor.hpp"
 #include "util/type_registry.hpp"
 

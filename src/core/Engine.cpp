@@ -1,7 +1,7 @@
-#include "core/Engine.hpp"
-#include "core/Content.hpp"
-#include "core/Scene.hpp"
-#include "core/Entity.hpp"
+#include "Engine.hpp"
+#include "Content.hpp"
+#include "Scene.hpp"
+#include "Entity.hpp"
 #include "graphics/RenderEngine.hpp"
 #include "graphics/texture/Texture2D.hpp"
 #include "util/app_info.hpp"
@@ -116,13 +116,13 @@ void Engine::createDefaultResources()
 {
 	pixel::srgb pw{ 255U, 255U, 255U };
 	auto texWhite = std::make_unique<Texture2D>();
-	texWhite->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
+	texWhite->setParams(false, filter_point, wrap_repeat);
 	texWhite->setData(&pw, 1, 1);
 	m_content->addToPool("white", std::move(texWhite));
 
 	pixel::srgb pb{ 0U, 0U, 0U };
 	auto texBlack = std::make_unique<Texture2D>();
-	texBlack->setParams(false, Texture2D::filter_point, Texture2D::wrap_repeat);
+	texBlack->setParams(false, filter_point, wrap_repeat);
 	texBlack->setData(&pb, 1, 1);
 	m_content->addToPool("black", std::move(texBlack));
 }

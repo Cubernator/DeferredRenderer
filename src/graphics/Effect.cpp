@@ -1,6 +1,6 @@
-#include "graphics/Effect.hpp"
-#include "graphics/shader/ShaderProgram.hpp"
-#include "graphics/Material.hpp"
+#include "Effect.hpp"
+#include "shader/ShaderProgram.hpp"
+#include "Material.hpp"
 #include "util/type_registry.hpp"
 #include "core/Content.hpp"
 

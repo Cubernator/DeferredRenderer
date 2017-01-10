@@ -9,12 +9,12 @@
 filters = [
 #   | directory    | cmake variable    | regex pattern             | filter name (appears in IDEs)
 # ------------------------------------------------------------------------------------------------------
-    ("include",     "HEADER_FILES",     "^.*\.h(pp)?$",             ""              ),
-    ("src",         "SOURCE_FILES",     "^.*\.c(pp)?$",             ""              ),
-    ("cmake",       "CMAKE_FILES",      ".*",                       "CMake Files"   ),
-    ("scripts",     "SCRIPT_FILES",     ".*",                       "Script Files"  ),
-    ("content",     "SHADER_FILES",     "^.*\.((glsl)|(glh))$",     "Shader Files"  ),
-    ("content",     "CONTENT_FILES",    ".*(?<!glsl)(?<!glh)$",     "Content Files" )
+#    ("include",     "HEADER_FILES",     "^.*\.h(pp)?$",             ""              ),
+    ("src",         "SOURCE_FILES",     "^.*\.[hc](pp)?$",          	""              ),
+    ("cmake",       "CMAKE_FILES",      ".*",                       	"CMake Files"   ),
+    ("scripts",     "SCRIPT_FILES",     ".*",                       	"Script Files"  ),
+    ("content",     "SHADER_FILES",     "^.*\.((glsl)|(glh))$",     	"Shader Files"  ),
+    ("content",     "CONTENT_FILES",	".*(?<!glsl)(?<!glh)(?<!opt)$",	"Content Files" )
 ]
 
 # Which file to write into (relative to project root)
@@ -52,13 +52,6 @@ def main():
         for filter in filters:
             if(add_filter(cmake_file, *filter)):
                 varnames.append(filter[1])
-
-        cmake_file.write("set(ALL_SOURCE_FILES\n")
-
-        for var in varnames:
-            cmake_file.write("\t${%s}\n" % var)
-
-        cmake_file.write(")\n")
 
 if __name__ == '__main__':
     main()

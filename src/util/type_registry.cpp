@@ -1,4 +1,4 @@
-#include "util/type_registry.hpp"
+#include "type_registry.hpp"
 
 #include <type_traits>
 #include <new>

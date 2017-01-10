@@ -37,17 +37,12 @@ endfunction(add_project)
 
 set(DUMMY_CMD ${CMAKE_COMMAND} -E echo "Placeholder command!")
 
-set(TIFF_NAME tiff${DBG_PREFIX})
-set(ZLIB_NAME zlib${DBG_PREFIX}1)
-
 # HACK: using a relative path to the include directory as a workaround, because find_package tends to return incorrect paths
 set(ZLIB_PKG_ARGS -DZLIB_ROOT:path=${EXT_INSTALL_DIR} -DZLIB_INCLUDE_DIR:path=../../../include)
 
 if(WIN32)
 	set(GLFW_SHARED_LIB "glfw3.dll")
 	set(GLEW_SHARED_LIB "glew32.dll")
-	set(TIFF_SHARED_LIB "${TIFF_NAME}.dll")
-	set(ZLIB_SHARED_LIB "${ZLIB_NAME}.dll")
 else()
 	message(FATAL_ERROR "Please fix this")
 endif()
@@ -103,17 +98,18 @@ add_project(tiff COMMANDS
 
 ExternalProject_Add_StepDependencies(tiff configure zlib)
 
+add_project(squish COMMANDS
+	GIT_REPOSITORY "https://github.com/svn2github/libsquish.git"
+)
+
 set(EXT_LINK_LIBS
 	glew32
 	glfw3dll
-	${TIFF_NAME}
 )
 
 set(EXT_SHARED_LIBS 
 	${GLEW_SHARED_LIB}
 	${GLFW_SHARED_LIB}
-	${TIFF_SHARED_LIB}
-	${ZLIB_SHARED_LIB}
 )
 
 include(add_boost)

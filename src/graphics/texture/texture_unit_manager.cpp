@@ -1,5 +1,5 @@
-#include "graphics/texture/texture_unit_manager.hpp"
-#include "graphics/texture/Texture.hpp"
+#include "texture_unit_manager.hpp"
+#include "Texture.hpp"
 
 GLuint texture_unit_manager::s_maxUnits = 0, texture_unit_manager::s_nextUnit = 0;
 texture_unit_manager::unit_cache texture_unit_manager::s_cache;

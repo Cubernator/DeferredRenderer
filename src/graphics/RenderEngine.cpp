@@ -1,17 +1,17 @@
-#include "graphics/RenderEngine.hpp"
+#include "RenderEngine.hpp"
 
 #include "core/Engine.hpp"
 #include "core/Scene.hpp"
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
 #include "core/Content.hpp"
-#include "graphics/Material.hpp"
-#include "graphics/Effect.hpp"
-#include "graphics/shader/ShaderProgram.hpp"
-#include "graphics/Renderer.hpp"
-#include "graphics/Camera.hpp"
-#include "graphics/Light.hpp"
-#include "graphics/texture/Texture2D.hpp"
+#include "Material.hpp"
+#include "Effect.hpp"
+#include "shader/ShaderProgram.hpp"
+#include "Renderer.hpp"
+#include "Camera.hpp"
+#include "Light.hpp"
+#include "texture/Texture2D.hpp"
 #include "util/app_info.hpp"
 #include "util/intersection_tests.hpp"
 
@@ -76,16 +76,16 @@ RenderEngine::RenderEngine(Engine* parent)
 void RenderEngine::setupDeferredPath()
 {
 	m_gBufDiff = std::make_unique<Texture2D>();
-	m_gBufDiff->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+	m_gBufDiff->setParams(false, filter_point, wrap_clampToEdge);
 
 	m_gBufSpec = std::make_unique<Texture2D>();
-	m_gBufSpec->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+	m_gBufSpec->setParams(false, filter_point, wrap_clampToEdge);
 
 	m_gBufNorm = std::make_unique<Texture2D>();
-	m_gBufNorm->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+	m_gBufNorm->setParams(false, filter_point, wrap_clampToEdge);
 
 	m_gBufDepth = std::make_unique<Texture2D>();
-	m_gBufDepth->setParams(false, Texture2D::filter_point, Texture2D::wrap_clampToEdge);
+	m_gBufDepth->setParams(false, filter_point, wrap_clampToEdge);
 
 	onResize(m_parent->getScreenWidth(), m_parent->getScreenHeight());
 

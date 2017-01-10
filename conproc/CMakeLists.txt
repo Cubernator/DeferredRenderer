@@ -1,27 +1,31 @@
 project(conproc CXX C)
 
-include_directories(${INCLUDE_DIR})
+include_directories(${INCLUDE_DIR} ../contrib ../util)
 link_directories(${LIB_DIR})
 
-set(HEADER_FILES
-	conproc.hpp
-	processor.hpp
-	generic.hpp
-	ignore.hpp
-	mesh.hpp
-	image.hpp
-)
-
 set(SOURCE_FILES
-	main.cpp
+	conproc.hpp
 	conproc.cpp
-	processor.cpp
+	generic.hpp
 	generic.cpp
-	mesh.cpp
+	ignore.hpp
+	image.hpp
 	image.cpp
+	main.cpp
+	mesh.hpp
+	mesh.cpp
+	processor.hpp
+	processor.cpp
 )
 
-set(CP_LINK_LIBS assimp)
+set(TIFF_NAME tiff${DBG_PREFIX})
+set(SQUISH_NAME squish${DBG_PREFIX})
+
+set(CP_LINK_LIBS
+	assimp
+	${TIFF_NAME}
+	${SQUISH_NAME}
+)
 
 set(LIB_PREFIX "")
 if(MSVC)
@@ -40,7 +44,7 @@ endforeach()
 
 set(CP_OUTPUT_NAME conproc${DBG_PREFIX})
 
-add_executable(conproc ${HEADER_FILES} ${SOURCE_FILES})
+add_executable(conproc ${SOURCE_FILES})
 set_target_properties(conproc PROPERTIES OUTPUT_NAME_DEBUG conprocd)
 set_target_out_dir(conproc ${BIN_DIR})
 

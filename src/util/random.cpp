@@ -1,4 +1,4 @@
-#include "util/random.hpp"
+#include "random.hpp"
 
 namespace random
 {

@@ -1,5 +1,5 @@
-#include "graphics/Light.hpp"
-#include "graphics/Renderer.hpp"
+#include "Light.hpp"
+#include "Renderer.hpp"
 #include "util/json_utils.hpp"
 #include "util/component_registry.hpp"
 #include "core/Transform.hpp"

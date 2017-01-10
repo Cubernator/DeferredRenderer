@@ -1,5 +1,5 @@
-#include "graphics/shader/ShaderProgram.hpp"
-#include "graphics/shader/Shader.hpp"
+#include "ShaderProgram.hpp"
+#include "Shader.hpp"
 #include "graphics/texture/Texture.hpp"
 #include "graphics/texture/texture_unit_manager.hpp"
 #include "util/type_registry.hpp"

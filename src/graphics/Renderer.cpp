@@ -1,5 +1,5 @@
-#include "graphics/Renderer.hpp"
-#include "graphics/Material.hpp"
+#include "Renderer.hpp"
+#include "Material.hpp"
 #include "core/Content.hpp"
 
 json_interpreter<Renderer> Renderer::s_properties({

@@ -1,5 +1,5 @@
-#include "core/Entity.hpp"
-#include "core/Transform.hpp"
+#include "Entity.hpp"
+#include "Transform.hpp"
 #include "util/json_utils.hpp"
 #include "util/type_registry.hpp"
 #include "util/component_registry.hpp"

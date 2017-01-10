@@ -1,64 +1,64 @@
-#include "graphics/texture/Texture2D.hpp"
-#include "graphics/texture/raw_img_importer.hpp"
-#include "graphics/texture/stb_img_importer.hpp"
-#include "graphics/texture/tiff_img_importer.hpp"
+#include "Texture2D.hpp"
 #include "util/type_registry.hpp"
 #include "util/json_utils.hpp"
 #include "core/Content.hpp"
 
-REGISTER_OBJECT_TYPE_NO_EXT(Texture2D, "texture2D");
+#include <assert.h>
 
-keyword_helper<Texture2D::importer_factory> Texture2D::s_importers({
-	{ "raw", image_importer_factory<raw_img_importer>() },
-	{ "stb", image_importer_factory<stb_img_importer>() },
-	{ "tif", image_importer_factory<tiff_img_importer>() }
-});
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_STDIO
+#include "stb_image.h"
 
-keyword_helper<Texture2D::filter> Texture2D::s_filters({
-	{ "point", filter_point },
-	{ "bilinear", filter_bilinear },
-	{ "trilinear", filter_trilinear }
-});
+REGISTER_OBJECT_TYPE(Texture2D, "texture2D", ".rbt");
 
-keyword_helper<Texture2D::wrap> Texture2D::s_wrap({
-	{ "repeat", wrap_repeat },
-	{ "clampToEdge", wrap_clampToEdge },
-	{ "clampToBorder", wrap_clampToBorder },
-	{ "mirroredRepeat", wrap_mirroredRepeat },
-	{ "mirrorClampToEdge", wrap_mirrorClampToEdge },
-});
-
-Texture2D::Texture2D() : Texture(GL_TEXTURE_2D), m_width(0), m_height(0) { }
+Texture2D::Texture2D() : Texture(GL_TEXTURE_2D), m_width(0), m_height(0), m_mipmaps(true) { }
 
 void Texture2D::setData(const void* data, unsigned int w, unsigned int h, GLint imgFormat, GLenum pxFormat, GLenum pxType)
 {
 	bind();
 	glTexImage2D(m_target, 0, imgFormat, w, h, 0, pxFormat, pxType, data);
+
+	if (m_mipmaps) {
+		glGenerateMipmap(m_target);
+	}
+
 	unbind();
+
+	m_width = w;
+	m_height = h;
 }
 
 void Texture2D::setCompressedData(const void* data, unsigned int dataSize, unsigned int w, unsigned int h, GLint format)
 {
 	bind();
 	glCompressedTexImage2D(m_target, 0, format, w, h, 0, dataSize, data);
+
+	if (m_mipmaps) {
+		glGenerateMipmap(m_target);
+	}
+
 	unbind();
+
+	m_width = w;
+	m_height = h;
 }
 
-void Texture2D::setParams(bool mipmaps, filter filtering, wrap wrapping, const glm::vec4& borderColor, float anisotropic)
+void Texture2D::setParams(bool mipmaps, filter filtering, wrap wrapping, float anisotropic, const glm::vec4& borderColor)
 {
+	m_mipmaps = mipmaps;
 	GLenum minFilter, magFilter;
 	switch (filtering) {
-	case Texture2D::filter_point:
+	case filter_point:
 		minFilter = mipmaps ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
 		magFilter = GL_NEAREST;
 		break;
 
-	case Texture2D::filter_bilinear:
+	case filter_bilinear:
 		minFilter = mipmaps ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR;
 		magFilter = GL_LINEAR;
 		break;
 
-	case Texture2D::filter_trilinear:
+	case filter_trilinear:
 		minFilter = mipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
 		magFilter = GL_LINEAR;
 		break;
@@ -74,43 +74,51 @@ void Texture2D::setParams(bool mipmaps, filter filtering, wrap wrapping, const g
 	unbind();
 }
 
-void Texture2D::apply_json_impl(const nlohmann::json& json)
+template<>
+std::unique_ptr<Texture2D> import_object<Texture2D>(const path& filename)
 {
-	bool genMipmaps = get_value<bool>(json, "mipmaps", false);
-	float anisotropic = get_value<float>(json, "anisotropic", 1.0f);
-	glm::vec4 borderColor = get_value<glm::vec4>(json, "borderColor", glm::vec4(0.0f));
+	// TODO
+	boost::filesystem::ifstream file(filename, std::ios::binary);
+	if (file) {
+		auto newTexture = std::make_unique<Texture2D>();
 
-	filter filtering = filter_point;
-	s_filters.findKeyword(json, "filter", filtering);
+		std::size_t headerSize, dataSize;
 
-	wrap wrapping = wrap_repeat;
-	s_wrap.findKeyword(json, "wrap", wrapping);
+		file.read(reinterpret_cast<char*>(&headerSize), sizeof(headerSize));
+		file.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
 
-	setParams(genMipmaps, filtering, wrapping, borderColor, anisotropic);
+		auto hdrStart = file.tellg();
 
-	auto fit = json.find("file");
-	if (fit != json.end() && fit->is_string()) {
-		path file;
-		if (Content::instance()->findGenericFirst(*fit, file)) {
-			importer_factory make_importer;
-			if (s_importers.findKeyword(json, "importer", make_importer)) {
-				nlohmann::json importOptions = nlohmann::json::object();
-				auto optIt = json.find("importOptions");
-				if (optIt != json.end() && optIt->is_object()) {
-					importOptions = *optIt;
-				}
+		rbt_info header;
+		file.read(reinterpret_cast<char*>(&header), sizeof(header));
 
-				importer_ptr importer = make_importer(file, importOptions);
-				if (importer->getStatus()) {
-					importer->uploadData(this);
+		// manually seek to start of data stream (in case of mismatching header size)
+		file.seekg(hdrStart + std::streamoff(headerSize));
 
-					if (genMipmaps) {
-						bind();
-						glGenerateMipmap(m_target);
-						unbind();
-					}
-				}
+		std::vector<unsigned char> data(dataSize);
+		file.read(reinterpret_cast<char*>(data.data()), dataSize);
+
+		newTexture->setParams(header.params.mipmaps, header.params.filter, header.params.wrap, header.params.anisotropic);
+
+		if (header.compressed) {
+			newTexture->setCompressedData(data.data(), data.size(), header.width, header.height, header.imgFormat);
+
+		} else {
+			int w, h, comp;
+			unsigned char* imgData = stbi_load_from_memory(data.data(), data.size(), &w, &h, &comp, 4);
+
+			if (imgData) {
+				assert(w == header.width);
+				assert(h == header.height);
+
+				newTexture->setData(imgData, w, h, header.imgFormat, header.pxFormat, header.pxType);
 			}
+
+			stbi_image_free(imgData);
 		}
+
+		return std::move(newTexture);
 	}
+
+	return std::unique_ptr<Texture2D>();
 }

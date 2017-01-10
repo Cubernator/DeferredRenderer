@@ -1,5 +1,4 @@
-#include "core/Content.hpp"
-#include "util/type_registry.hpp"
+#include "Content.hpp"
 #include "util/app_info.hpp"
 
 #include "boost/filesystem.hpp"
@@ -49,7 +48,7 @@ std::vector<path> Content::findGenericAll(const std::string& name)
 	return std::move(result);
 }
 
-path Content::findObject(const std::type_info& type, const std::string& name)
+bool Content::findObject(const std::type_info& type, const std::string& name, path& result)
 {
 	auto it1 = m_registry.find(type);
 	if (it1 != m_registry.end()) {
@@ -57,14 +56,12 @@ path Content::findObject(const std::type_info& type, const std::string& name)
 		auto tr = it1->second;
 		auto it2 = tr.find(name);
 		if (it2 != tr.end()) {
-			return it2->second;
+			result =  it2->second;
+			return true;
 		}
 	}
 
-	auto& t = type_registry::findByType(type);
-	std::cout << "could not find object \"" << name << "\" of type \"" << t.name << "\"" << std::endl;
-
-	return "";
+	return false;
 }
 
 bool Content::findShaderFile(const path& p, path& result) const

@@ -1,4 +1,4 @@
-#include "components/DayNightController.hpp"
+#include "DayNightController.hpp"
 #include "graphics/Light.hpp"
 #include "core/Entity.hpp"
 #include "core/Scene.hpp"

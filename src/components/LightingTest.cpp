@@ -1,5 +1,5 @@
-#include "components/LightingTest.hpp"
-#include "components/LightRandomiser.hpp"
+#include "LightingTest.hpp"
+#include "LightRandomiser.hpp"
 #include "util/component_registry.hpp"
 #include "graphics/RenderEngine.hpp"
 #include "graphics/Light.hpp"

@@ -1,5 +1,5 @@
-#include "core/Component.hpp"
-#include "core/Entity.hpp"
+#include "Component.hpp"
+#include "Entity.hpp"
 
 json_interpreter<Component> Component::s_properties({
 	{ "enabled", &Component::setEnabled }

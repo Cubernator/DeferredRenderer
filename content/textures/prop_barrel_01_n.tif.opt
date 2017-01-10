@@ -1,0 +1,8 @@
+{
+  "format": "DXT5",
+  "linear": true,
+  "mipmaps": true,
+  "filter": "trilinear",
+  "wrap": "repeat",
+  "anisotropic": 9
+}

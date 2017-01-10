@@ -1,5 +1,5 @@
 #include "core/Component.hpp"
-#include "util/component_registry.hpp"
+#include "component_registry.hpp"
 
 #include <new>
 

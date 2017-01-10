@@ -1,4 +1,4 @@
-#include "components/FlyCamera.hpp"
+#include "FlyCamera.hpp"
 #include "core/Engine.hpp"
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"

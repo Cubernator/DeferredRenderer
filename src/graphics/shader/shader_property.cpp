@@ -1,4 +1,4 @@
-#include "graphics/shader/shader_property.hpp"
+#include "shader_property.hpp"
 #include "graphics/texture/Texture2D.hpp"
 
 shader_property::converter_container shader_property::s_converters({
@@ -21,7 +21,7 @@ shader_property::converter_container shader_property::s_converters({
 	make_converter<glm::mat3>("mat3"),
 	make_converter<glm::mat4x3>("mat4x3"),
 
-	make_object_json_converter<Texture2D>("texture2D")
+	make_object_converter<Texture2D>("texture2D")
 });
 
 

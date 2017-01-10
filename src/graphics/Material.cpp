@@ -1,5 +1,5 @@
-#include "graphics/Material.hpp"
-#include "graphics/Effect.hpp"
+#include "Material.hpp"
+#include "Effect.hpp"
 #include "util/type_registry.hpp"
 #include "core/Content.hpp"
 

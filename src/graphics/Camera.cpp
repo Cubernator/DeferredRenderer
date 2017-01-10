@@ -1,7 +1,7 @@
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
 #include "util/component_registry.hpp"
-#include "graphics/Camera.hpp"
+#include "Camera.hpp"
 
 REGISTER_COMPONENT_CLASS(Camera, "camera");
 

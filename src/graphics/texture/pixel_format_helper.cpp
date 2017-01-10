@@ -1,4 +1,4 @@
-#include "graphics\texture\pixel_format_helper.hpp"
+#include "pixel_format_helper.hpp"
 
 bool pixel_format_helper::find(const std::string& name, pixel_traits& format)
 {

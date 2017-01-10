@@ -1,4 +1,4 @@
-#include "util/intersection_tests.hpp"
+#include "intersection_tests.hpp"
 
 bool intersect_aabb_sphere(const aabb& aabb, const sphere& sphere)
 {

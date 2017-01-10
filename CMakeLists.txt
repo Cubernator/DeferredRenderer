@@ -16,7 +16,7 @@ include(source_files)
 
 set(ADDITIONAL_FILES "app-info.json")
 
-include_directories(${INCLUDE_DIR} include)
+include_directories(src contrib util ${INCLUDE_DIR})
 link_directories(${LIB_DIR})
 
 option(WINDOWS_HIDE_CONSOLE "Whether to hide the console window in windows builds" OFF)
@@ -44,17 +44,19 @@ add_definitions( -DBOOST_ALL_NO_LIB )
 
 set(OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/DeferredRenderer)
 
-add_executable(DeferredRenderer ${WIN32FLAG} ${ALL_SOURCE_FILES} ${ADDITIONAL_FILES})
+set(ALL_SOURCE_FILES ${SOURCE_FILES} ${CMAKE_FILES} ${SCRIPT_FILES})
+
+add_executable(DeferredRenderer ${WIN32FLAG} ${ALL_SOURCE_FILES})
 set_target_out_dir(DeferredRenderer ${OUT_DIR})
 
 add_subdirectory(conproc)
 
 include(external_libs)
 
-add_dependencies(DeferredRenderer boost glew glfw glm json tiff)
+add_dependencies(DeferredRenderer boost glew glfw glm json)
 target_link_libraries(DeferredRenderer ${EXT_LINK_LIBS} opengl32)
 
-add_dependencies(conproc boost assimp json)
+add_dependencies(conproc boost assimp json tiff squish)
 
 foreach(lib_file ${EXT_SHARED_LIBS})
 	set(lib_file_src ${BIN_DIR}/${lib_file})
@@ -73,13 +75,22 @@ set(ALL_CONTENT_FILES ${SHADER_FILES} ${CONTENT_FILES} ${ADDITIONAL_FILES})
 
 foreach(content_file ${ALL_CONTENT_FILES})
 	set(file_src ${CMAKE_CURRENT_SOURCE_DIR}/${content_file})
+	
+	set(dependees ${file_src})
+	set(opt_file ${file_src}.opt)
+	if(EXISTS ${opt_file})
+		list(APPEND dependees ${opt_file})
+	endif()
+	
 	get_filename_component(file_dst ${OUT_DIR}/${content_file} DIRECTORY)
 	set(timestamp ${TIMESTAMP_DIR}/${content_file}.stamp)
+	
 	add_custom_command(
 		OUTPUT ${timestamp}
 		COMMAND ${CONPROC_COMMAND} ${file_src} -d ${file_dst}
 		COMMAND ${CMAKE_COMMAND} -E touch ${timestamp}
-		DEPENDS ${file_src}
+		MAIN_DEPENDENCY ${file_src}
+		DEPENDS ${dependees}
 	)
 	list(APPEND TIMESTAMPS ${timestamp})
 endforeach()
