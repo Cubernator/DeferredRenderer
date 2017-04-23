@@ -2,7 +2,7 @@
 #define PIXEL_FORMAT_HELPER_HPP
 
 #include "pixel_types.hpp"
-#include "util/keyword_helper.hpp"
+#include "keyword_helper.hpp"
 
 #include <string>
 

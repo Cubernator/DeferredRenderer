@@ -2,7 +2,7 @@
 #include "shader/ShaderProgram.hpp"
 #include "Material.hpp"
 #include "util/type_registry.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 namespace
 {
@@ -49,6 +49,16 @@ Effect::Effect() : m_renderType(type_opaque), m_queuePriority(queue_geometry) { 
 
 Pass::Pass() : mode(light_forward_base), program(nullptr) { }
 
+
+unsigned int Effect::passCount() const
+{
+	return m_passes.size();
+}
+
+const Pass* Effect::getPass(unsigned int index) const
+{
+	return &*std::next(m_passes.begin(), index);
+}
 
 const Pass* Effect::getPass(light_mode mode) const
 {
@@ -147,7 +157,7 @@ void Effect::addPass(const nlohmann::json& json)
 				std::cout << newPass.program->getLog() << std::endl;
 			}
 
-			auto p = m_passes.insert(std::move(newPass));
+			auto p = m_passes.push_back(std::move(newPass));
 			if (!p.second) {
 				// TODO: print warning
 			}

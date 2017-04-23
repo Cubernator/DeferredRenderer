@@ -21,7 +21,7 @@ void get_diff_spec_from_metallic(vec3 albedo, float metallic, out vec3 diff, out
 	float omd = 1.0 - dielectricReflec;
 	diff = albedo * (omd - metallic * omd);
 
-	// The BRDF treats the specular color as the component-wise reflectance at 0°
+	// The BRDF treats the specular color as the component-wise reflectance at 0ï¿½
 	// For non-metallic (dielectric) materials the reflectance is defined by the "dielectricReflec" uniform (in most cases constant at 0.22).
 	// For metals the specular color is "tinted" by the surface color (albedo).
 	// These values are blended together depending of the metallic value.

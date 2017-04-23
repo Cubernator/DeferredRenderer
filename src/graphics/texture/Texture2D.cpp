@@ -1,7 +1,7 @@
 #include "Texture2D.hpp"
 #include "util/type_registry.hpp"
 #include "util/json_utils.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 #include <assert.h>
 
@@ -121,4 +121,20 @@ std::unique_ptr<Texture2D> import_object<Texture2D>(const path& filename)
 	}
 
 	return std::unique_ptr<Texture2D>();
+}
+
+void Texture2DTarget::attach(GLenum attPoint) const
+{
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attPoint, GL_TEXTURE_2D, m_texture->glObj(), m_level);
+}
+
+void Texture2DTarget::detach(GLenum attPoint) const
+{
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attPoint, GL_TEXTURE_2D, 0, 0);
+}
+
+void Texture2DTarget::getDimensions(unsigned int& width, unsigned int& height) const
+{
+	width = m_texture->width();
+	height = m_texture->height();
 }

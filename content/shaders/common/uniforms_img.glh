@@ -1,0 +1,5 @@
+// source texture
+uniform sampler2D img_source;
+
+// source texture resolution (width, height, 1/width, 1/height)
+uniform vec4 img_resolution;

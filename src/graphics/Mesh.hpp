@@ -55,6 +55,7 @@ public:
 	virtual void draw() const final;
 
 	virtual aabb bounds() const final { return getBounds(); }
+	virtual unsigned int triangles() const final;
 
 	const aabb& getBounds() const { return m_bounds; }
 

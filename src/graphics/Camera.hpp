@@ -2,7 +2,6 @@
 #define CAMERA_HPP
 
 #include "core/Component.hpp"
-#include "util/json_interpreter.hpp"
 #include "util/bounds.hpp"
 #include "glm.hpp"
 

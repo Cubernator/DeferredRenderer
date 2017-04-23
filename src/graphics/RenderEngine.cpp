@@ -4,21 +4,25 @@
 #include "core/Scene.hpp"
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 #include "Material.hpp"
 #include "Effect.hpp"
+#include "shader/Shader.hpp"
 #include "shader/ShaderProgram.hpp"
 #include "Renderer.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
 #include "texture/Texture2D.hpp"
+#include "texture/RenderTexture.hpp"
+#include "FrameBuffer.hpp"
+#include "ImageEffect.hpp"
 #include "util/app_info.hpp"
 #include "util/intersection_tests.hpp"
 
 #include "boost/format.hpp"
 #include "GL/glew.h"
 
-#include <vector>
+#define NUM_AUX_BUFFERS 2
 
 #define DEF_UNIFORM_ID(name) const uniform_id g_##name##_id = uniform_name_to_id(#name)
 
@@ -49,12 +53,21 @@ DEF_UNIFORM_ID(gbuf_diffuse);
 DEF_UNIFORM_ID(gbuf_specSmooth);
 DEF_UNIFORM_ID(gbuf_normal);
 DEF_UNIFORM_ID(gbuf_depth);
+
+// Deferred Debugger parameters
 DEF_UNIFORM_ID(mode);
+DEF_UNIFORM_ID(nearPlane);
+DEF_UNIFORM_ID(farPlane);
+
+// Image Effect parameters
+DEF_UNIFORM_ID(img_source);
+DEF_UNIFORM_ID(img_resolution);
+
 
 RenderEngine* RenderEngine::s_instance = nullptr;
 
 RenderEngine::RenderEngine(Engine* parent)
-	: m_parent(parent), m_maxFwdLights(8), m_gBufFBO(0), m_lightMeshVAO(0),
+	: m_parent(parent), m_lightMeshVAO(0), m_fsQuadVAO(0), m_currentSourceBuf(nullptr),
 	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
 	m_enableDeferred(true), m_enableViewFrustumCulling(true),
 	m_outputMode(output_default)
@@ -68,9 +81,13 @@ RenderEngine::RenderEngine(Engine* parent)
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 #endif
 
+	int mfl = app_info::get<int>("maxForwardLights", 8);
+	m_maxFwdLights = (mfl < 0) ? std::numeric_limits<unsigned int>::max() : mfl;
+
 	setupDeferredPath();
+	createDefaultResources();
+	createPPResources();
 	m_renderState.apply();
-	glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void RenderEngine::setupDeferredPath()
@@ -87,35 +104,23 @@ void RenderEngine::setupDeferredPath()
 	m_gBufDepth = std::make_unique<Texture2D>();
 	m_gBufDepth->setParams(false, filter_point, wrap_clampToEdge);
 
-	onResize(m_parent->getScreenWidth(), m_parent->getScreenHeight());
+	m_accBuffer = std::make_unique<RenderTexture>();
+	m_accBuffer->setParams(false, filter_bilinear, wrap_clampToEdge);
 
-	glGenFramebuffers(1, &m_gBufFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, m_gBufFBO);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gBufDiff->glObj(), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_gBufSpec->glObj(), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_gBufNorm->glObj(), 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_gBufDepth->glObj(), 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "ERROR: Deferred framebuffer object is incomplete!" << std::endl;
+	for (unsigned int i = 0; i < NUM_AUX_BUFFERS; ++i) {
+		m_auxBuffers.push_back(std::make_unique<RenderTexture>());
+		m_auxBuffers[i]->setParams(false, filter_bilinear, wrap_clampToEdge);
 	}
 
-	GLenum drawBuffers[] = {
-		GL_COLOR_ATTACHMENT0,
-		GL_COLOR_ATTACHMENT1,
-		GL_COLOR_ATTACHMENT2
-	};
-	glDrawBuffers(3, drawBuffers);
+	onResize(m_parent->getScreenWidth(), m_parent->getScreenHeight());
 
-	m_gClearColor[0] = 0.0f;
-	m_gClearColor[1] = 0.0f;
-	m_gClearColor[2] = 0.0f;
-	m_gClearColor[3] = 0.0f;
+	FrameBuffer::target_array gTargets;
+	gTargets.push_back(make_tex2D_tgt(m_gBufDiff.get()));
+	gTargets.push_back(make_tex2D_tgt(m_gBufSpec.get()));
+	gTargets.push_back(make_tex2D_tgt(m_gBufNorm.get()));
 
-	m_gClearDepth = 1.0f;
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	m_gFrameBuffer = std::make_unique<FrameBuffer>();
+	m_gFrameBuffer->setTargetsDepth(make_tex2D_tgt(m_gBufDepth.get()), std::move(gTargets));
 
 	createCombinedLightMesh();
 
@@ -235,14 +240,103 @@ void RenderEngine::createCombinedLightMesh()
 	glBindVertexArray(0);
 }
 
+void RenderEngine::createPPResources()
+{
+	std::string vs = R"vs(
+#version 330
+layout(location = 0) in vec4 inPos;
+layout(location = 1) in vec2 inUV;
+out vec2 uv;
+void main()
+{
+	gl_Position = inPos;
+	uv = inUV;
+}
+)vs";
+
+	std::string fs = R"fs(
+#version 330
+uniform sampler2D img_source;
+in vec2 uv;
+layout(location = 0) out vec4 f_output;
+void main()
+{
+	f_output = texture(img_source, uv);
+}
+)fs";
+
+	nlohmann::json copyEffectJson = R"(
+{
+	"name" : "builtin_copy",
+	"passes" : [
+		{
+			"name" : "default",
+			"state": {
+				"cull" : false,
+				"depthTest" : false,
+				"depthWrite" : false
+			},
+			"program" : {
+				"name" : "builtin_copy", 
+				"shaders" : [ "builtin_copy.vert", "builtin_copy.frag" ]
+			}
+		}
+	]
+}
+)"_json;
+
+	auto content = Content::instance();
+
+	auto copyVS = content->emplaceInPool<Shader>("builtin_copy.vert", Shader::type_vertex, vs);
+	auto copyFS = content->emplaceInPool<Shader>("builtin_copy.frag", Shader::type_fragment, fs);
+
+	auto copyEffect = content->getPooledFromJson<Effect>(copyEffectJson);
+
+	m_copyMat = std::make_unique<Material>();
+	m_copyMat->setEffect(copyEffect);
+
+	std::vector<float> fsQuadVertices{
+		-1.f, -1.f, -1.f, 1.f, 0.f, 0.f,
+		1.f, -1.f, -1.f, 1.f, 1.f, 0.f,
+		-1.f, 1.f, -1.f, 1.f, 0.f, 1.f,
+		1.f, 1.f, -1.f, 1.f, 1.f, 1.f
+	};
+	m_fsQuadVbuf.setData(fsQuadVertices.size(), fsQuadVertices.data());
+
+	glGenVertexArrays(1, &m_fsQuadVAO);
+	glBindVertexArray(m_fsQuadVAO);
+	m_fsQuadVbuf.bind();
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 24, 0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 24, (const void*)16);
+	glBindVertexArray(0);
+}
+
+void RenderEngine::createDefaultResources()
+{
+	auto content = Content::instance();
+
+	pixel::srgb pw{ 255U, 255U, 255U };
+	auto texWhite = std::make_unique<Texture2D>();
+	texWhite->setParams(false, filter_point, wrap_repeat);
+	texWhite->setData(&pw, 1, 1);
+	content->addToPool("white", std::move(texWhite));
+
+	pixel::srgb pb{ 0U, 0U, 0U };
+	auto texBlack = std::make_unique<Texture2D>();
+	texBlack->setParams(false, filter_point, wrap_repeat);
+	texBlack->setData(&pb, 1, 1);
+	content->addToPool("black", std::move(texBlack));
+}
+
 RenderEngine::~RenderEngine()
 {
-	if (m_gBufFBO) {
-		glDeleteFramebuffers(1, &m_gBufFBO);
-	}
-
 	if (m_lightMeshVAO) {
 		glDeleteVertexArrays(1, &m_lightMeshVAO);
+	}
+	if (m_fsQuadVAO) {
+		glDeleteVertexArrays(1, &m_fsQuadVAO);
 	}
 }
 
@@ -253,10 +347,16 @@ void RenderEngine::onResize(int width, int height)
 
 	glViewport(0, 0, m_width, m_height);
 
-	m_gBufDiff->setData<pixel::rgb32f>(nullptr, m_width, m_height);
-	m_gBufSpec->setData<pixel::rgba32f>(nullptr, m_width, m_height);
+	m_gBufDiff->setData<pixel::rgb8>(nullptr, m_width, m_height);
+	m_gBufSpec->setData<pixel::rgba8>(nullptr, m_width, m_height);
 	m_gBufNorm->setData<pixel::rgb10a2>(nullptr, m_width, m_height);
-	m_gBufDepth->setData<pixel::depth32>(nullptr, m_width, m_height);
+	m_gBufDepth->setData<pixel::depth24>(nullptr, m_width, m_height);
+
+	m_accBuffer->setData<pixel::rgba16f>(m_width, m_height, RenderTexture::depth_24);
+
+	for (auto& rt : m_auxBuffers) {
+		rt->setData<pixel::rgba8>(m_width, m_height);
+	}
 }
 
 void RenderEngine::render()
@@ -267,12 +367,9 @@ void RenderEngine::render()
 		m_ambientLight = scene->getAmbientLight();
 	}
 
-	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
-	glDepthMask(GL_TRUE);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	getImgEffects();
 
-	m_camera = Camera::main();
-	if (!m_camera) return; // can't render anything without a camera!
+	if (!m_camera || !m_camera->isActiveAndEnabled()) return; // can't render anything without an active camera!
 
 	m_objUniforms.setPerFrame(m_camera, float(m_width), float(m_height));
 
@@ -282,15 +379,47 @@ void RenderEngine::render()
 	// fill light and render queues
 	fillQueues();
 
-	// render all objects that support deferred shading
-	renderDeferred();
+	geometryPass();
 
-	// the rest is rendered using good ol' forward rendering
-	renderForward();
+	m_accBuffer->fbo()->bind();
+	m_accBuffer->fbo()->setClearColor(0, m_clearColor);
+	m_accBuffer->fbo()->clear();
+
+	lightingPass();
+
+	forwardPass();
+
+	postProcessing();
+}
+
+void RenderEngine::getImgEffects()
+{
+	Camera* oldCam = m_camera;
+	m_camera = Camera::main();
+
+	if (m_camera != oldCam) {
+		if (m_camera) {
+			m_imgEffects = m_camera->getEntity()->getComponents<ImageEffect>();
+		} else {
+			m_imgEffects.clear();
+		}
+	}
+
+	m_activeImgEffects.clear();
+	if (m_camera && m_camera->isActiveAndEnabled()) {
+		std::copy_if(
+			m_imgEffects.begin(), m_imgEffects.end(),
+			std::back_inserter(m_activeImgEffects),
+			[](ImageEffect* e) { return e->isEnabled(); }
+		);
+	}
 }
 
 void RenderEngine::fillQueues()
 {
+	unsigned int sampleAcc = 0, sampleCount = 0;
+	m_triangleCount = 0;
+
 	m_lightQueue.clear();
 
 	// sort lights by type and priority
@@ -332,6 +461,8 @@ void RenderEngine::fillQueues()
 			if (m_enableViewFrustumCulling && !checkIntersection(m_viewFrustum, transform, obj))
 				continue;
 
+			m_triangleCount += obj->triangles();
+
 			// if the object is not transparent and has a deferred pass, put it into deferred queue (deferred pass will be ignored in transparent effects)
 			if (m_enableDeferred && (effect->getRenderType() != type_transparent)) {
 				const Pass* passDeferred = effect->getPass(light_deferred);
@@ -366,33 +497,25 @@ void RenderEngine::fillQueues()
 					}
 				}
 
+				sampleAcc += lc;
+				++sampleCount;
+
 				continue;
 			}
 
 			// skip it otherwise (something probably went wrong while initializing this object)
 		}
 	}
+
+	m_avgLightsPerObj = float(sampleAcc) / float(sampleCount);
 }
 
-void RenderEngine::renderDeferred()
+void RenderEngine::geometryPass()
 {
-	if (m_deferredQueue.empty() || !(m_deferredAmbientPass && m_deferredAmbientPass->program)) return;
+	if (m_deferredQueue.empty()) return;
 
-	// G-Buffer pass
-	deferredGPass();
-
-	// Lighting pass
-	deferredLPass();
-}
-
-void RenderEngine::deferredGPass()
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, m_gBufFBO);
-
-	glClearBufferfv(GL_COLOR, 0, m_gClearColor);
-	glClearBufferfv(GL_COLOR, 1, m_gClearColor);
-	glClearBufferfv(GL_COLOR, 2, m_gClearColor);
-	glClearBufferfv(GL_DEPTH, 0, &m_gClearDepth);
+	m_gFrameBuffer->bind();
+	m_gFrameBuffer->clear();
 
 	const ShaderProgram* curProgram = nullptr;
 	const Pass* curPass = nullptr;
@@ -431,12 +554,13 @@ void RenderEngine::deferredGPass()
 
 		curObj->draw();
 	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void RenderEngine::deferredLPass()
+void RenderEngine::lightingPass()
 {
+	if (m_deferredQueue.empty()) return;
+	if (!(m_deferredAmbientPass && m_deferredAmbientPass->program)) return;
+
 	glBindVertexArray(m_lightMeshVAO);
 	m_lightMeshIbuf.bind();
 
@@ -449,8 +573,11 @@ void RenderEngine::deferredLPass()
 	bindDeferredLightPass(ap);
 	applyAmbient(true, ap->program);
 
-	if (m_outputMode)
+	if (m_outputMode) {
 		ap->program->setUniform(g_mode_id, static_cast<int>(m_outputMode));
+		ap->program->setUniform(g_nearPlane_id, m_camera->getNearPlane());
+		ap->program->setUniform(g_farPlane_id, m_camera->getFarPlane());
+	}
 
 	drawDeferredLight(nullptr, ap->program);
 
@@ -466,7 +593,7 @@ void RenderEngine::deferredLPass()
 	}
 }
 
-void RenderEngine::renderForward()
+void RenderEngine::forwardPass()
 {
 	if (m_forwardQueue.empty()) return;
 
@@ -514,6 +641,81 @@ void RenderEngine::renderForward()
 		}
 
 		curObj->draw();
+	}
+}
+
+void RenderEngine::postProcessing()
+{
+	if (m_activeImgEffects.size() == 0) {
+		// if no image effects are active, just copy the accumulation buffer to the backbuffer
+		setConvertToSRGB(true);
+		blit(m_accBuffer.get(), nullptr);
+	} else {
+		RenderTexture* input = m_accBuffer.get();
+		RenderTexture* output = m_auxBuffers[0].get();
+
+		for (unsigned int i = 0; i < m_activeImgEffects.size(); ++i) {
+			m_currentSourceBuf = input;
+			if (i == m_activeImgEffects.size() - 1)
+				output = nullptr; // the last image effect should write directly into the backbuffer
+
+			setConvertToSRGB(true);
+			m_activeImgEffects[i]->apply(input, output);
+
+			std::swap(input, output);
+		}
+	}
+}
+
+void RenderEngine::blit(const Texture2D* source, const RenderTexture* dest, const Material* material, unsigned int passIndex)
+{
+	if (!material)
+		material = m_copyMat.get();
+
+	auto effect = material->getEffect();
+	if (effect && (passIndex < effect->passCount())) {
+		auto pass = effect->getPass(passIndex);
+		if (pass && pass->program) {
+			if (dest) {
+				dest->fbo()->bind();
+			} else {
+				FrameBuffer::unbind();
+			}
+
+			pass->program->bind();
+			updateRenderState(pass->state);
+
+			material->apply(pass->program);
+			pass->program->setTexture(g_img_source_id, source);
+
+			if (source) {
+				pass->program->setUniform(g_img_resolution_id, glm::vec4{
+					source->width(), source->height(), 1.f / source->width(), 1.f / source->height()
+				});
+			}
+
+			glBindVertexArray(m_fsQuadVAO);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		}
+	}
+}
+
+const RenderTexture* RenderEngine::getAuxRenderTexture()
+{
+	for (auto& rt : m_auxBuffers) {
+		if (rt.get() != m_currentSourceBuf) { // avoid returning currently used source buffer
+			return rt.get();
+		}
+	}
+	return nullptr;
+}
+
+void RenderEngine::setConvertToSRGB(bool l)
+{
+	if (l) {
+		glEnable(GL_FRAMEBUFFER_SRGB);
+	} else {
+		glDisable(GL_FRAMEBUFFER_SRGB);
 	}
 }
 
@@ -680,7 +882,8 @@ void RenderEngine::uniforms_per_obj::setPerFrame(const Camera* camera, float w, 
 void RenderEngine::uniforms_per_obj::setPerObject(const Transform* transform)
 {
 	world = transform->getMatrix();
-	tiworld = glm::transpose(glm::inverse(world));
+	// TODO: use SIMD commands to speed this up
+	tiworld = glm::transpose(transform->getInverseMatrix());
 	wvp = vp * world;
 }
 

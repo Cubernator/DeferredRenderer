@@ -109,7 +109,7 @@ void RenderState::applyCullingDiff(const RenderState& other) const
 	if (other.cullEnable != cullEnable)
 		setEnabled(GL_CULL_FACE, cullEnable);
 
-	if (cullEnable && (other.cullMode != cullMode))
+	if (other.cullMode != cullMode)
 		applyCullMode();
 }
 
@@ -130,7 +130,7 @@ void RenderState::applyDepthTestDiff(const RenderState& other) const
 	if (other.depthTestEnable != depthTestEnable)
 		setEnabled(GL_DEPTH_TEST, depthTestEnable);
 
-	if (depthTestEnable && (other.depthTestFunction != depthTestFunction))
+	if (other.depthTestFunction != depthTestFunction)
 		applyDepthTestFunc();
 }
 
@@ -139,19 +139,17 @@ void RenderState::applyBlendDiff(const RenderState& other) const
 	if (other.blendEnable != blendEnable)
 		setEnabled(GL_BLEND, blendEnable);
 
-	if (blendEnable) {
-		if (other.blendColor != blendColor)
-			applyBlendColor();
+	if (other.blendColor != blendColor)
+		applyBlendColor();
 
-		if ((other.blendEquation != blendEquation) || (other.blendEquationAlpha != blendEquationAlpha))
-			applyBlendEquation();
+	if ((other.blendEquation != blendEquation) || (other.blendEquationAlpha != blendEquationAlpha))
+		applyBlendEquation();
 
-		if ((other.blendSourceFunction != blendSourceFunction)
-			|| (other.blendSourceAlphaFunction != blendSourceAlphaFunction)
-			|| (other.blendDestFunction != blendDestFunction)
-			|| (other.blendDestAlphaFunction != blendDestAlphaFunction))
-			applyBlendFunction();
-	}
+	if ((other.blendSourceFunction != blendSourceFunction)
+		|| (other.blendSourceAlphaFunction != blendSourceAlphaFunction)
+		|| (other.blendDestFunction != blendDestFunction)
+		|| (other.blendDestAlphaFunction != blendDestAlphaFunction))
+		applyBlendFunction();
 }
 
 void RenderState::apply_json_impl(const nlohmann::json& json)

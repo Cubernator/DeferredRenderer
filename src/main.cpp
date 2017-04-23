@@ -3,10 +3,19 @@
 
 #include "boost/program_options.hpp"
 
-#if defined(_WIN32) && defined(HIDE_CONSOLE)
+#if defined(_WIN32)
+
+#if !defined(NDEBUG) && defined(HIDE_CONSOLE) && defined(OVERRIDE_CONSOLE)
+#undef HIDE_CONSOLE
+#pragma comment(linker, "/SUBSYSTEM:CONSOLE")
+#endif
+
+#if defined(HIDE_CONSOLE)
 #define USE_WINMAIN
 #include <windows.h>
 #endif
+
+#endif // _WIN32
 
 
 #ifdef USE_WINMAIN

@@ -30,8 +30,8 @@ public:
 
 	bool isActiveAndEnabled() const;
 
-	void start() { start_impl(); }
-	void update() { update_impl(); }
+	void start() { if (m_enabled) start_impl(); }
+	void update() { if (m_enabled) update_impl(); }
 
 	COMPONENT_ALLOW_MULTIPLE;
 

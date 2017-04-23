@@ -1,6 +1,6 @@
 #include "Renderer.hpp"
 #include "Material.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 json_interpreter<Renderer> Renderer::s_properties({
 	{ "materials", &Renderer::extractMaterials }

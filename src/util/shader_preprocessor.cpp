@@ -1,5 +1,5 @@
 #include "shader_preprocessor.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 #include "boost/format.hpp"
 #include "boost/spirit/home/qi.hpp"

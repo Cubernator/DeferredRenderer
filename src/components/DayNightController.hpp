@@ -14,6 +14,9 @@ public:
 	bool getDayTime() const { return m_dayTime; }
 	void setDayTime(bool val);
 
+	bool getAmbient() const { return m_ambient; }
+	void setAmbient(bool val);
+
 protected:
 	virtual void start_impl() override;
 	virtual void update_impl() override;
@@ -21,7 +24,7 @@ protected:
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
 
 private:
-	bool m_dayTime;
+	bool m_dayTime, m_ambient;
 	Light* m_light;
 
 	glm::vec4 m_daySkyColor, m_nightSkyColor;
@@ -32,7 +35,7 @@ private:
 
 	friend class json_interpreter<DayNightController>;
 
-	void applyValues(bool dayTime);
+	void applyValues();
 };
 
 #endif // DAYNIGHTCONTROLLER_HPP

@@ -1,18 +1,22 @@
-#ifndef LIGHT_RANDOMIZER_HPP
-#define LIGHT_RANDOMIZER_HPP
+#ifndef RANDOM_MOVEMENT_HPP
+#define RANDOM_MOVEMENT_HPP
 
 #include "core/Component.hpp"
 #include "util/bounds.hpp"
 
-class Light;
 class Transform;
 
-class LightRandomizer : public Component
+class RandomMovement : public Component
 {
 public:
-	LightRandomizer(Entity* parent);
+	RandomMovement(Entity* parent);
 
 	void setArea(const aabb& a) { m_area = a; }
+	void setMinMaxSpeed(float min, float max)
+	{ 
+		m_minSpeed = min;
+		m_maxSpeed = max;
+	}
 
 protected:
 	virtual void start_impl() override;
@@ -20,10 +24,11 @@ protected:
 
 private:
 	Transform* m_transform;
-	Light* m_light;
 
 	aabb m_area;
+	float m_minSpeed, m_maxSpeed;
+
 	glm::vec3 m_velocity;
 };
 
-#endif // LIGHT_RANDOMIZER_HPP
+#endif // RANDOM_MOVEMENT_HPP

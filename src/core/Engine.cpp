@@ -1,21 +1,22 @@
 #include "Engine.hpp"
-#include "Content.hpp"
+
 #include "Scene.hpp"
 #include "Entity.hpp"
+
 #include "graphics/RenderEngine.hpp"
-#include "graphics/texture/Texture2D.hpp"
+#include "content/Content.hpp"
+#include "input/Input.hpp"
+
 #include "util/app_info.hpp"
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-#include "core/Input.hpp"
-
 #include <iostream>
 
 Engine* Engine::s_instance = nullptr;
 
-Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.0)
+Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0),  m_loadingScene(false)
 {
 	s_instance = this;
 
@@ -81,50 +82,28 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_deltaTime(1.0 / 60.
 	m_content = std::make_unique<Content>();
 	m_renderer = std::make_unique<RenderEngine>(this);
 
-	createDefaultResources();
+	swapBuffers();
 
-	auto firstSceneName = app_info::get<std::string>("firstScene", "scene0");
-	loadScene(firstSceneName);
+	loadFirstScene();
 }
 
 int Engine::run()
 {
-	auto currentTime = clock::now();
-	duration_type accumulator(0);
+	auto start = clock::now();
+	duration_type accumulator{ 0 };
 
 	while (isRunning()) {
-		auto newTime = clock::now();
-		duration_type frameTime = newTime - currentTime;
-		currentTime = newTime;
+		auto now = clock::now();
+		auto newTime = now - start;
 
-		accumulator += frameTime;
+		m_frameTime = newTime - m_time;
+		m_time = newTime;
 
-		while (accumulator >= m_deltaTime) {
-			m_time += m_deltaTime;
-			accumulator -= m_deltaTime;
-
-			update();
-		}
-
+		update();
 		render();
 	}
 
 	return m_error;
-}
-
-void Engine::createDefaultResources()
-{
-	pixel::srgb pw{ 255U, 255U, 255U };
-	auto texWhite = std::make_unique<Texture2D>();
-	texWhite->setParams(false, filter_point, wrap_repeat);
-	texWhite->setData(&pw, 1, 1);
-	m_content->addToPool("white", std::move(texWhite));
-
-	pixel::srgb pb{ 0U, 0U, 0U };
-	auto texBlack = std::make_unique<Texture2D>();
-	texBlack->setParams(false, filter_point, wrap_repeat);
-	texBlack->setData(&pb, 1, 1);
-	m_content->addToPool("black", std::move(texBlack));
 }
 
 Engine::~Engine()
@@ -167,12 +146,12 @@ int Engine::getScreenHeight() const
 	return h;
 }
 
-Scene * Engine::getScene()
+Scene* Engine::getScene()
 {
 	return m_scene.get();
 }
 
-const Scene * Engine::getScene() const
+const Scene* Engine::getScene() const
 {
 	return m_scene.get();
 }
@@ -188,17 +167,33 @@ void Engine::setScene(std::unique_ptr<Scene> scene)
 		m_scene->setActive(true);
 }
 
-void Engine::loadScene(const std::string& sceneName)
+void Engine::loadSceneInternal(const std::string & sceneName)
 {
+	setScene(nullptr);
+
 	auto scene = Content::instance()->getFromDisk<Scene>(sceneName);
 	if (scene) {
 		setScene(std::move(scene));
 	} else {
 		std::cout << "ERROR: could not find scene " << sceneName << std::endl;
 	}
+
+	m_loadingScene = false;
 }
 
-Entity * Engine::getEntityInternal(const uuid & id) const
+void Engine::loadScene(const std::string& sceneName)
+{
+	m_loadingScene = true;
+	m_loadingSceneName = sceneName;
+}
+
+void Engine::loadFirstScene()
+{
+	auto firstSceneName = app_info::get<std::string>("firstScene", "scene0");
+	loadScene(firstSceneName);
+}
+
+Entity* Engine::getEntityInternal(const uuid& id) const
 {
 	auto it = m_entities.find(id);
 	if (it != m_entities.end())
@@ -230,7 +225,7 @@ void Engine::destroyEntity(const uuid& id)
 	}
 }
 
-void Engine::destroyEntity(Entity * entity)
+void Engine::destroyEntity(Entity* entity)
 {
 	destroyEntity(entity->getId());
 }
@@ -247,6 +242,10 @@ Engine::const_entity_iterator Engine::entities_end() const
 
 void Engine::update()
 {
+	if (m_loadingScene) {
+		loadSceneInternal(m_loadingSceneName);
+	}
+
 	m_input->update();
 
 	if (m_scene) {
@@ -260,5 +259,10 @@ void Engine::render()
 		m_renderer->render();
 	}
 
+	swapBuffers();
+}
+
+void Engine::swapBuffers()
+{
 	glfwSwapBuffers(m_window);
 }

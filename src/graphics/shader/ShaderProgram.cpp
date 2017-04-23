@@ -3,7 +3,7 @@
 #include "graphics/texture/Texture.hpp"
 #include "graphics/texture/texture_unit_manager.hpp"
 #include "util/type_registry.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 #include <algorithm>
 #include <numeric>

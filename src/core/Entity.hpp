@@ -78,6 +78,18 @@ public:
 	}
 
 	template<typename T>
+	std::vector<T*> getComponents()
+	{
+		return getComponentsInternal<T>();
+	}
+
+	template<typename T>
+	std::vector<const T*> getComponents() const
+	{
+		return getComponentsInternal<T>();
+	}
+
+	template<typename T>
 	bool hasComponent() const
 	{
 		return getComponent<T>();
@@ -106,6 +118,21 @@ private:
 		}
 
 		return nullptr;
+	}
+
+	template<typename T>
+	std::vector<T*> getComponentsInternal() const
+	{
+		static_assert(std::is_base_of<Component, T>::value, "Only subclasses of Component are allowed!");
+
+		std::vector<T*> result;
+
+		for (auto& component : m_components) {
+			T* c = dynamic_cast<T*>(component.get());
+			if (c) result.push_back(c);
+		}
+
+		return result;
 	}
 
 	void apply_json_impl(const nlohmann::json& json);

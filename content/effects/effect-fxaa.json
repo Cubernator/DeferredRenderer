@@ -1,0 +1,47 @@
+{
+  "type": "effect",
+  "name": "fxaa",
+  "properties": [
+    {
+      "name": "subpix",
+      "type": "float",
+      "default": 0.75
+    },
+    {
+      "name": "edgeThresholdMin",
+      "type": "float",
+      "default": 0.166
+    },
+    {
+      "name": "edgeThreshold",
+      "type": "float",
+      "default": 0.0833
+    }
+  ],
+  "passes": [
+    {
+      "name": "encode",
+      "state": {
+        "cull": false,
+        "depthTest": false,
+        "depthWrite": false
+      },
+      "program": {
+        "name": "fxaa_prepass",
+        "shaders": [ "fxaa.vert", "fxaa_prepass.frag" ]
+      }
+    },
+    {
+      "name": "fxaa",
+      "state": {
+        "cull": false,
+        "depthTest": false,
+        "depthWrite": false
+      },
+      "program": {
+        "name": "fxaa",
+        "shaders": [ "fxaa.vert", "fxaa.frag" ]
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@
 #include "keyword_helper.hpp"
 
 #include "boost/multi_index_container.hpp"
+#include "boost/multi_index/sequenced_index.hpp"
 
 namespace mi = boost::multi_index;
 
@@ -71,6 +72,9 @@ public:
 	int getQueuePriority() const { return m_queuePriority; }
 	void setQueuePriority(int val) { m_queuePriority = val; }
 
+	unsigned int passCount() const;
+
+	const Pass* getPass(unsigned int index) const;
 	const Pass* getPass(light_mode mode) const;
 	const Pass* getPass(const std::string& name) const;
 
@@ -84,6 +88,7 @@ private:
 	struct by_name { };
 
 	struct pass_container_indices : public mi::indexed_by<
+		mi::sequenced<>,
 		mi::hashed_unique<mi::tag<by_name>, mi::member<Pass, std::string, &Pass::name>>,
 		mi::hashed_non_unique<mi::tag<by_mode>, mi::member<Pass, light_mode, &Pass::mode>>
 	> { };
@@ -112,6 +117,10 @@ private:
 	void addPass(const nlohmann::json& json);
 
 	friend struct json_initializable<Effect>;
+
+public:
+	pass_container::const_iterator begin_passes() const { return m_passes.cbegin(); }
+	pass_container::const_iterator end_passes() const { return m_passes.cend(); }
 };
 
 #endif // EFFECT_HPP

@@ -1,0 +1,6 @@
+struct vertex_input_img {
+	vec4 pos;
+	vec2 uv;
+};
+
+layout(location = 0) in vertex_input_img v_input;

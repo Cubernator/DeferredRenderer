@@ -7,7 +7,7 @@
 
 Content* Content::s_instance = nullptr;
 
-Content::Content() : m_logIndentLevel(0)
+Content::Content() : m_logSearch(false), m_logIndentLevel(0)
 {
 	s_instance = this;
 
@@ -84,11 +84,13 @@ void Content::scanContentFolder(const path& p)
 {
 	using namespace boost::filesystem;
 
-	for (unsigned int i = 0; i < m_logIndentLevel; ++i) std::cout << "  ";
-	std::cout << p.filename().string() << ": ";
+	if (m_logSearch) {
+		for (unsigned int i = 0; i < m_logIndentLevel; ++i) std::cout << "  ";
+		std::cout << p.filename().string() << ": ";
+	}
 
 	if (is_directory(p)) {
-		std::cout << std::endl;
+		if (m_logSearch) std::cout << std::endl;
 
 		++m_logIndentLevel;
 
@@ -125,15 +127,15 @@ void Content::addFile(const path& p)
 			}
 		} catch (std::invalid_argument&) {
 			m_genericRegistry.emplace(p.filename().string(), p);
-			std::cout << "found generic file";
+			if (m_logSearch) std::cout << "found generic file";
 		}
 	}
 
 	if (type) {
 		m_registry[type.type][name] = p;
-		std::cout << "found " << type.name << " \"" << name << "\"";
+		if (m_logSearch) std::cout << "found " << type.name << " \"" << name << "\"";
 	}
 
-	std::cout << std::endl;
+	if (m_logSearch) std::cout << std::endl;
 }
 

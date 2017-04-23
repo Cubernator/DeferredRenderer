@@ -29,7 +29,9 @@ public:
 	~Engine();
 
 	time_type getTime() const { return m_time.count(); }
-	time_type getDeltaTime() const { return m_deltaTime.count(); }
+	time_type getFrameTime() const { return m_frameTime.count(); }
+
+	time_type getFPS() const { return 1.0 / getFrameTime(); }
 
 	void getScreenSize(int& w, int& h) const;
 	int getScreenWidth() const;
@@ -42,8 +44,8 @@ public:
 	Scene *getScene();
 	const Scene *getScene() const;
 
-	void setScene(std::unique_ptr<Scene> scene);
 	void loadScene(const std::string& sceneName);
+	void loadFirstScene();
 
 	Entity* getEntity(const uuid& id) { return getEntityInternal(id); }
 	const Entity* getEntity(const uuid& id) const { return getEntityInternal(id); }
@@ -64,8 +66,7 @@ private:
 	int m_error;
 	bool m_running;
 
-	duration_type m_time;
-	const duration_type m_deltaTime;
+	duration_type m_time, m_frameTime;
 
 	std::unique_ptr<Input> m_input;
 	std::unique_ptr<Content> m_content;
@@ -73,6 +74,9 @@ private:
 
 	std::unique_ptr<Scene> m_scene;
 	entity_collection m_entities;
+
+	bool m_loadingScene;
+	std::string m_loadingSceneName;
 
 	static Engine* s_instance;
 
@@ -85,9 +89,12 @@ private:
 	bool isRunning() const;
 
 	void update();
-	void render();
 
-	void createDefaultResources();
+	void render();
+	void swapBuffers();
+
+	void setScene(std::unique_ptr<Scene> scene);
+	void loadSceneInternal(const std::string& sceneName);
 
 	Entity* getEntityInternal(const uuid& id) const;
 

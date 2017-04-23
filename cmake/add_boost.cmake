@@ -11,9 +11,14 @@ set(BOOST_ARCHIVE_FILENAME ${BOOST_FOLDER}.tar.gz)
 
 set(BOOST_URL "https://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/${BOOST_ARCHIVE_FILENAME}/download")
 
+set(IS_DBG $<CONFIG:Debug>)
+set(IS_REL $<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>)
+set(IS_PRF $<CONFIG:RelWithDebInfo>)
+set(VARIANT $<${IS_DBG}:debug>$<${IS_REL}:release>$<${IS_PRF}:profile>)
+
 set(BUILD_CMD
 	"<SOURCE_DIR>/b2"
-	variant=$<LOWER_CASE:$<CONFIG>>
+	variant=${VARIANT}
 	link=static
 	threading=multi
 	runtime-link=shared

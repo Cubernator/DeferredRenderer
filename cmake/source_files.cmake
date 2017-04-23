@@ -1,26 +1,30 @@
 set(SOURCE_FILES
 	src/glm.hpp
+	src/half.hpp
 	src/main.cpp
 	src/path.hpp
+	src/types.hpp
 	src/uuid.hpp
 	src/components/DayNightController.cpp
 	src/components/DayNightController.hpp
+	src/components/DebugControls.cpp
+	src/components/DebugControls.hpp
 	src/components/FlyCamera.cpp
 	src/components/FlyCamera.hpp
 	src/components/LightingTest.cpp
 	src/components/LightingTest.hpp
-	src/components/LightRandomiser.cpp
-	src/components/LightRandomiser.hpp
+	src/components/LightSwitch.cpp
+	src/components/LightSwitch.hpp
+	src/components/RandomMovement.cpp
+	src/components/RandomMovement.hpp
+	src/content/Content.cpp
+	src/content/Content.hpp
 	src/core/Component.cpp
 	src/core/Component.hpp
-	src/core/Content.cpp
-	src/core/Content.hpp
 	src/core/Engine.cpp
 	src/core/Engine.hpp
 	src/core/Entity.cpp
 	src/core/Entity.hpp
-	src/core/Input.cpp
-	src/core/Input.hpp
 	src/core/Scene.cpp
 	src/core/Scene.hpp
 	src/core/Transform.cpp
@@ -31,7 +35,10 @@ set(SOURCE_FILES
 	src/graphics/Drawable.hpp
 	src/graphics/Effect.cpp
 	src/graphics/Effect.hpp
+	src/graphics/FrameBuffer.cpp
+	src/graphics/FrameBuffer.hpp
 	src/graphics/gl_types.hpp
+	src/graphics/ImageEffect.hpp
 	src/graphics/Light.cpp
 	src/graphics/Light.hpp
 	src/graphics/Material.cpp
@@ -40,12 +47,17 @@ set(SOURCE_FILES
 	src/graphics/Mesh.hpp
 	src/graphics/MeshRenderer.cpp
 	src/graphics/MeshRenderer.hpp
+	src/graphics/RenderBuffer.cpp
+	src/graphics/RenderBuffer.hpp
 	src/graphics/RenderEngine.cpp
 	src/graphics/RenderEngine.hpp
 	src/graphics/Renderer.cpp
 	src/graphics/Renderer.hpp
 	src/graphics/RenderState.cpp
 	src/graphics/RenderState.hpp
+	src/graphics/RenderTarget.hpp
+	src/graphics/SimpleImageEffect.cpp
+	src/graphics/SimpleImageEffect.hpp
 	src/graphics/shader/set_uniform.hpp
 	src/graphics/shader/Shader.cpp
 	src/graphics/shader/Shader.hpp
@@ -57,11 +69,17 @@ set(SOURCE_FILES
 	src/graphics/texture/pixel_format_helper.cpp
 	src/graphics/texture/pixel_format_helper.hpp
 	src/graphics/texture/pixel_types.hpp
+	src/graphics/texture/RenderTexture.cpp
+	src/graphics/texture/RenderTexture.hpp
 	src/graphics/texture/Texture.hpp
 	src/graphics/texture/Texture2D.cpp
 	src/graphics/texture/Texture2D.hpp
 	src/graphics/texture/texture_unit_manager.cpp
 	src/graphics/texture/texture_unit_manager.hpp
+	src/input/Input.cpp
+	src/input/Input.hpp
+	src/input/keys.cpp
+	src/input/keys.hpp
 	src/util/app_info.cpp
 	src/util/app_info.hpp
 	src/util/bounds.hpp
@@ -98,56 +116,10 @@ set(SCRIPT_FILES
 )
 source_group("Script Files" FILES ${SCRIPT_FILES})
 
-set(SHADER_FILES
-	content/shaders/common/gbuffer.glh
-	content/shaders/common/lighting.glh
-	content/shaders/common/uniforms.glh
-	content/shaders/common/utils.glh
-	content/shaders/common/vertex_input.glh
-	content/shaders/common/vertex_output.glh
-	content/shaders/common/vertex_transform.glh
-	content/shaders/diffuse/diffuse.frag.glsl
-	content/shaders/diffuse/diffuse.vert.glsl
-	content/shaders/diffuse/diffuse_common.glh
-	content/shaders/pbr/pbr_brdf.glh
-	content/shaders/pbr/pbr_data.glh
-	content/shaders/pbr/pbr_gbuf.glh
-	content/shaders/pbr/pbr_input.glh
-	content/shaders/pbr/deferred/pbr_deferred_frag.glh
-	content/shaders/pbr/deferred/pbr_deferred_m.frag.glsl
-	content/shaders/pbr/deferred/pbr_deferred_mn.frag.glsl
-	content/shaders/pbr/deferred/pbr_deferred_s.frag.glsl
-	content/shaders/pbr/deferred/pbr_deferred_sc.frag.glsl
-	content/shaders/pbr/deferred/pbr_deferred_sn.frag.glsl
-	content/shaders/pbr/deferred/pbr_deferred_snc.frag.glsl
-	content/shaders/pbr/deferred_light/pbr_ambient.frag.glsl
-	content/shaders/pbr/deferred_light/pbr_ambient.vert.glsl
-	content/shaders/pbr/deferred_light/pbr_ambient_common.glh
-	content/shaders/pbr/deferred_light/pbr_defdbg.frag.glsl
-	content/shaders/pbr/deferred_light/pbr_light.frag.glsl
-	content/shaders/pbr/deferred_light/pbr_light.vert.glsl
-	content/shaders/pbr/deferred_light/pbr_light_common.glh
-	content/shaders/pbr/forward/pbr_forward_frag.glh
-	content/shaders/pbr/forward/pbr_forward_m.frag.glsl
-	content/shaders/pbr/forward/pbr_forward_mn.frag.glsl
-	content/shaders/pbr/forward/pbr_forward_s.frag.glsl
-	content/shaders/pbr/forward/pbr_forward_sc.frag.glsl
-	content/shaders/pbr/forward/pbr_forward_sn.frag.glsl
-	content/shaders/pbr/forward/pbr_forward_snc.frag.glsl
-	content/shaders/std/std_deferred.vert.glsl
-	content/shaders/std/std_forward.vert.glsl
-	content/shaders/terrain/terrain_deferred.frag.glsl
-	content/shaders/terrain/terrain_forward.frag.glsl
-	content/shaders/terrain/terrain_input.glh
-	content/shaders/unlit/unlit.frag.glsl
-	content/shaders/unlit/unlit.vert.glsl
-	content/shaders/unlit/unlit_common.glh
-)
-source_group("Shader Files" FILES ${SHADER_FILES})
-
-set(CONTENT_FILES
+set(OBJECT_FILES
 	content/effects/effect-deferred_light.json
 	content/effects/effect-diffuse.json
+	content/effects/effect-fxaa.json
 	content/effects/effect-pbr_m.json
 	content/effects/effect-pbr_mn.json
 	content/effects/effect-pbr_s.json
@@ -158,6 +130,7 @@ set(CONTENT_FILES
 	content/effects/effect-unlit.json
 	content/materials/brick.json
 	content/materials/debug.json
+	content/materials/fxaa.json
 	content/materials/mat_barrel_01.json
 	content/materials/mat_boardwalk_01.json
 	content/materials/mat_boat_01.json
@@ -200,70 +173,66 @@ set(CONTENT_FILES
 	content/materials/mat_tower_02.json
 	content/materials/mat_tower_03.json
 	content/materials/steel.json
-	content/meshes/build_barracks_01.fbx
-	content/meshes/build_barracks_single_01.fbx
-	content/meshes/build_bighouse_01.fbx
-	content/meshes/build_bighouse_02.FBX
-	content/meshes/build_big_storage_01.fbx
-	content/meshes/build_blacksmith_01.fbx
-	content/meshes/build_boat_01.FBX
-	content/meshes/build_crane_01.FBX
-	content/meshes/build_gate_01.fbx
-	content/meshes/build_small_house_01.FBX
-	content/meshes/build_small_house_straw_roof_01.FBX
-	content/meshes/build_small_house_tall_roof_01.FBX
-	content/meshes/build_storage_01.fbx
-	content/meshes/build_tower_01.FBX
-	content/meshes/build_wall_corner_01.FBX
-	content/meshes/build_wall_panel_01.FBX
-	content/meshes/cube.blend
-	content/meshes/ocean_plane.FBX
-	content/meshes/prop_barrels_01.fbx
-	content/meshes/prop_barrels_02.fbx
-	content/meshes/prop_barrel_01.fbx
-	content/meshes/prop_boardwalk_01.FBX
-	content/meshes/prop_boulder_01.fbx
-	content/meshes/prop_boulder_02.fbx
-	content/meshes/prop_buckets_01.fbx
-	content/meshes/prop_bucket_01.fbx
-	content/meshes/prop_fence_01.fbx
-	content/meshes/prop_fence_01_double.fbx
-	content/meshes/prop_fence_01_tripple.fbx
-	content/meshes/prop_fence_02.FBX
-	content/meshes/prop_fence_02_double.fbx
-	content/meshes/prop_fence_02_quad.fbx
-	content/meshes/prop_fish_01.fbx
-	content/meshes/prop_halberd_01.fbx
-	content/meshes/prop_logpile_01.fbx
-	content/meshes/prop_menhir_01.fbx
-	content/meshes/prop_pillar_03.fbx
-	content/meshes/prop_pillar_04.fbx
-	content/meshes/prop_pillar_05.fbx
-	content/meshes/prop_pillar_06.fbx
-	content/meshes/prop_plankpath_01.FBX
-	content/meshes/prop_plankpile_01.fbx
-	content/meshes/prop_plankpile_02.fbx
-	content/meshes/prop_plankpile_03.fbx
-	content/meshes/prop_plank_01.fbx
-	content/meshes/prop_plank_02.fbx
-	content/meshes/prop_plank_03.fbx
-	content/meshes/prop_rune_01.fbx
-	content/meshes/prop_scaffold_01.fbx
-	content/meshes/prop_shed_01.fbx
-	content/meshes/prop_shed_02.fbx
-	content/meshes/prop_shield_01.fbx
-	content/meshes/prop_shovel_01.fbx
-	content/meshes/prop_skull_01.fbx
-	content/meshes/prop_sword_01.fbx
-	content/meshes/prop_torch_01.fbx
-	content/meshes/prop_wall_logs_04.FBX
-	content/meshes/terrain_01.fbx
-	content/meshes/veg_clovers_01.fbx
-	content/meshes/veg_clovers_purple_01.fbx
-	content/meshes/veg_clovers_white_01.fbx
-	content/meshes/veg_plant_02.fbx
 	content/scenes/scene-test.json
 	content/scenes/The_Viking_Village.json
+)
+source_group("Object Files" FILES ${OBJECT_FILES})
+
+set(SHADER_FILES
+	content/shaders/common/gbuffer.glh
+	content/shaders/common/lighting.glh
+	content/shaders/common/uniforms.glh
+	content/shaders/common/uniforms_img.glh
+	content/shaders/common/utils.glh
+	content/shaders/common/vertex_input.glh
+	content/shaders/common/vertex_input_img.glh
+	content/shaders/common/vertex_output.glh
+	content/shaders/common/vertex_transform.glh
+	content/shaders/diffuse/diffuse.frag.glsl
+	content/shaders/diffuse/diffuse.vert.glsl
+	content/shaders/diffuse/diffuse_common.glh
+	content/shaders/fxaa/fxaa.frag.glsl
+	content/shaders/fxaa/fxaa.vert.glsl
+	content/shaders/fxaa/fxaa3_11.glh
+	content/shaders/fxaa/fxaa_common.glh
+	content/shaders/fxaa/fxaa_prepass.frag.glsl
+	content/shaders/pbr/pbr_brdf.glh
+	content/shaders/pbr/pbr_data.glh
+	content/shaders/pbr/pbr_gbuf.glh
+	content/shaders/pbr/pbr_input.glh
+	content/shaders/pbr/deferred/pbr_deferred_frag.glh
+	content/shaders/pbr/deferred/pbr_deferred_m.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_mn.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_s.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_sc.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_sn.frag.glsl
+	content/shaders/pbr/deferred/pbr_deferred_snc.frag.glsl
+	content/shaders/pbr/deferred_light/pbr_ambient.frag.glsl
+	content/shaders/pbr/deferred_light/pbr_ambient.vert.glsl
+	content/shaders/pbr/deferred_light/pbr_ambient_common.glh
+	content/shaders/pbr/deferred_light/pbr_defdbg.frag.glsl
+	content/shaders/pbr/deferred_light/pbr_light.frag.glsl
+	content/shaders/pbr/deferred_light/pbr_light.vert.glsl
+	content/shaders/pbr/deferred_light/pbr_light_common.glh
+	content/shaders/pbr/forward/pbr_forward_frag.glh
+	content/shaders/pbr/forward/pbr_forward_m.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_mn.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_s.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_sc.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_sn.frag.glsl
+	content/shaders/pbr/forward/pbr_forward_snc.frag.glsl
+	content/shaders/std/std_deferred.vert.glsl
+	content/shaders/std/std_forward.vert.glsl
+	content/shaders/terrain/terrain_deferred.frag.glsl
+	content/shaders/terrain/terrain_forward.frag.glsl
+	content/shaders/terrain/terrain_input.glh
+	content/shaders/unlit/unlit.frag.glsl
+	content/shaders/unlit/unlit.vert.glsl
+	content/shaders/unlit/unlit_common.glh
+)
+source_group("Shader Files" FILES ${SHADER_FILES})
+
+set(IMAGE_FILES
 	content/textures/build_boat_01_a.tif
 	content/textures/build_boat_01_n.tif
 	content/textures/build_boat_01_sg.tif
@@ -357,5 +326,57 @@ set(CONTENT_FILES
 	content/textures/steel/steel_metallic.png
 	content/textures/steel/steel_normal.png
 )
-source_group("Content Files" FILES ${CONTENT_FILES})
+source_group("Image Files" FILES ${IMAGE_FILES})
+
+set(MODEL_FILES
+	content/meshes/build_barracks_01.fbx
+	content/meshes/build_barracks_single_01.fbx
+	content/meshes/build_bighouse_01.fbx
+	content/meshes/build_big_storage_01.fbx
+	content/meshes/build_blacksmith_01.fbx
+	content/meshes/build_gate_01.fbx
+	content/meshes/build_storage_01.fbx
+	content/meshes/cube.blend
+	content/meshes/prop_barrels_01.fbx
+	content/meshes/prop_barrels_02.fbx
+	content/meshes/prop_barrel_01.fbx
+	content/meshes/prop_boulder_01.fbx
+	content/meshes/prop_boulder_02.fbx
+	content/meshes/prop_buckets_01.fbx
+	content/meshes/prop_bucket_01.fbx
+	content/meshes/prop_fence_01.fbx
+	content/meshes/prop_fence_01_double.fbx
+	content/meshes/prop_fence_01_tripple.fbx
+	content/meshes/prop_fence_02_double.fbx
+	content/meshes/prop_fence_02_quad.fbx
+	content/meshes/prop_fish_01.fbx
+	content/meshes/prop_halberd_01.fbx
+	content/meshes/prop_logpile_01.fbx
+	content/meshes/prop_menhir_01.fbx
+	content/meshes/prop_pillar_03.fbx
+	content/meshes/prop_pillar_04.fbx
+	content/meshes/prop_pillar_05.fbx
+	content/meshes/prop_pillar_06.fbx
+	content/meshes/prop_plankpile_01.fbx
+	content/meshes/prop_plankpile_02.fbx
+	content/meshes/prop_plankpile_03.fbx
+	content/meshes/prop_plank_01.fbx
+	content/meshes/prop_plank_02.fbx
+	content/meshes/prop_plank_03.fbx
+	content/meshes/prop_rune_01.fbx
+	content/meshes/prop_scaffold_01.fbx
+	content/meshes/prop_shed_01.fbx
+	content/meshes/prop_shed_02.fbx
+	content/meshes/prop_shield_01.fbx
+	content/meshes/prop_shovel_01.fbx
+	content/meshes/prop_skull_01.fbx
+	content/meshes/prop_sword_01.fbx
+	content/meshes/prop_torch_01.fbx
+	content/meshes/terrain_01.fbx
+	content/meshes/veg_clovers_01.fbx
+	content/meshes/veg_clovers_purple_01.fbx
+	content/meshes/veg_clovers_white_01.fbx
+	content/meshes/veg_plant_02.fbx
+)
+source_group("Model Files" FILES ${MODEL_FILES})
 

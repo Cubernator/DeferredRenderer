@@ -4,12 +4,17 @@ namespace random
 {
 	namespace
 	{
-		std::default_random_engine g_def_engine{ std::random_device()() };
+		default_gen_t g_def_engine;
 	}
 
-	std::default_random_engine& default_gen()
+	default_gen_t& default_gen()
 	{
 		return g_def_engine;
+	}
+
+	void default_seed_random()
+	{
+		default_gen().seed(std::random_device()());
 	}
 
 	glm::vec3 uniform_direction()

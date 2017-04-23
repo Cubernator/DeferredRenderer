@@ -38,7 +38,7 @@ endfunction(add_project)
 set(DUMMY_CMD ${CMAKE_COMMAND} -E echo "Placeholder command!")
 
 # HACK: using a relative path to the include directory as a workaround, because find_package tends to return incorrect paths
-set(ZLIB_PKG_ARGS -DZLIB_ROOT:path=${EXT_INSTALL_DIR} -DZLIB_INCLUDE_DIR:path=../../../include)
+set(ZLIB_PKG_ARGS )
 
 if(WIN32)
 	set(GLFW_SHARED_LIB "glfw3.dll")
@@ -85,7 +85,8 @@ add_project(zlib COMMANDS
 add_project(assimp COMMANDS
 	GIT_REPOSITORY "https://github.com/assimp/assimp.git"
 	GIT_TAG "v3.3.1"
-	CMAKE_ARGS ${ZLIB_PKG_ARGS} -DASSIMP_BUILD_ASSIMP_TOOLS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DLIBRARY_SUFFIX=
+	CMAKE_ARGS -DZLIB_ROOT:path=${EXT_INSTALL_DIR} -DZLIB_INCLUDE_DIR:path=../../../include
+	-DASSIMP_BUILD_ASSIMP_TOOLS=OFF -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_SAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DLIBRARY_SUFFIX=
 )
 
 ExternalProject_Add_StepDependencies(assimp configure zlib)
@@ -93,7 +94,7 @@ ExternalProject_Add_StepDependencies(assimp configure zlib)
 add_project(tiff COMMANDS
 	URL "ftp://download.osgeo.org/libtiff/tiff-4.0.7.tar.gz"
 	URL_MD5 77ae928d2c6b7fb46a21c3a29325157b
-	CMAKE_ARGS ${ZLIB_PKG_ARGS}
+	CMAKE_ARGS -DZLIB_ROOT:path=${EXT_INSTALL_DIR} -DZLIB_INCLUDE_DIR:path=../../../../include
 )
 
 ExternalProject_Add_StepDependencies(tiff configure zlib)

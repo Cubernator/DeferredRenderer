@@ -1,7 +1,7 @@
 #include "Material.hpp"
 #include "Effect.hpp"
 #include "util/type_registry.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 REGISTER_OBJECT_TYPE_NO_EXT(Material, "material");
 

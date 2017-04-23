@@ -5,7 +5,7 @@ json_interpreter<Component> Component::s_properties({
 	{ "enabled", &Component::setEnabled }
 });
 
-Component::Component(Entity* parent) : m_parent(parent) { }
+Component::Component(Entity* parent) : m_parent(parent), m_enabled(true) { }
 Component::~Component() { }
 
 bool Component::isActiveAndEnabled() const

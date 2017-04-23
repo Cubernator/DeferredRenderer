@@ -31,6 +31,9 @@ class Light;
 class Camera;
 class ShaderProgram;
 class Texture2D;
+class FrameBuffer;
+class RenderTexture;
+class ImageEffect;
 
 class RenderEngine
 {
@@ -42,6 +45,7 @@ public:
 		output_specular,
 		output_smoothness,
 		output_normal,
+		output_depth,
 		output_mode_max
 	};
 
@@ -50,6 +54,9 @@ public:
 
 	Engine *getParent() { return m_parent; }
 	const Engine *getParent() const { return m_parent; }
+
+	int screenWidth() const { return m_width; }
+	int screenHeight() const { return m_height; }
 
 	bool isDeferredEnabled() const { return m_enableDeferred; }
 	void setDeferredEnabled(bool val) { m_enableDeferred = val; }
@@ -60,7 +67,16 @@ public:
 	output_mode getOutputMode() const { return m_outputMode; }
 	void setOutputMode(output_mode val) { m_outputMode = val; }
 
+	float getAvgLightsPerObj() const { return m_avgLightsPerObj; }
+	unsigned long getTriangleCount() const { return m_triangleCount; }
+
+	void setConvertToSRGB(bool l);
+
 	void render();
+
+	void blit(const Texture2D* source, const RenderTexture* dest, const Material* material = nullptr, unsigned int passIndex = 0);
+
+	const RenderTexture* getAuxRenderTexture();
 
 	void addEntity(const Entity* entity);
 	void removeEntity(const Entity* entity);
@@ -141,8 +157,11 @@ private:
 	>;
 
 	Engine *m_parent;
+
 	std::vector<const Renderer*> m_renderers;
 	std::vector<const Light*> m_lights;
+
+	std::vector<ImageEffect*> m_imgEffects, m_activeImgEffects;
 
 	int m_width, m_height;
 
@@ -154,10 +173,11 @@ private:
 	deferred_queue m_deferredQueue;
 	forward_queue m_forwardQueue;
 
-	GLuint m_gBufFBO;
+	std::unique_ptr<FrameBuffer> m_gFrameBuffer;
 	std::unique_ptr<Texture2D> m_gBufDiff, m_gBufSpec, m_gBufNorm, m_gBufDepth;
-	float m_gClearColor[4];
-	float m_gClearDepth;
+
+	std::unique_ptr<RenderTexture> m_accBuffer;
+	std::vector<std::unique_ptr<RenderTexture>> m_auxBuffers;
 
 	std::unique_ptr<Effect> m_deferredLightEffect;
 	const Pass* m_deferredAmbientPass;
@@ -171,6 +191,11 @@ private:
 	std::size_t m_quadOffset, m_sphereOffset;
 	std::size_t m_quadCount, m_sphereCount;
 
+	GLuint m_fsQuadVAO;
+	VertexBuffer<float> m_fsQuadVbuf;
+	std::unique_ptr<Material> m_copyMat;
+	RenderTexture* m_currentSourceBuf;
+
 	light_queue m_lightQueue;
 
 	RenderState m_renderState;
@@ -182,19 +207,23 @@ private:
 	bool m_enableViewFrustumCulling;
 	output_mode m_outputMode;
 
+	float m_avgLightsPerObj;
+	unsigned long m_triangleCount;
+
 	static RenderEngine* s_instance;
 
 
 	void setupDeferredPath();
 	void createCombinedLightMesh();
+	void createPPResources();
+	void createDefaultResources();
 
+	void getImgEffects();
 	void fillQueues();
-
-	void renderDeferred();
-	void deferredGPass();
-	void deferredLPass();
-
-	void renderForward();
+	void geometryPass();
+	void lightingPass();
+	void forwardPass();
+	void postProcessing();
 
 	void applyLight(const Light* light, const ShaderProgram* program);
 	void applyAmbient(bool enabled, const ShaderProgram* program);

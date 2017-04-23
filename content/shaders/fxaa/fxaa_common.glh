@@ -1,0 +1,11 @@
+struct vertex_output {
+	vec2 uv;
+};
+
+#if defined VERTEX_SHADER
+out vertex_output v_output;
+
+#elif defined FRAGMENT_SHADER
+in vertex_output v_output;
+
+#endif

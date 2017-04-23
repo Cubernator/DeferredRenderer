@@ -12,37 +12,37 @@ Input::Input(GLFWwindow* window) : m_window(window), m_frame(0)
 	glfwSetMouseButtonCallback(m_window, Input::mouseButtonCallback);
 }
 
-bool Input::getKey(int key)
+bool Input::getKey(input_key key)
 {
-	return m_keys[key].down;
+	return m_keys[int(key)].down;
 }
 
-bool Input::getKeyPressed(int key)
+bool Input::getKeyPressed(input_key key)
 {
-	button& k = m_keys[key];
+	button& k = m_keys[int(key)];
 	return k.down && (k.lastAction == m_frame);
 }
 
-bool Input::getKeyReleased(int key)
+bool Input::getKeyReleased(input_key key)
 {
-	button& k = m_keys[key];
+	button& k = m_keys[int(key)];
 	return (!k.down) && (k.lastAction == m_frame);
 }
 
-bool Input::getMouseButton(int mbutton)
+bool Input::getMouseButton(input_mbutton mbutton)
 {
-	return m_mbuttons[mbutton].down;
+	return m_mbuttons[int(mbutton)].down;
 }
 
-bool Input::getMouseButtonPressed(int mbutton)
+bool Input::getMouseButtonPressed(input_mbutton mbutton)
 {
-	button& mb = m_mbuttons[mbutton];
+	button& mb = m_mbuttons[int(mbutton)];
 	return mb.down && (mb.lastAction == m_frame);
 }
 
-bool Input::getMouseButtonReleased(int mbutton)
+bool Input::getMouseButtonReleased(input_mbutton mbutton)
 {
-	button& mb = m_mbuttons[mbutton];
+	button& mb = m_mbuttons[int(mbutton)];
 	return (!mb.down) && (mb.lastAction == m_frame);
 }
 

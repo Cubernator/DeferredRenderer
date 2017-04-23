@@ -33,7 +33,6 @@ void Scene::addEntity(std::unique_ptr<Entity> entity)
 	Engine::instance()->addEntity(std::move(entity));
 }
 
-
 void Scene::setActive(bool val)
 {
 	if (val != m_active) {
@@ -50,11 +49,11 @@ void Scene::setActive(bool val)
 
 void Scene::update()
 {
-	applyAddEntities();
-
 	for (auto e : m_entities) {
 		e->update();
 	}
+
+	applyAddEntities();
 }
 
 void Scene::applyAddEntities()
@@ -73,14 +72,14 @@ void Scene::extractEntities(const nlohmann::json& json)
 	if (json.is_array()) {
 		unsigned int entityCount = json.size(), i = 0;
 
-		auto fmt = boost::format("[%1$2i%%]");
+		auto fmt = boost::format("[%1$3i%%]");
 
 		for (auto ej : json) {
-			int progress = int((float(i) / float(entityCount)) * 100.0f);
-			std::cout << (fmt % progress) << " loading scene..." << std::endl;
-
 			addEntity(json_to_object<Entity>(ej));
-			++i;
+			int progress = int((float(++i) / float(entityCount)) * 100.0f);
+			std::cout << "\r" << (fmt % progress) << " loading scene... ";
 		}
+
+		std::cout << std::endl;
 	}
 }

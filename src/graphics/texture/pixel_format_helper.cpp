@@ -16,6 +16,7 @@ keyword_helper<pixel_traits> pixel_format_helper::s_formats({
 	{ "r16s", get_pixel_traits<pixel::r16s>() },
 	{ "r32s", get_pixel_traits<pixel::r32s>() },
 
+	{ "r16f", get_pixel_traits<pixel::r16f>() },
 	{ "r32f", get_pixel_traits<pixel::r32f>() },
 
 	{ "r8ui", get_pixel_traits<pixel::r8ui>() },
@@ -36,6 +37,7 @@ keyword_helper<pixel_traits> pixel_format_helper::s_formats({
 	{ "rg16s", get_pixel_traits<pixel::rg16s>() },
 	{ "rg32s", get_pixel_traits<pixel::rg32s>() },
 
+	{ "rg16f", get_pixel_traits<pixel::rg16f>() },
 	{ "rg32f", get_pixel_traits<pixel::rg32f>() },
 
 	{ "rg8ui", get_pixel_traits<pixel::rg8ui>() },
@@ -56,6 +58,7 @@ keyword_helper<pixel_traits> pixel_format_helper::s_formats({
 	{ "rgb16s", get_pixel_traits<pixel::rgb16s>() },
 	{ "rgb32s", get_pixel_traits<pixel::rgb32s>() },
 
+	{ "rgb16f", get_pixel_traits<pixel::rgb16f>() },
 	{ "rgb32f", get_pixel_traits<pixel::rgb32f>() },
 
 	{ "rgb8ui", get_pixel_traits<pixel::rgb8ui>() },
@@ -78,6 +81,7 @@ keyword_helper<pixel_traits> pixel_format_helper::s_formats({
 	{ "bgr16s", get_pixel_traits<pixel::bgr16s>() },
 	{ "bgr32s", get_pixel_traits<pixel::bgr32s>() },
 
+	{ "bgr16f", get_pixel_traits<pixel::bgr16f>() },
 	{ "bgr32f", get_pixel_traits<pixel::bgr32f>() },
 
 	{ "bgr8ui", get_pixel_traits<pixel::bgr8ui>() },
@@ -98,6 +102,7 @@ keyword_helper<pixel_traits> pixel_format_helper::s_formats({
 	{ "rgba16s", get_pixel_traits<pixel::rgba16s>() },
 	{ "rgba32s", get_pixel_traits<pixel::rgba32s>() },
 
+	{ "rgba16f", get_pixel_traits<pixel::rgba16f>() },
 	{ "rgba32f", get_pixel_traits<pixel::rgba32f>() },
 
 	{ "rgba8ui", get_pixel_traits<pixel::rgba8ui>() },
@@ -120,6 +125,7 @@ keyword_helper<pixel_traits> pixel_format_helper::s_formats({
 	{ "bgra16s", get_pixel_traits<pixel::bgra16s>() },
 	{ "bgra32s", get_pixel_traits<pixel::bgra32s>() },
 
+	{ "bgra16f", get_pixel_traits<pixel::bgra16f>() },
 	{ "bgra32f", get_pixel_traits<pixel::bgra32f>() },
 
 	{ "bgra8ui", get_pixel_traits<pixel::bgra8ui>() },

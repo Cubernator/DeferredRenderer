@@ -62,6 +62,9 @@
           "fastSpeed": 10.0,
           "sensitivityX": 0.15,
           "sensitivityY": 0.2
+        },
+        {
+          "type": "debugControls"
         }
       ]
     },

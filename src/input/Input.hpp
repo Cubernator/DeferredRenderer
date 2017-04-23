@@ -4,20 +4,20 @@
 #include <unordered_map>
 
 #include "glm.hpp"
-#include "GLFW/glfw3.h"
+#include "keys.hpp"
 
 class Input
 {
 public:
 	Input(GLFWwindow* window);
 
-	bool getKey(int key);
-	bool getKeyPressed(int key);
-	bool getKeyReleased(int key);
+	bool getKey(input_key key);
+	bool getKeyPressed(input_key key);
+	bool getKeyReleased(input_key key);
 
-	bool getMouseButton(int mbutton);
-	bool getMouseButtonPressed(int mbutton);
-	bool getMouseButtonReleased(int mbutton);
+	bool getMouseButton(input_mbutton mbutton);
+	bool getMouseButtonPressed(input_mbutton mbutton);
+	bool getMouseButtonReleased(input_mbutton mbutton);
 
 	bool isCursorLocked() const;
 	void setCursorLocked(bool val);

@@ -1,11 +1,12 @@
 {
   "title": "Deferred Renderer",
-  "resolution": [ 1280, 720 ],
-  "vSync": true,
+  "resolution": [ 1600, 900 ],
+  "vSync": false,
   "fullscreen": false,
   "windowedFullscreen": true,
   "contentRoot": "content",
   "shaderIncludeDirs": [ "shaders" ],
   "deferredLightEffect": "deferred_light",
+  "maxForwardLights": -1,
   "firstScene": "The_Viking_Village"
 }

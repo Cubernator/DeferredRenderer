@@ -12,7 +12,7 @@
 #include "boost/type_erasure/typeid_of.hpp"
 #include "boost/type_erasure/free.hpp"
 
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 #include "util/json_initializable.hpp"
 #include "util/property_interpreter.hpp"
 #include "util/json_utils.hpp"

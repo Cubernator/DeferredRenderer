@@ -19,7 +19,8 @@ set(ADDITIONAL_FILES "app-info.json")
 include_directories(src contrib util ${INCLUDE_DIR})
 link_directories(${LIB_DIR})
 
-option(WINDOWS_HIDE_CONSOLE "Whether to hide the console window in windows builds" OFF)
+option(WINDOWS_HIDE_CONSOLE "Whether to hide the console window in windows builds" ON)
+option(DEBUG_OVERRIDE_CONSOLE "Whether to always show the console window in debug configuration" ON)
 
 set(DBG_PREFIX $<$<CONFIG:Debug>:d>)
 
@@ -29,6 +30,9 @@ if(WIN32)
 		add_definitions( -DHIDE_CONSOLE )
 	else()
 		set(WIN32FLAG "")
+	endif()
+	if(DEBUG_OVERRIDE_CONSOLE)
+		add_definitions( -DOVERRIDE_CONSOLE )
 	endif()
 endif()
 
@@ -48,6 +52,14 @@ set(ALL_SOURCE_FILES ${SOURCE_FILES} ${CMAKE_FILES} ${SCRIPT_FILES})
 
 add_executable(DeferredRenderer ${WIN32FLAG} ${ALL_SOURCE_FILES})
 set_target_out_dir(DeferredRenderer ${OUT_DIR})
+
+if(MSVC)
+	set(INTR_FLAG "/Oi")
+else()
+	set(INTR_FLAG "")
+endif()
+
+target_compile_options(DeferredRenderer PUBLIC $<$<NOT:$<CONFIG:Debug>>:${INTR_FLAG}>)
 
 add_subdirectory(conproc)
 
@@ -71,7 +83,13 @@ endforeach()
 set(TIMESTAMPS "")
 set(TIMESTAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/process_content.dir)
 
-set(ALL_CONTENT_FILES ${SHADER_FILES} ${CONTENT_FILES} ${ADDITIONAL_FILES})
+set(ALL_CONTENT_FILES
+	${ADDITIONAL_FILES}
+	${OBJECT_FILES}
+	${SHADER_FILES}
+	${IMAGE_FILES}
+	${MODEL_FILES}
+)
 
 foreach(content_file ${ALL_CONTENT_FILES})
 	set(file_src ${CMAKE_CURRENT_SOURCE_DIR}/${content_file})

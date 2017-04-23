@@ -23,6 +23,13 @@ const glm::mat4& Transform::getMatrix() const
 	return m_cachedMatrix;
 }
 
+glm::mat4 Transform::getInverseMatrix() const
+{
+	return glm::scale(getInverseRigidMatrix(), { 1.f / m_scale.x, 1.f / m_scale.y, 1.f / m_scale.z });
+}
+
+
+
 glm::mat4 Transform::getRigidMatrix() const
 {
 	return glm::translate(m_position) * glm::toMat4(m_rotation);

@@ -107,6 +107,11 @@ void SubMesh::draw() const
 	glDrawElements(GL_TRIANGLES, m_indices->count(), gl_type<index_type>(), nullptr);
 }
 
+unsigned int SubMesh::triangles() const
+{
+	return m_indices->count() / 3;
+}
+
 aabb SubMesh::computeBounds() const
 {
 	glm::vec3 min(std::numeric_limits<float>::max()), max(std::numeric_limits<float>::lowest());

@@ -96,6 +96,12 @@ public:
 		return m_pool.add<T>(name, std::move(obj));
 	}
 
+	template<typename T, typename... Args>
+	T* emplaceInPool(const std::string& name, Args&&... args)
+	{
+		return m_pool.add<T>(name, std::make_unique<T>(std::forward<Args>(args)...));
+	}
+
 	bool findShaderFile(const path& p, path& result) const;
 
 	static Content* instance() { return s_instance; }
@@ -112,6 +118,7 @@ private:
 
 	std::vector<path> m_shaderIncludeDirs;
 
+	bool m_logSearch;
 	unsigned int m_logIndentLevel;
 
 	static Content* s_instance;

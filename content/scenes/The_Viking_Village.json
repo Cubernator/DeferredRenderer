@@ -8,6 +8,10 @@
       "name": "mainCamera",
       "components": [
         {
+          "type": "transform",
+          "position": [ 0.68, 71.1, -49 ]
+        },
+        {
           "fov": 60.0,
           "nearPlane": 0.1,
           "farPlane": 500.0,
@@ -18,15 +22,140 @@
           "fastSpeed": 15.0,
           "sensitivityX": 0.15,
           "sensitivityY": 0.2,
+          "angleX": -57.6,
+          "angleY": 174.7,
           "type": "flyCamera"
         },
         {
+          "type": "debugControls"
+        },
+        {
           "type": "lightingTest",
-          "lightCount": 200,
+          "lightCount": 100,
           "lightArea": [
             [ -61, 8, -33 ],
             [ 49, 13, 37 ]
-          ]
+          ],
+          "minSaturation": 0.6,
+          "maxSaturation": 1.0,
+          "minIntensity": 1.0,
+          "maxIntensity": 8.0,
+          "rangeFactor": 4.0,
+          "minSpeed": 0.1,
+          "maxSpeed": 20.0,
+          "testDuration": 2
+        },
+        {
+          "type": "simpleImageEffect",
+          "material": "fxaa",
+          "outputLinear": true
+        }
+      ]
+    },
+    {
+      "name": "Directional light",
+      "components": [
+        {
+          "position": [
+            -55.8,
+            116.3,
+            0.0
+          ],
+          "rotation": [
+            35.4300079,
+            222.099991,
+            1.78126156E-05
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "type": "transform"
+        },
+        {
+          "lightType": "directional",
+          "color": "#FFD1ACFF",
+          "intensity": 4.67706251,
+          "range": 10.0,
+          "spotAngle": 30.0,
+          "type": "light"
+        },
+        {
+          "type": "dayNightController",
+          "daySkyColor": "#61707AFF",
+          "dayLightColor": "#FFD1ACFF",
+          "dayLightIntensity": 4.67706251,
+          "nightSkyColor": "#171c1eff",
+          "nightLightColor": "#fcf7f2ff",
+          "nightLightIntensity": 0.8
+        },
+        {
+          "type": "lightSwitch",
+          "key": "0"
+        }
+      ]
+    },
+    {
+      "name": "switchLight1",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 16.0, 8.5, 10.0 ]
+        },
+        {
+          "type": "light",
+          "enabled": false,
+          "lightType": "point",
+          "color": "#ffe77f",
+          "intensity": 6,
+          "range": 14
+        },
+        {
+          "type": "lightSwitch",
+          "key": "1"
+        }
+      ]
+    },
+    {
+      "name": "switchLight2",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 24.0, 8.0, 14.0 ]
+        },
+        {
+          "type": "light",
+          "enabled": false,
+          "lightType": "point",
+          "color": "#7fffad",
+          "intensity": 6,
+          "range": 14
+        },
+        {
+          "type": "lightSwitch",
+          "key": "2"
+        }
+      ]
+    },
+    {
+      "name": "switchLight3",
+      "components": [
+        {
+          "type": "transform",
+          "position": [ 28.0, 7.5, 8.0 ]
+        },
+        {
+          "type": "light",
+          "enabled": false,
+          "lightType": "point",
+          "color": "#d67fff",
+          "intensity": 6,
+          "range": 14
+        },
+        {
+          "type": "lightSwitch",
+          "key": "3"
         }
       ]
     },
@@ -31248,6 +31377,7 @@
     },
     {
       "name": "Point light 2",
+      "active": false,
       "components": [
         {
           "position": [
@@ -31310,6 +31440,7 @@
     },
     {
       "name": "Point light 2",
+      "active": false,
       "components": [
         {
           "position": [
@@ -33962,46 +34093,6 @@
             "mat_foliage_01"
           ],
           "type": "meshRenderer"
-        }
-      ]
-    },
-    {
-      "name": "Directional light",
-      "components": [
-        {
-          "position": [
-            -55.8,
-            116.3,
-            0.0
-          ],
-          "rotation": [
-            35.4300079,
-            222.099991,
-            1.78126156E-05
-          ],
-          "scale": [
-            1.0,
-            1.0,
-            1.0
-          ],
-          "type": "transform"
-        },
-        {
-          "lightType": "directional",
-          "color": "#FFD1ACFF",
-          "intensity": 4.67706251,
-          "range": 10.0,
-          "spotAngle": 30.0,
-          "type": "light"
-        },
-        {
-          "type": "dayNightController",
-          "daySkyColor": "#61707AFF",
-          "dayLightColor": "#FFD1ACFF",
-          "dayLightIntensity": 4.67706251,
-          "nightSkyColor": "#171c1eff",
-          "nightLightColor": "#fcf7f2ff",
-          "nightLightIntensity": 0.78
         }
       ]
     },

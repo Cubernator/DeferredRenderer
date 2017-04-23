@@ -2,6 +2,7 @@
 #define TEXTURE2D_HPP
 
 #include "Texture.hpp"
+#include "graphics/RenderTarget.hpp"
 #include "pixel_types.hpp"
 
 #include "path.hpp"
@@ -10,6 +11,8 @@
 #include "rbt.hpp"
 
 #include "util/import.hpp"
+
+#include <memory>
 
 class image_importer;
 
@@ -57,5 +60,23 @@ private:
 
 template<>
 std::unique_ptr<Texture2D> import_object<Texture2D>(const path& filename);
+
+
+class Texture2DTarget : public RenderTarget
+{
+public:
+	Texture2DTarget(const Texture2D* texture, int level = 0) : m_texture(texture), m_level(level) { }
+	virtual void attach(GLenum attPoint) const final;
+	virtual void detach(GLenum attPoint) const final;
+	virtual void getDimensions(unsigned int& width, unsigned int& height) const final;
+
+private:
+	const Texture2D* m_texture;
+	int m_level;
+};
+
+inline std::unique_ptr<Texture2DTarget> make_tex2D_tgt(const Texture2D* texture) {
+	return std::make_unique<Texture2DTarget>(texture);
+}
 
 #endif // TEXTURE2D_HPP

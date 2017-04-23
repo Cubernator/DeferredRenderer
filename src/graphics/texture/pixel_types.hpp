@@ -19,19 +19,6 @@ namespace pixel
 		};
 	}
 
-	// Fundamental types
-
-	using u8_t = std::uint8_t;
-	using u16_t = std::uint16_t;
-	using u32_t = std::uint32_t;
-
-	using s8_t = std::int8_t;
-	using s16_t = std::int16_t;
-	using s32_t = std::int32_t;
-
-	using f32_t = float;
-
-
 	// Generic type templates
 
 	template<typename T, GLint imgFormat = GL_RED, bool integral = false>
@@ -126,6 +113,7 @@ namespace pixel
 	using r16s = tred<s16_t, GL_R16_SNORM>;
 	using r32s = tred<s32_t>;
 
+	using r16f = tred<f16_t, GL_R16F>;
 	using r32f = tred<f32_t, GL_R32F>;
 
 	using r8ui = tred<u8_t, GL_R8UI, true>;
@@ -149,6 +137,7 @@ namespace pixel
 	using rg16s = trg<s16_t, GL_RG16_SNORM>;
 	using rg32s = trg<s32_t>;
 
+	using rg16f = trg<f16_t, GL_RG16F>;
 	using rg32f = trg<f32_t, GL_RG32F>;
 
 	using rg8ui = trg<u8_t, GL_RG8UI, true>;
@@ -172,6 +161,7 @@ namespace pixel
 	using rgb16s = trgb<s16_t, GL_RGB16_SNORM>;
 	using rgb32s = trgb<s32_t>;
 
+	using rgb16f = trgb<f16_t, GL_RGB16F>;
 	using rgb32f = trgb<f32_t, GL_RGB32F>;
 
 	using rgb8ui = trgb<u8_t, GL_RGB8UI, true>;
@@ -197,6 +187,7 @@ namespace pixel
 	using bgr16s = tbgr<s16_t, GL_RGB16_SNORM>;
 	using bgr32s = tbgr<s32_t>;
 
+	using bgr16f = tbgr<f16_t, GL_RGB16F>;
 	using bgr32f = tbgr<f32_t, GL_RGB32F>;
 
 	using bgr8ui = tbgr<u8_t, GL_RGB8UI, true>;
@@ -219,6 +210,7 @@ namespace pixel
 	using rgba16s = trgba<s16_t, GL_RGBA16_SNORM>;
 	using rgba32s = trgba<s32_t>;
 
+	using rgba16f = trgba<f16_t, GL_RGBA16F>;
 	using rgba32f = trgba<f32_t, GL_RGBA32F>;
 
 	using rgba8ui = trgba<u8_t, GL_RGBA8UI, true>;
@@ -244,6 +236,7 @@ namespace pixel
 	using bgra16s = tbgra<s16_t, GL_RGBA16_SNORM>;
 	using bgra32s = tbgra<s32_t>;
 
+	using bgra16f = tbgra<f16_t, GL_RGBA16F>;
 	using bgra32f = tbgra<f32_t, GL_RGBA32F>;
 
 	using bgra8ui = tbgra<u8_t, GL_RGBA8UI, true>;

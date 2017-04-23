@@ -2,7 +2,7 @@
 #include "Mesh.hpp"
 #include "util/component_registry.hpp"
 #include "core/Entity.hpp"
-#include "core/Content.hpp"
+#include "content/Content.hpp"
 
 REGISTER_COMPONENT_CLASS(MeshRenderer, "meshRenderer");
 

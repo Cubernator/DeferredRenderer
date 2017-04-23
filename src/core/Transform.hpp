@@ -19,6 +19,7 @@ public:
 	void setScale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; }
 
 	const glm::mat4& getMatrix() const;
+	glm::mat4 getInverseMatrix() const;
 	glm::mat4 getRigidMatrix() const;
 	glm::mat4 getInverseRigidMatrix() const;
 

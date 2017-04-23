@@ -21,6 +21,8 @@ Entity::Entity() : m_id(boost::uuids::random_generator()()), m_active(true), m_t
 
 void Entity::start()
 {
+	if (!m_active) return;
+
 	for (auto& c : m_components) {
 		c->start();
 	}

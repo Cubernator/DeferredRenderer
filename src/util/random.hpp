@@ -8,7 +8,16 @@
 
 namespace random
 {
-	std::default_random_engine& default_gen();
+	using default_gen_t = std::default_random_engine;
+
+	default_gen_t& default_gen();
+
+	inline void default_seed(default_gen_t::result_type value = default_gen_t::default_seed)
+	{
+		default_gen().seed(value);
+	}
+
+	void default_seed_random();
 
 	template<typename DistType, typename GenType>
 	std::function<typename DistType::result_type()> get_function(DistType&& dist, GenType& gen)
