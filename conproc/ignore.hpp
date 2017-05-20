@@ -6,7 +6,7 @@
 class ignore_processor : public processor
 {
 public:
-	ignore_processor(const conproc* parent) : processor(parent) { }
+	explicit ignore_processor(const conproc* parent) : processor(parent) { }
 
 protected:
 	virtual void process_impl(const fs::path& file, const nlohmann::json& options) override { }

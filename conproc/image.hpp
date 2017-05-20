@@ -6,7 +6,7 @@
 class image_processor : public processor
 {
 public:
-	image_processor(const conproc* parent);
+	explicit image_processor(const conproc* parent);
 
 protected:
 	virtual void process_impl(const fs::path& file, const nlohmann::json& options) override;

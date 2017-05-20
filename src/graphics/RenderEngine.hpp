@@ -49,7 +49,7 @@ public:
 		output_mode_max
 	};
 
-	RenderEngine(Engine *parent);
+	explicit RenderEngine(Engine *parent);
 	~RenderEngine();
 
 	Engine *getParent() { return m_parent; }
@@ -68,13 +68,13 @@ public:
 	void setOutputMode(output_mode val) { m_outputMode = val; }
 
 	float getAvgLightsPerObj() const { return m_avgLightsPerObj; }
-	unsigned long getTriangleCount() const { return m_triangleCount; }
+	std::size_t getTriangleCount() const { return m_triangleCount; }
 
 	void setConvertToSRGB(bool l);
 
 	void render();
 
-	void blit(const Texture2D* source, const RenderTexture* dest, const Material* material = nullptr, unsigned int passIndex = 0);
+	void blit(const Texture2D* source, const RenderTexture* dest, const Material* material = nullptr, std::size_t passIndex = 0);
 
 	const RenderTexture* getAuxRenderTexture();
 
@@ -208,7 +208,7 @@ private:
 	output_mode m_outputMode;
 
 	float m_avgLightsPerObj;
-	unsigned long m_triangleCount;
+	std::size_t m_triangleCount;
 
 	static RenderEngine* s_instance;
 
@@ -238,6 +238,7 @@ private:
 	bool checkIntersection(const frustum& viewFrustum, const Light* light) const;
 
 
+	// cppcheck-suppress unusedPrivateFunction
 	static void debugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 	friend void GLAPIENTRY glDbgMsg(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 

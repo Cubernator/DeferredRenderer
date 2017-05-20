@@ -8,6 +8,7 @@ class half
 public:
 	using data_t = uint16_t;
 
+	// cppcheck-suppress noExplicitConstructor
 	half(float fval) : m_data(floatToHalf(fval)) { }
 	explicit half(data_t data) : m_data(data) { }
 

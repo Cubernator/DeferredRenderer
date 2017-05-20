@@ -2,10 +2,7 @@
 #include "graphics/FrameBuffer.hpp"
 #include "graphics/RenderBuffer.hpp"
 
-RenderTexture::RenderTexture() : m_depthFormat(depth_none)
-{
-	m_fbo = std::make_unique<FrameBuffer>();
-}
+RenderTexture::RenderTexture() : m_depthFormat(depth_none), m_fbo(std::make_unique<FrameBuffer>()) { }
 
 void RenderTexture::setData(unsigned int w, unsigned int h, GLint imgFormat, GLenum pxFormat, GLenum pxType, depth_format depthFmt)
 {

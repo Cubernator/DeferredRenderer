@@ -18,6 +18,8 @@ class texture_unit_manager
 public:
 	static void emptyCache();
 
+	static GLint bindTexture(const Texture* texture);
+
 private:
 	struct tex_unit
 	{
@@ -41,8 +43,6 @@ private:
 	static unit_cache s_cache;
 
 	static void init();
-
-	static GLint bindTexture(const Texture* texture);
 };
 
 #endif // TEXTURE_UNIT_MANAGER_HPP

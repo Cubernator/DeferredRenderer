@@ -13,7 +13,7 @@ class ImageEffect;
 class LightingTest : public Component
 {
 public:
-	LightingTest(Entity* parent);
+	explicit LightingTest(Entity* parent);
 
 	void addLights(unsigned int num);
 	void setLightsEnabled(bool val);

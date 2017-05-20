@@ -10,7 +10,7 @@ class ImageEffect;
 class DebugControls : public Component
 {
 public:
-	DebugControls(Entity* parent);
+	explicit DebugControls(Entity* parent);
 
 	void setImageEffectsEnabled(bool val);
 

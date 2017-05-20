@@ -18,7 +18,7 @@ public:
 		type_spot = 2
 	};
 
-	Light(Entity* parent);
+	explicit Light(Entity* parent);
 
 	type getType() const { return m_type; }
 	const glm::vec4& getColor() const { return m_color; }

@@ -38,7 +38,7 @@ public:
 		setData(data, w, h, image_format<T>(), pixel_format<T>(), pixel_type<T>());
 	}
 
-	void setCompressedData(const void* data, unsigned int dataSize, unsigned int w, unsigned int h, GLint format);
+	void setCompressedData(const void* data, GLsizei dataSize, unsigned int w, unsigned int h, GLint format);
 
 	void setParams(bool mipmaps, filter filtering, wrap wrapping, float anisotropic, const glm::vec4& borderColor);
 	void setParams(bool mipmaps, filter filtering, wrap wrapping, float anisotropic)

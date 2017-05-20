@@ -85,7 +85,7 @@ public:
 
 	GLuint glObj() const { return m_glObj; }
 
-	unsigned int colorTargetCount() const { return m_colorTargets.size(); }
+	std::size_t colorTargetCount() const { return m_colorTargets.size(); }
 
 	void bind() const;
 	static void unbind();

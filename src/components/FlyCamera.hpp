@@ -9,7 +9,7 @@ class Transform;
 class FlyCamera : public Component
 {
 public:
-	FlyCamera(Entity* parent);
+	explicit FlyCamera(Entity* parent);
 
 	COMPONENT_DISALLOW_MULTIPLE;
 
@@ -27,7 +27,9 @@ private:
 
 	glm::quat updateRotation();
 
+	// cppcheck-suppress unusedPrivateFunction
 	void setAngleXDeg(float degrees);
+	// cppcheck-suppress unusedPrivateFunction
 	void setAngleYDeg(float degrees);
 
 	static json_interpreter<FlyCamera> s_properties;

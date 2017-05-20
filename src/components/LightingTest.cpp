@@ -32,7 +32,7 @@ LightingTest::LightingTest(Entity* parent) : Component(parent), m_lightsEnabled(
 	m_minIntensity(0.f), m_maxIntensity(1.f),
 	m_rangeFactor(1.f),
 	m_minSpeed(0.f), m_maxSpeed(1.f),
-	m_testDuration(1.0), m_testTimer(0.0), m_testLight(0), m_testing(false), m_testLights(false)
+	m_testDuration(1.0), m_testTimer(0.0), m_testLight(0), m_testSamples(0), m_testing(false), m_testLights(false)
 { }
 
 void LightingTest::apply_json_property_impl(const std::string& name, const nlohmann::json& json)

@@ -135,8 +135,10 @@ private:
 		return result;
 	}
 
+	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
+	// cppcheck-suppress unusedPrivateFunction
 	void extractComponents(const nlohmann::json& json);
 
 	friend struct json_initializable<Entity>;

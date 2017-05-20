@@ -16,7 +16,7 @@ struct aiMesh;
 class mesh_processor : public processor
 {
 public:
-	mesh_processor(const conproc* parent);
+	explicit mesh_processor(const conproc* parent);
 
 protected:
 	virtual void process_impl(const fs::path& file, const nlohmann::json& options) override;

@@ -19,7 +19,7 @@ class Entity;
 class Component : public json_initializable<Component>
 {
 public:
-	Component(Entity* parent);
+	explicit Component(Entity* parent);
 	virtual ~Component() = 0;
 
 	Entity* getEntity() { return m_parent; }

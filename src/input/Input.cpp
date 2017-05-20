@@ -4,7 +4,7 @@
 
 Input* Input::s_instance(nullptr);
 
-Input::Input(GLFWwindow* window) : m_window(window), m_frame(0)
+Input::Input(GLFWwindow* window) : m_window(window), m_frame(0), m_cursorX(0.0f), m_cursorY(0.0f), m_cursorDeltaX(0.0f), m_cursorDeltaY(0.0f)
 {
 	s_instance = this;
 

@@ -14,7 +14,7 @@ class conproc;
 class processor
 {
 public:
-	processor(const conproc* parent) : m_parent(parent) { }
+	explicit processor(const conproc* parent) : m_parent(parent) { }
 
 	virtual ~processor() { }
 

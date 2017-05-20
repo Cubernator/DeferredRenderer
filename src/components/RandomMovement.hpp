@@ -9,7 +9,7 @@ class Transform;
 class RandomMovement : public Component
 {
 public:
-	RandomMovement(Entity* parent);
+	explicit RandomMovement(Entity* parent);
 
 	void setArea(const aabb& a) { m_area = a; }
 	void setMinMaxSpeed(float min, float max)

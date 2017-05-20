@@ -37,9 +37,6 @@ endfunction(add_project)
 
 set(DUMMY_CMD ${CMAKE_COMMAND} -E echo "Placeholder command!")
 
-# HACK: using a relative path to the include directory as a workaround, because find_package tends to return incorrect paths
-set(ZLIB_PKG_ARGS )
-
 if(WIN32)
 	set(GLFW_SHARED_LIB "glfw3.dll")
 	set(GLEW_SHARED_LIB "glew32.dll")
@@ -77,8 +74,8 @@ add_project(json COMMANDS
 )
 
 add_project(zlib COMMANDS
-	URL "http://zlib.net/zlib-1.2.10.tar.gz"
-	URL_HASH SHA256=8d7e9f698ce48787b6e1c67e6bff79e487303e66077e25cb9784ac8835978017
+	URL "http://zlib.net/zlib-1.2.11.tar.gz"
+	URL_HASH SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
 	CMAKE_ARGS -DBUILD_SHARED_LIBS=ON
 )
 

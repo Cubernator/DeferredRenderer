@@ -10,29 +10,38 @@ import os
 import re
 
 FILTERS = [
-    # directory   | cmake variable    | regex pattern                 | filter name (for IDEs)
+    # directory   | cmake variable    | pattern               | filter name (for IDEs)
     # ----------------------------------------------------------------------------------------
-    ("src",         "SOURCE_FILES",     "^.*\.[hc](pp)?$",          	""),
-    ("cmake",       "CMAKE_FILES",      ".*",                       	"CMake Files"),
-    ("scripts",     "SCRIPT_FILES",     ".*",                       	"Script Files"),
-    ("content",     "OBJECT_FILES",	    "^.*\.(json)$",             	"Object Files"),
-    ("content",     "SHADER_FILES",     "^.*\.((glsl)|(glh))$",     	"Shader Files"),
-    ("content",     "IMAGE_FILES",      "^.*\.((tif)|(jpg)|(png))$",   	"Image Files"),
-    ("content",     "MODEL_FILES",      "^.*\.((fbx)|(blend))$",   	    "Model Files")
+    ("src",         "SOURCE_FILES",     "^.*\.[hc](pp)?$",      ""),
+    ("cmake",       "CMAKE_FILES",      ".*",                   "CMake Files"),
+    ("scripts",     "SCRIPT_FILES",     ".*",                   "Script Files"),
+    ("content",     "OBJECT_FILES",	    [".json"],              "Object Files"),
+    ("content",     "SHADER_FILES",     [".glsl",".glh"],       "Shader Files"),
+    ("content",     "IMAGE_FILES",      [".tif",".jpg",".png"], "Image Files"),
+    ("content",     "MODEL_FILES",      [".fbx",".blend"],      "Model Files")
 ]
 
 # Which file to write into (relative to project root)
 FILENAME = "cmake/source_files.cmake"
 
+def match_extension(pattern, path):
+    filename, extension = os.path.splitext(path)
+    return extension.lower() in pattern
 
 def add_filter(cmake_file, dir, varname, pattern, groupname):
     found_any = False
-    rexp = re.compile(pattern)
+    filter_fun = None
+
+    if isinstance(pattern, str):
+        rexp = re.compile(pattern)
+        filter_fun = rexp.match
+    elif isinstance(pattern, list):
+        filter_fun = lambda path: match_extension(pattern, path)
 
     cmake_file.write("set(%s\n" % varname)
 
     for root, subdirs, files in os.walk(dir):
-        for file in filter(rexp.match, [os.path.join(root, f) for f in files]):
+        for file in filter(filter_fun, [os.path.join(root, f) for f in files]):
             cmake_file.write("\t%s\n" % file.replace('\\', '/'))
             found_any = True
 

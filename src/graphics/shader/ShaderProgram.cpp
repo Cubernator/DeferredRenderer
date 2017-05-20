@@ -79,8 +79,6 @@ void ShaderProgram::getUniforms()
 	glGetProgramiv(m_glObj, GL_ACTIVE_UNIFORMS, &uniformCount);
 	glGetProgramiv(m_glObj, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxLength);
 
-	unsigned int unitCounter = 0;
-
 	auto buf = std::make_unique<GLchar[]>(maxLength);
 
 	GLuint nextUnit = 0;

@@ -73,7 +73,7 @@ void SubMesh::updateVAO()
 	unbindVAO();
 }
 
-void SubMesh::setVertices(std::size_t count, const position_type* positions, const normal_type* normals, const tangent_type* tangents, const uv_type* uvs)
+void SubMesh::setVertices(size_type count, const position_type* positions, const normal_type* normals, const tangent_type* tangents, const uv_type* uvs)
 {
 	fillBuffer(count, m_positions, positions);
 	fillBuffer(count, m_normals, normals);
@@ -83,7 +83,7 @@ void SubMesh::setVertices(std::size_t count, const position_type* positions, con
 	updateVAO();
 }
 
-void SubMesh::setIndices(std::size_t count, const index_type* indices)
+void SubMesh::setIndices(size_type count, const index_type* indices)
 {
 	fillBuffer(count, m_indices, indices);
 
@@ -104,10 +104,10 @@ void SubMesh::unbind() const
 
 void SubMesh::draw() const
 {
-	glDrawElements(GL_TRIANGLES, m_indices->count(), gl_type<index_type>(), nullptr);
+	glDrawElements(GL_TRIANGLES, GLsizei(m_indices->count()), gl_type<index_type>(), nullptr);
 }
 
-unsigned int SubMesh::triangles() const
+std::size_t SubMesh::triangles() const
 {
 	return m_indices->count() / 3;
 }
@@ -119,8 +119,8 @@ aabb SubMesh::computeBounds() const
 	const index_type* indices = m_indices->mapReadOnly();
 	const position_type* vertices = m_positions->mapReadOnly();
 
-	std::size_t numIndices = m_indices->count();
-	for (std::size_t i = 0; i < numIndices; ++i) {
+	size_type numIndices = m_indices->count();
+	for (size_type i = 0; i < numIndices; ++i) {
 		position_type pos = vertices[indices[i]];
 
 		min = glm::min(min, pos);

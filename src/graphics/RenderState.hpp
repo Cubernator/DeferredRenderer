@@ -142,12 +142,18 @@ private:
 	void applyDepthTestDiff(const RenderState& other) const;
 	void applyBlendDiff(const RenderState& other) const;
 
+	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
+	// cppcheck-suppress unusedPrivateFunction
 	void extractCull(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractDepthWrite(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractDepthOffset(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractDepthTest(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractBlend(const nlohmann::json& json);
 
 	static void setEnabled(GLenum target, bool enabled)

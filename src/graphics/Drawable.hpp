@@ -13,7 +13,7 @@ public:
 	virtual void draw() const = 0;
 
 	virtual aabb bounds() const = 0;
-	virtual unsigned int triangles() const = 0;
+	virtual std::size_t triangles() const = 0;
 };
 
 #endif // RENDERABLE_HPP

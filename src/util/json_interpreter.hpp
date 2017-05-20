@@ -25,17 +25,22 @@ public:
 	{
 		mapped_type function;
 
+		// cppcheck-suppress noExplicitConstructor
 		property_accessor(member_func f) : function(std::mem_fn(f)) { }
 
+		// cppcheck-suppress noExplicitConstructor
 		template<typename U> property_accessor(setter_func<U> f)
 			: function(std::bind(setter_from_json<U>(), std::placeholders::_1, f, std::placeholders::_2)) { }
 
+		// cppcheck-suppress noExplicitConstructor
 		template<typename U> property_accessor(setter_func<U> f, const kwd_helper<U>* keywords)
 			: function(std::bind(setter_from_keyword<U>(), std::placeholders::_1, f, keywords, std::placeholders::_2)) { }
 
+		// cppcheck-suppress noExplicitConstructor
 		template<typename U> property_accessor(member_var<U> v)
 			: function(std::bind(member_from_json<U>(), std::placeholders::_1, v, std::placeholders::_2)) { }
 
+		// cppcheck-suppress noExplicitConstructor
 		template<typename U> property_accessor(member_var<U> v, const kwd_helper<U>* keywords)
 			: function(std::bind(member_from_keyword<U>(), std::placeholders::_1, v, keywords, std::placeholders::_2)) { }
 
@@ -47,6 +52,7 @@ public:
 
 	using accessor_pair = std::pair<key_type, property_accessor>;
 
+	// cppcheck-suppress noExplicitConstructor
 	json_interpreter(std::initializer_list<accessor_pair> functions)
 		: property_interpreter(functions.begin(), functions.end()) { }
 

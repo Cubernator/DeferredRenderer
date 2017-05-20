@@ -10,7 +10,7 @@ class Light;
 class LightSwitch : public Component
 {
 public:
-	LightSwitch(Entity* parent);
+	explicit LightSwitch(Entity* parent);
 
 protected:
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json);

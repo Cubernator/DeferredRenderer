@@ -8,7 +8,7 @@ class Material;
 class SimpleImageEffect : public ImageEffect
 {
 public:
-	SimpleImageEffect(Entity* parent);
+	explicit SimpleImageEffect(Entity* parent);
 
 	virtual void apply(const Texture2D* input, const RenderTexture* output) final;
 
@@ -20,6 +20,7 @@ private:
 
 	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) final;
 
+	// cppcheck-suppress unusedPrivateFunction
 	void extractMaterial(const nlohmann::json& json);
 
 	static json_interpreter<SimpleImageEffect> s_properties;

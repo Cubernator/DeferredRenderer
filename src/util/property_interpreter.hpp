@@ -12,7 +12,7 @@ class property_interpreter : public keyword_helper<std::function<Rt(Args...)>>
 public:
 	using result_type = Rt;
 
-	property_interpreter(std::initializer_list<value_type> keywords) : keyword_helper(keywords) { }
+	explicit property_interpreter(std::initializer_list<value_type> keywords) : keyword_helper(keywords) { }
 
 	template<typename IterType>
 	property_interpreter(IterType first, IterType last) : keyword_helper(first, last) { }

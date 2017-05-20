@@ -10,7 +10,7 @@
 
 #include <ios>
 
-mesh_processor::mesh_processor(const conproc* parent) : processor(parent), m_scale(1.0f), m_dbgIndent(0) { }
+mesh_processor::mesh_processor(const conproc* parent) : processor(parent), m_scene(nullptr), m_scale(1.0f), m_dbgIndent(0) { }
 
 void mesh_processor::process_impl(const fs::path& file, const nlohmann::json& options)
 {
@@ -140,7 +140,7 @@ void mesh_processor::process_mesh(const processed_mesh& mesh)
 
 	fs::ofstream output(fileName, std::ios::binary | std::ios::out | std::ios::trunc);
 	if (output) {
-		unsigned int subMeshCount = mesh.subMeshes.size();
+		unsigned int subMeshCount = unsigned int(mesh.subMeshes.size());
 		output.write(reinterpret_cast<char*>(&subMeshCount), sizeof(subMeshCount));
 
 		unsigned int sm = 0;
@@ -188,7 +188,7 @@ void mesh_processor::process_mesh(const processed_mesh& mesh)
 				indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
 			}
 
-			unsigned int indexCount = indices.size();
+			unsigned int indexCount = unsigned int(indices.size());
 			auto indexData = indices.data();
 
 			debug_output() << "  submesh " << sm << ": " << vertexCount << " vertices, " << indexCount << " indices" << std::endl;

@@ -18,7 +18,7 @@ public:
 	static_assert(std::is_object<key_type>::value, "key type must be an object type! (not a reference or function)");
 
 
-	keyword_helper(std::initializer_list<value_type> keywords) : m_keywords(keywords) { }
+	explicit keyword_helper(std::initializer_list<value_type> keywords) : m_keywords(keywords) { }
 
 	template<typename IterType>
 	keyword_helper(IterType first, IterType last) : m_keywords(first, last) { }

@@ -28,7 +28,7 @@ void Texture2D::setData(const void* data, unsigned int w, unsigned int h, GLint 
 	m_height = h;
 }
 
-void Texture2D::setCompressedData(const void* data, unsigned int dataSize, unsigned int w, unsigned int h, GLint format)
+void Texture2D::setCompressedData(const void* data, GLsizei dataSize, unsigned int w, unsigned int h, GLint format)
 {
 	bind();
 	glCompressedTexImage2D(m_target, 0, format, w, h, 0, dataSize, data);
@@ -101,11 +101,11 @@ std::unique_ptr<Texture2D> import_object<Texture2D>(const path& filename)
 		newTexture->setParams(header.params.mipmaps, header.params.filter, header.params.wrap, header.params.anisotropic);
 
 		if (header.compressed) {
-			newTexture->setCompressedData(data.data(), data.size(), header.width, header.height, header.imgFormat);
+			newTexture->setCompressedData(data.data(), GLsizei(data.size()), header.width, header.height, header.imgFormat);
 
 		} else {
 			int w, h, comp;
-			unsigned char* imgData = stbi_load_from_memory(data.data(), data.size(), &w, &h, &comp, 4);
+			unsigned char* imgData = stbi_load_from_memory(data.data(), int(data.size()), &w, &h, &comp, 4);
 
 			if (imgData) {
 				assert(w == header.width);

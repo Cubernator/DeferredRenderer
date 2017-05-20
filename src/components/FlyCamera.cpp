@@ -17,7 +17,9 @@ json_interpreter<FlyCamera> FlyCamera::s_properties({
 	{ "angleY", &FlyCamera::setAngleYDeg }
 });
 
-FlyCamera::FlyCamera(Entity* parent) : Component(parent), m_normalSpeed(1.0f), m_sensitivityX(1.0f), m_sensitivityY(1.0f), m_angleX(0.0f), m_angleY(0.0f) { }
+FlyCamera::FlyCamera(Entity* parent) : Component(parent), m_normalSpeed(1.0f), m_fastSpeed(5.0f),
+	m_sensitivityX(1.0f), m_sensitivityY(1.0f),
+	m_angleX(0.0f), m_angleY(0.0f), m_transform(nullptr) { }
 
 void FlyCamera::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
 {

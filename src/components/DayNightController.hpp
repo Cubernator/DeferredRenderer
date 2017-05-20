@@ -9,7 +9,7 @@ class Light;
 class DayNightController : public Component
 {
 public:
-	DayNightController(Entity* parent);
+	explicit DayNightController(Entity* parent);
 
 	bool getDayTime() const { return m_dayTime; }
 	void setDayTime(bool val);

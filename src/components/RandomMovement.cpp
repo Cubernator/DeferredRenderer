@@ -9,7 +9,7 @@
 
 REGISTER_COMPONENT_CLASS(RandomMovement, "randomMovement");
 
-RandomMovement::RandomMovement(Entity* parent) : Component(parent), m_minSpeed(0.1f), m_maxSpeed(20.0f) { }
+RandomMovement::RandomMovement(Entity* parent) : Component(parent), m_transform(nullptr), m_minSpeed(0.1f), m_maxSpeed(20.0f) { }
 
 void RandomMovement::start_impl()
 {

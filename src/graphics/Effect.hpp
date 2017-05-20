@@ -53,9 +53,12 @@ public:
 private:
 	static json_interpreter<Pass> s_properties;
 
+	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
+	// cppcheck-suppress unusedPrivateFunction
 	void extractState(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractProgram(const nlohmann::json& json);
 
 	friend struct json_initializable<Pass>;
@@ -72,9 +75,9 @@ public:
 	int getQueuePriority() const { return m_queuePriority; }
 	void setQueuePriority(int val) { m_queuePriority = val; }
 
-	unsigned int passCount() const;
+	std::size_t passCount() const;
 
-	const Pass* getPass(unsigned int index) const;
+	const Pass* getPass(std::size_t index) const;
 	const Pass* getPass(light_mode mode) const;
 	const Pass* getPass(const std::string& name) const;
 
@@ -107,10 +110,14 @@ private:
 	static json_interpreter<Effect> s_properties;
 
 
+	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
+	// cppcheck-suppress unusedPrivateFunction
 	void extractRenderQueue(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractProperties(const nlohmann::json& json);
+	// cppcheck-suppress unusedPrivateFunction
 	void extractPasses(const nlohmann::json& json);
 
 	void addProperty(const nlohmann::json& json);

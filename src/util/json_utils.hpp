@@ -7,7 +7,7 @@
 #include "glm.hpp"
 #include "bounds.hpp"
 
-glm::vec4 parse_color(const std::string s);
+glm::vec4 parse_color(const std::string& s);
 
 template<typename T>
 struct json_getter

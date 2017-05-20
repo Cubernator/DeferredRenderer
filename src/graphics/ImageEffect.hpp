@@ -9,7 +9,7 @@ class RenderTexture;
 class ImageEffect : public Component
 {
 public:
-	ImageEffect(Entity* parent) : Component(parent) { }
+	explicit ImageEffect(Entity* parent) : Component(parent) { }
 
 	virtual void apply(const Texture2D* input, const RenderTexture* output) = 0;
 

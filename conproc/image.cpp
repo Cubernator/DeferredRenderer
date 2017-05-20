@@ -21,7 +21,8 @@
 #include "rbt.hpp"
 #include "keyword_helper.hpp"
 
-image_processor::image_processor(const conproc* parent) : processor(parent), m_inputSuccess(false), m_convertSuccess(false), m_outputSuccess(false) { }
+image_processor::image_processor(const conproc* parent) : processor(parent), m_width(0), m_height(0), m_compressed(false), m_comprFlags(0),
+	m_inputSuccess(false), m_convertSuccess(false), m_outputSuccess(false) { }
 
 void image_processor::process_impl(const fs::path& file, const nlohmann::json& options)
 {

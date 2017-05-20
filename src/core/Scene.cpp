@@ -70,7 +70,7 @@ void Scene::apply_json_impl(const nlohmann::json& json)
 void Scene::extractEntities(const nlohmann::json& json)
 {
 	if (json.is_array()) {
-		unsigned int entityCount = json.size(), i = 0;
+		std::size_t entityCount = json.size(), i = 0;
 
 		auto fmt = boost::format("[%1$3i%%]");
 

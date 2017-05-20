@@ -7,12 +7,12 @@
 
 Content* Content::s_instance = nullptr;
 
-Content::Content() : m_logSearch(false), m_logIndentLevel(0)
+Content::Content() :
+	m_contentRoot(app_info::get<path>("contentRoot", "content")),
+	m_shaderIncludeDirs(app_info::get<std::vector<path>>("shaderIncludeDirs")),
+	m_logSearch(false), m_logIndentLevel(0)
 {
 	s_instance = this;
-
-	m_contentRoot = app_info::get<path>("contentRoot", "content");
-	m_shaderIncludeDirs = app_info::get<std::vector<path>>("shaderIncludeDirs");
 
 	std::cout << "scanning content..." << std::endl;
 	scanContentFolder(m_contentRoot);

@@ -46,7 +46,7 @@ namespace detail
 	template<typename T>
 	struct component_registerer
 	{
-		component_registerer(const std::string& name)
+		explicit component_registerer(const std::string& name)
 		{
 			component_registry::registerFactory(component_adder<T>(), name);
 		}

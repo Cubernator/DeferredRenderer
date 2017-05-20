@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-glm::vec4 parse_color(const std::string s)
+glm::vec4 parse_color(const std::string& s)
 {
 	glm::vec4 color(0.f);
 

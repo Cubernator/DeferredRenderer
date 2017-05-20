@@ -24,7 +24,7 @@ public:
 		init();
 	}
 
-	ShaderProgram(std::initializer_list<Shader*> shaders) : ShaderProgram(shaders.begin(), shaders.end()) { }
+	explicit ShaderProgram(std::initializer_list<Shader*> shaders) : ShaderProgram(shaders.begin(), shaders.end()) { }
 
 	~ShaderProgram();
 

@@ -8,7 +8,7 @@
 class Camera : public Component
 {
 public:
-	Camera(Entity* parent);
+	explicit Camera(Entity* parent);
 	~Camera();
 
 	void setAsMain() { setMain(this); }

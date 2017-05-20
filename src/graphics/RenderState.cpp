@@ -185,7 +185,7 @@ void RenderState::extractDepthWrite(const nlohmann::json& json)
 void RenderState::extractDepthOffset(const nlohmann::json& json)
 {
 	if (json.is_array()) {
-		unsigned int s = json.size();
+		auto s = json.size();
 		if (s > 0) {
 			auto& j0 = json.at(0);
 			if (j0.is_number()) depthOffsetFactor = j0.get<float>();

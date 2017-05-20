@@ -27,7 +27,7 @@ namespace pixel
 		using value_type = T;
 		value_type r;
 
-		tred(const value_type& r) : r(r) { }
+		explicit tred(const value_type& r) : r(r) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_RG, bool integral = false>
@@ -81,7 +81,7 @@ namespace pixel
 		using value_type = T;
 		value_type d;
 
-		tdepth(const value_type& d) : d(d) { }
+		explicit tdepth(const value_type& d) : d(d) { }
 	};
 
 	template<typename T, GLint imgFormat = GL_DEPTH_STENCIL>
@@ -99,7 +99,7 @@ namespace pixel
 		using data_type = T;
 		data_type data;
 
-		packed(const data_type& v) : data(d) { }
+		explicit packed(const data_type& v) : data(d) { }
 	};
 
 

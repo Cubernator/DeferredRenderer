@@ -36,7 +36,9 @@ private:
 
 	void process(std::istream& stream);
 
+	// cppcheck-suppress unusedPrivateFunction
 	void include(const path& file);
+	// cppcheck-suppress unusedPrivateFunction
 	void pragma_type(Shader::shader_type type);
 
 	std::string get_type_macro(Shader::shader_type type) const;

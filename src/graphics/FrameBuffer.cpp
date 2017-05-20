@@ -127,7 +127,7 @@ void FrameBuffer::internalSetTargets(target d, target s, target ds, target_array
 
 void FrameBuffer::setDrawBuffers(const std::vector<GLenum>& bufs)
 {
-	glDrawBuffers(bufs.size(), bufs.data());
+	glDrawBuffers(GLsizei(bufs.size()), bufs.data());
 }
 
 void FrameBuffer::setDrawAll()

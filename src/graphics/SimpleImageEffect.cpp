@@ -25,14 +25,14 @@ void SimpleImageEffect::apply(const Texture2D* input, const RenderTexture* outpu
 			auto graphics = RenderEngine::instance();
 			graphics->setConvertToSRGB(m_outputLinear);
 
-			unsigned int passCount = effect->passCount();
+			auto passCount = effect->passCount();
 
 			const RenderTexture *curOutput = output, *curInput = graphics->getAuxRenderTexture();
 			if (passCount % 2 == 0) {
 				std::swap(curInput, curOutput);
 			}
 			
-			for (unsigned int i = 0; i < passCount; ++i) {
+			for (std::size_t i = 0; i < passCount; ++i) {
 				const Texture2D* blitinput = (i == 0) ? input : curInput;
 				graphics->blit(blitinput, curOutput, m_material, i);
 				std::swap(curInput, curOutput);

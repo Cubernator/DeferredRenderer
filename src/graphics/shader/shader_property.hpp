@@ -148,6 +148,7 @@ private:
 	static converter_container s_converters;
 
 
+	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
 	friend struct json_initializable<shader_property>;

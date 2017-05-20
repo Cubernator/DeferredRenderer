@@ -92,6 +92,7 @@ set(SOURCE_FILES
 	src/util/json_interpreter.hpp
 	src/util/json_utils.cpp
 	src/util/json_utils.hpp
+	src/util/logging.hpp
 	src/util/object_pool.cpp
 	src/util/object_pool.hpp
 	src/util/property_interpreter.hpp
@@ -332,14 +333,25 @@ set(MODEL_FILES
 	content/meshes/build_barracks_01.fbx
 	content/meshes/build_barracks_single_01.fbx
 	content/meshes/build_bighouse_01.fbx
+	content/meshes/build_bighouse_02.FBX
 	content/meshes/build_big_storage_01.fbx
 	content/meshes/build_blacksmith_01.fbx
+	content/meshes/build_boat_01.FBX
+	content/meshes/build_crane_01.FBX
 	content/meshes/build_gate_01.fbx
+	content/meshes/build_small_house_01.FBX
+	content/meshes/build_small_house_straw_roof_01.FBX
+	content/meshes/build_small_house_tall_roof_01.FBX
 	content/meshes/build_storage_01.fbx
+	content/meshes/build_tower_01.FBX
+	content/meshes/build_wall_corner_01.FBX
+	content/meshes/build_wall_panel_01.FBX
 	content/meshes/cube.blend
+	content/meshes/ocean_plane.FBX
 	content/meshes/prop_barrels_01.fbx
 	content/meshes/prop_barrels_02.fbx
 	content/meshes/prop_barrel_01.fbx
+	content/meshes/prop_boardwalk_01.FBX
 	content/meshes/prop_boulder_01.fbx
 	content/meshes/prop_boulder_02.fbx
 	content/meshes/prop_buckets_01.fbx
@@ -347,6 +359,7 @@ set(MODEL_FILES
 	content/meshes/prop_fence_01.fbx
 	content/meshes/prop_fence_01_double.fbx
 	content/meshes/prop_fence_01_tripple.fbx
+	content/meshes/prop_fence_02.FBX
 	content/meshes/prop_fence_02_double.fbx
 	content/meshes/prop_fence_02_quad.fbx
 	content/meshes/prop_fish_01.fbx
@@ -357,6 +370,7 @@ set(MODEL_FILES
 	content/meshes/prop_pillar_04.fbx
 	content/meshes/prop_pillar_05.fbx
 	content/meshes/prop_pillar_06.fbx
+	content/meshes/prop_plankpath_01.FBX
 	content/meshes/prop_plankpile_01.fbx
 	content/meshes/prop_plankpile_02.fbx
 	content/meshes/prop_plankpile_03.fbx
@@ -372,6 +386,7 @@ set(MODEL_FILES
 	content/meshes/prop_skull_01.fbx
 	content/meshes/prop_sword_01.fbx
 	content/meshes/prop_torch_01.fbx
+	content/meshes/prop_wall_logs_04.FBX
 	content/meshes/terrain_01.fbx
 	content/meshes/veg_clovers_01.fbx
 	content/meshes/veg_clovers_purple_01.fbx

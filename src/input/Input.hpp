@@ -9,7 +9,7 @@
 class Input
 {
 public:
-	Input(GLFWwindow* window);
+	explicit Input(GLFWwindow* window);
 
 	bool getKey(input_key key);
 	bool getKeyPressed(input_key key);

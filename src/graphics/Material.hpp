@@ -55,6 +55,7 @@ private:
 	Effect* m_effect;
 	shader_property_map m_properties;
 
+	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
 	void setPropFromJson(const std::string& name, const nlohmann::json& json);

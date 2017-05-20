@@ -6,7 +6,7 @@
 class Texture
 {
 public:
-	Texture(GLenum target) : m_target(target), m_glObj(0)
+	explicit Texture(GLenum target) : m_target(target), m_glObj(0)
 	{
 		glGenTextures(1, &m_glObj);
 	}

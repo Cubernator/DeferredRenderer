@@ -54,7 +54,7 @@ std::unique_ptr<RenderBuffer> make_renderbuffer(unsigned int width, unsigned int
 class RenderBufferTarget : public RenderTarget
 {
 public:
-	RenderBufferTarget(const RenderBuffer* rbuf) : m_buffer(rbuf) { }
+	explicit RenderBufferTarget(const RenderBuffer* rbuf) : m_buffer(rbuf) { }
 
 	virtual void attach(GLenum attPoint) const final;
 	virtual void detach(GLenum attPoint) const final;

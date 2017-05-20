@@ -10,7 +10,7 @@ json_interpreter<MeshRenderer> MeshRenderer::s_properties({
 	{ "mesh", &MeshRenderer::extractMesh }
 });
 
-MeshRenderer::MeshRenderer(Entity* parent) : Renderer(parent) { }
+MeshRenderer::MeshRenderer(Entity* parent) : Renderer(parent), m_mesh(nullptr) { }
 
 bool MeshRenderer::hasGeometry() const
 {

@@ -50,12 +50,12 @@ Effect::Effect() : m_renderType(type_opaque), m_queuePriority(queue_geometry) { 
 Pass::Pass() : mode(light_forward_base), program(nullptr) { }
 
 
-unsigned int Effect::passCount() const
+std::size_t Effect::passCount() const
 {
 	return m_passes.size();
 }
 
-const Pass* Effect::getPass(unsigned int index) const
+const Pass* Effect::getPass(std::size_t index) const
 {
 	return &*std::next(m_passes.begin(), index);
 }

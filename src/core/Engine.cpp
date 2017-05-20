@@ -27,6 +27,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0),  m_lo
 	// initialize GLFW
 	if (!glfwInit()) {
 		m_error = -1;
+		std::cout << "ERROR: Failed to initialize GLFW!" << std::endl;
 		return;
 	}
 
@@ -59,6 +60,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0),  m_lo
 
 	if (!m_window) {
 		m_error = -2;
+		std::cout << "ERROR: Failed to create window!" << std::endl;
 		return;
 	}
 
@@ -73,10 +75,17 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0),  m_lo
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
 		m_error = -3;
+		std::cout << "ERROR: Failed to initialize GLEW!" << std::endl;
 		return;
 	}
 
 	std::cout << "Using OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+
+	if (!GLEW_VERSION_3_3) {
+		m_error = -4;
+		std::cout << "ERROR: OpenGL version 3.3 or higher is required!" << std::endl;
+		return;
+	}
 
 	m_input = std::make_unique<Input>(m_window);
 	m_content = std::make_unique<Content>();

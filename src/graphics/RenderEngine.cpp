@@ -67,10 +67,10 @@ DEF_UNIFORM_ID(img_resolution);
 RenderEngine* RenderEngine::s_instance = nullptr;
 
 RenderEngine::RenderEngine(Engine* parent)
-	: m_parent(parent), m_lightMeshVAO(0), m_fsQuadVAO(0), m_currentSourceBuf(nullptr),
+	: m_parent(parent), m_camera(nullptr), m_lightMeshVAO(0), m_fsQuadVAO(0), m_currentSourceBuf(nullptr),
 	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
 	m_enableDeferred(true), m_enableViewFrustumCulling(true),
-	m_outputMode(output_default)
+	m_outputMode(output_default), m_avgLightsPerObj(0.0f), m_triangleCount(0)
 {
 	s_instance = this;
 
@@ -154,7 +154,7 @@ void RenderEngine::createCombinedLightMesh()
 
 	// generate quad
 	baseIndex = indices.size();
-	b = vertices.size();
+	b = unsigned int(vertices.size());
 	vertices.insert(vertices.end(), {
 		{ -1.f, -1.f, -1.f },
 		{ 1.f, -1.f, -1.f },
@@ -171,7 +171,7 @@ void RenderEngine::createCombinedLightMesh()
 
 	// generate sphere
 	baseIndex = indices.size();
-	b = vertices.size();
+	b = unsigned int(vertices.size());
 
 	const unsigned int rings = 6;
 	const unsigned int sectors = rings * 2;
@@ -217,7 +217,7 @@ void RenderEngine::createCombinedLightMesh()
 
 		rb += sectors;
 	}
-	b = vertices.size();
+	b = unsigned int(vertices.size());
 	rb -= sectors;
 	vertices.push_back({ 0.f, -r, 0.f });
 	for (unsigned int si = 0; si < sectors; ++si) {
@@ -667,7 +667,7 @@ void RenderEngine::postProcessing()
 	}
 }
 
-void RenderEngine::blit(const Texture2D* source, const RenderTexture* dest, const Material* material, unsigned int passIndex)
+void RenderEngine::blit(const Texture2D* source, const RenderTexture* dest, const Material* material, std::size_t passIndex)
 {
 	if (!material)
 		material = m_copyMat.get();
@@ -843,7 +843,7 @@ void RenderEngine::drawDeferredLight(const Light* light, const ShaderProgram* pr
 	}
 
 	program->setUniform(g_transform_id, transform);
-	glDrawElements(GL_TRIANGLES, c, GL_UNSIGNED_INT, reinterpret_cast<void*>(o));
+	glDrawElements(GL_TRIANGLES, GLsizei(c), GL_UNSIGNED_INT, reinterpret_cast<void*>(o));
 }
 
 void RenderEngine::applyLight(const Light* light, const ShaderProgram* program)

@@ -16,12 +16,19 @@ set(IS_REL $<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>)
 set(IS_PRF $<CONFIG:RelWithDebInfo>)
 set(VARIANT $<${IS_DBG}:debug>$<${IS_REL}:release>$<${IS_PRF}:profile>)
 
+set(ADDR_MODEL "")
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(ADDR_MODEL address-model=64)
+endif()
+
 set(BUILD_CMD
 	"<SOURCE_DIR>/b2"
 	variant=${VARIANT}
 	link=static
 	threading=multi
 	runtime-link=shared
+	architecture=x86
+	${ADDR_MODEL}
 	--build-dir=${EXT_BINARY_DIR}/boost/
 	--prefix=<INSTALL_DIR>
 	--layout=tagged

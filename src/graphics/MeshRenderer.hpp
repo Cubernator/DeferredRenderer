@@ -10,7 +10,7 @@ class SubMesh;
 class MeshRenderer : public Renderer
 {
 public:
-	MeshRenderer(Entity* parent);
+	explicit MeshRenderer(Entity* parent);
 
 	Mesh* getMesh() { return m_mesh; }
 	const Mesh* getMesh() const { return m_mesh; }
@@ -27,6 +27,7 @@ private:
 
 	static json_interpreter<MeshRenderer> s_properties;
 
+	// cppcheck-suppress unusedPrivateFunction
 	void extractMesh(const nlohmann::json& json);
 };
 

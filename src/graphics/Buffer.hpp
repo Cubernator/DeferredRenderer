@@ -7,10 +7,11 @@ template<typename ElementType, GLenum t>
 class Buffer
 {
 public:
+	using size_type = GLsizeiptr;
 	using element_type = ElementType;
 	static constexpr GLenum target = t;
 
-	Buffer(GLenum usage = GL_STATIC_DRAW) : m_glObj(0), m_usage(usage), m_count(0)
+	explicit Buffer(GLenum usage = GL_STATIC_DRAW) : m_glObj(0), m_usage(usage), m_count(0)
 	{
 		glCreateBuffers(1, &m_glObj);
 	}
@@ -21,10 +22,25 @@ public:
 			glDeleteBuffers(1, &m_glObj);
 	}
 
+	Buffer(const Buffer& other) : Buffer(other.m_usage)
+	{
+		copyFrom(&other);
+	}
+
 	Buffer(Buffer&& other) : m_glObj(other.m_glObj), m_usage(other.m_usage), m_count(other.m_count)
 	{
 		other.m_glObj = 0;
 		other.m_count = 0;
+	}
+
+	Buffer& operator=(const Buffer& other)
+	{
+		if (this != &other) {
+			m_usage = other.m_usage;
+			copyFrom(&other);
+		}
+
+		return *this;
 	}
 
 	Buffer& operator=(Buffer&& other)
@@ -47,7 +63,7 @@ public:
 
 	constexpr GLenum glTarget() const { return target; }
 	GLuint glObj() const { return m_glObj; }
-	GLsizeiptr count() const { return m_count; }
+	size_type count() const { return m_count; }
 
 	void bind()
 	{
@@ -59,7 +75,7 @@ public:
 		glBindBuffer(target, 0);
 	}
 
-	void setData(std::size_t count, const element_type* data, GLenum usage = 0)
+	void setData(size_type count, const element_type* data, GLenum usage = 0)
 	{
 		if (usage) m_usage = usage; // modify usage policy if function argument was set
 
@@ -67,6 +83,19 @@ public:
 		glBufferData(target, count * sizeof(element_type), data, m_usage);
 
 		m_count = count;
+	}
+
+	void copyFrom(const Buffer* other)
+	{
+		setData(other->m_count, nullptr);
+
+		glBindBuffer(GL_COPY_READ_BUFFER, other->m_glObj);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, m_glObj);
+
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, count * sizeof(element_type));
+
+		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 	}
 
 	element_type* map(bool writeOnly = false)
@@ -97,7 +126,7 @@ public:
 private:
 	GLuint m_glObj;
 	GLenum m_usage;
-	std::size_t m_count;
+	size_type m_count;
 };
 
 

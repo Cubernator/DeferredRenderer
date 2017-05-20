@@ -23,15 +23,14 @@ bool intersect_aabb_sphere(const aabb& aabb, const sphere& sphere)
 
 bool intersect_obb_frustum(const obb& obb, const frustum& frustum)
 {
-	float a, d;
 	for (unsigned int i = 0; i < 6; ++i) {
 		const plane& p = frustum.planes[i];
 
 		// d: signed distance between obb center and plane
-		d = glm::dot(obb.center, p.n) + p.d;
+		float d = glm::dot(obb.center, p.n) + p.d;
 
 		// a: extent of obb along plane normal
-		a = obb.extents.x * glm::abs(glm::dot(p.n, obb.axis[0]))
+		float a = obb.extents.x * glm::abs(glm::dot(p.n, obb.axis[0]))
 			+ obb.extents.y * glm::abs(glm::dot(p.n, obb.axis[1]))
 			+ obb.extents.z * glm::abs(glm::dot(p.n, obb.axis[2]));
 
@@ -46,12 +45,11 @@ bool intersect_obb_frustum(const obb& obb, const frustum& frustum)
 
 bool intersect_sphere_frustum(const sphere& sphere, const frustum& frustum)
 {
-	float d;
 	for (unsigned int i = 0; i < 6; ++i) {
 		const plane& p = frustum.planes[i];
 
 		// d: signed distance between sphere center and plane
-		d = glm::dot(sphere.center, p.n) + p.d;
+		float d = glm::dot(sphere.center, p.n) + p.d;
 
 		// if sphere is completely on the "negative" side of any plane then it's not inside the frustum
 		if (sphere.radius + d < 0)

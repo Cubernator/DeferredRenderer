@@ -103,7 +103,7 @@ struct pp_line_visitor : boost::static_visitor<bool>
 {
 	shader_preprocessor *pp;
 
-	pp_line_visitor(shader_preprocessor *pp) : pp(pp) { }
+	explicit pp_line_visitor(shader_preprocessor *pp) : pp(pp) { }
 
 	bool operator() (const pp_include& include) const {
 		pp->include(include);

@@ -11,9 +11,9 @@ class Material;
 class Renderer : public Component
 {
 public:
-	Renderer(Entity* parent);
+	explicit Renderer(Entity* parent);
 
-	unsigned int materialCount() const { return m_materials.size(); }
+	std::size_t materialCount() const { return m_materials.size(); }
 
 	Material* getMaterial(unsigned int index) { return m_materials[index]; }
 	const Material* getMaterial(unsigned int index) const { return m_materials[index]; }

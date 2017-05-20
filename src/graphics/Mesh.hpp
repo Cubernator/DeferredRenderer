@@ -27,6 +27,8 @@ public:
 
 	using index_buffer_type		= IndexBuffer<index_type>;
 
+	using size_type				= index_buffer_type::size_type;
+
 
 	SubMesh();
 	~SubMesh();
@@ -42,20 +44,20 @@ public:
 
 	void updateVAO();
 
-	void setVertices(std::size_t count,
+	void setVertices(size_type count,
 		const position_type* positions,
 		const normal_type* normals,
 		const tangent_type* tangents,
 		const uv_type* uvs);
 
-	void setIndices(std::size_t count, const index_type* indices);
+	void setIndices(size_type count, const index_type* indices);
 
 	virtual void bind() const final;
 	virtual void unbind() const final;
 	virtual void draw() const final;
 
 	virtual aabb bounds() const final { return getBounds(); }
-	virtual unsigned int triangles() const final;
+	virtual std::size_t triangles() const final;
 
 	const aabb& getBounds() const { return m_bounds; }
 
@@ -75,7 +77,7 @@ private:
 	void updateBounds();
 
 	template<typename T>
-	void fillBuffer(std::size_t count, std::unique_ptr<T>& buffer, const typename T::element_type* data)
+	void fillBuffer(size_type count, std::unique_ptr<T>& buffer, const typename T::element_type* data)
 	{
 		if (data) {
 			if (!buffer) buffer = std::make_unique<T>();
@@ -101,7 +103,7 @@ private:
 class Mesh
 {
 public:
-	unsigned int subMeshCount() const { return m_subMeshes.size(); }
+	std::size_t subMeshCount() const { return m_subMeshes.size(); }
 
 	SubMesh* getSubMesh(unsigned int index) { return m_subMeshes[index].get(); }
 	const SubMesh* getSubMesh(unsigned int index) const { return m_subMeshes[index].get(); }

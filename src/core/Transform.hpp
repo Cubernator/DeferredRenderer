@@ -8,7 +8,7 @@
 class Transform : public Component
 {
 public:
-	Transform(Entity* parent);
+	explicit Transform(Entity* parent);
 
 	const glm::vec3& getPosition() const { return m_position; }
 	const glm::quat& getRotation() const { return m_rotation; }
