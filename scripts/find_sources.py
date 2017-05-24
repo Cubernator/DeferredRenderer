@@ -18,7 +18,8 @@ FILTERS = [
     ("content",     "OBJECT_FILES",	    [".json"],              "Object Files"),
     ("content",     "SHADER_FILES",     [".glsl",".glh"],       "Shader Files"),
     ("content",     "IMAGE_FILES",      [".tif",".jpg",".png"], "Image Files"),
-    ("content",     "MODEL_FILES",      [".fbx",".blend"],      "Model Files")
+    ("content",     "MODEL_FILES",      [".fbx",".blend"],      "Model Files"),
+    ("content",     "SCRIPT_FILES",     [".lua"],               "Script Files")
 ]
 
 # Which file to write into (relative to project root)

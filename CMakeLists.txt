@@ -65,7 +65,7 @@ add_subdirectory(conproc)
 
 include(external_libs)
 
-add_dependencies(DeferredRenderer boost glew glfw glm json)
+add_dependencies(DeferredRenderer boost glew glfw glm json luap)
 target_link_libraries(DeferredRenderer ${EXT_LINK_LIBS} opengl32)
 
 add_dependencies(conproc boost assimp json tiff squish)
@@ -87,6 +87,7 @@ set(ALL_CONTENT_FILES
 	${ADDITIONAL_FILES}
 	${OBJECT_FILES}
 	${SHADER_FILES}
+	${SCRIPT_FILES}
 	${IMAGE_FILES}
 	${MODEL_FILES}
 )

@@ -37,13 +37,6 @@ endfunction(add_project)
 
 set(DUMMY_CMD ${CMAKE_COMMAND} -E echo "Placeholder command!")
 
-if(WIN32)
-	set(GLFW_SHARED_LIB "glfw3.dll")
-	set(GLEW_SHARED_LIB "glew32.dll")
-else()
-	message(FATAL_ERROR "Please fix this")
-endif()
-
 add_project(glew COMMANDS
 	URL "http://downloads.sourceforge.net/project/glew/glew/2.0.0/glew-2.0.0.tgz"
 	URL_MD5 2a2cd7c98f13854d2fcddae0d2b20411
@@ -100,14 +93,29 @@ add_project(squish COMMANDS
 	GIT_REPOSITORY "https://github.com/svn2github/libsquish.git"
 )
 
-set(EXT_LINK_LIBS
-	glew32
-	glfw3dll
+add_project(luap COMMANDS
+	GIT_REPOSITORY "https://github.com/LuaDist/lua.git"
+	GIT_TAG "5.3.2"
 )
+
+if(WIN32)
+	set(GLFW_SHARED_LIB "glfw3.dll")
+	set(GLEW_SHARED_LIB "glew32.dll")
+	set(LUA_SHARED_LIB "lua.dll")
+else()
+	message(FATAL_ERROR "Please fix this")
+endif()
 
 set(EXT_SHARED_LIBS 
 	${GLEW_SHARED_LIB}
 	${GLFW_SHARED_LIB}
+	${LUA_SHARED_LIB}
+)
+
+set(EXT_LINK_LIBS
+	glew32
+	glfw3dll
+	lua
 )
 
 include(add_boost)
