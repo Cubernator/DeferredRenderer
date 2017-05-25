@@ -136,9 +136,15 @@ void image_processor::parseFormat(const std::string& fmtStr, bool& isCompressed,
 
 void image_processor::convertCompressed(int flags)
 {
+#if defined(_DEBUG)
+	int comprFlags = flags | squish::kColourRangeFit;
+#else
+	int comprFlags = flags | squish::kColourClusterFit;
+#endif
+
 	int size = squish::GetStorageRequirements(m_width, m_height, flags);
 	m_outputData.resize(size);
-	squish::CompressImage(m_inputData.data(), m_width, m_height, m_outputData.data(), flags | squish::kColourRangeFit);
+	squish::CompressImage(m_inputData.data(), m_width, m_height, m_outputData.data(), comprFlags);
 	m_convertSuccess = true;
 }
 
