@@ -1,9 +1,10 @@
-set(BOOST_VERSION 1.62.0)
+set(BOOST_VERSION 1.64.0)
 set(BOOST_COMPONENTS
 	system
 	filesystem
 	program_options
 )
+set(BOOST_HASH 0445c22a5ef3bd69f5dfb48354978421a85ab395254a26b1ffb0aa1bfd63a108)
 
 string(REPLACE "." "_" BOOST_FOLDER ${BOOST_VERSION})
 set(BOOST_FOLDER boost_${BOOST_FOLDER})
@@ -38,12 +39,14 @@ set(BUILD_CMD
 set(LIB_PREFIX "")
 
 if(MSVC)
-	if(MSVC11)
+	if(MSVC_VERSION EQUAL 1700)
 		set(TOOLSET msvc-11.0)
-	elseif(MSVC12)
+	elseif(MSVC_VERSION EQUAL 1800)
 		set(TOOLSET msvc-12.0)
-	elseif(MSVC14)
+	elseif(MSVC_VERSION EQUAL 1900)
 		set(TOOLSET msvc-14.0)
+	elseif(MSVC_VERSION EQUAL 1910)
+		set(TOOLSET msvc-14.1)
 	endif()
 	set(LIB_PREFIX "lib")
 elseif(MINGW)
@@ -70,6 +73,7 @@ ExternalProject_Add(
 	INSTALL_DIR		${EXT_INSTALL_DIR}
 	
 	URL ${BOOST_URL}
+	URL_HASH SHA256=${BOOST_HASH}
 		
 	CONFIGURE_COMMAND ""
 	BUILD_COMMAND ${BUILD_CMD}
