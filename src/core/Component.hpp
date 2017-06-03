@@ -36,8 +36,6 @@ public:
 	void start() { if (m_enabled) start_impl(); }
 	void update() { if (m_enabled) update_impl(); }
 
-	static void registerScriptClass();
-
 	COMPONENT_ALLOW_MULTIPLE;
 
 protected:
@@ -53,12 +51,6 @@ private:
 	bool m_enabled;
 
 	static json_interpreter<Component> s_properties;
-
-	static int lua_getentity(lua_State* L);
-	static int lua_isenabled(lua_State* L);
-	static int lua_isactiveandenabled(lua_State* L);
-
-	static int lua_setenabled(lua_State* L);
 };
 
 #endif // COMPONENT_HPP

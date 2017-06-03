@@ -5,7 +5,7 @@
 #include "util/type_registry.hpp"
 #include "util/component_registry.hpp"
 #include "scripting/Environment.hpp"
-#include "lua.hpp"
+#include "scripting/class_registry.hpp"
 
 REGISTER_OBJECT_TYPE_NO_EXT(Entity, "entity");
 
@@ -18,9 +18,7 @@ json_interpreter<Entity> Entity::s_properties({
 
 Entity::Entity() : m_id(Engine::instance()->getGUID()), m_active(true), m_persistent(false), m_transform(nullptr), m_parentScene(nullptr)
 {
-	auto m_scriptEnv = scripting::Environment::instance();
-
-	m_scriptEnv->createObject("Entity", this);
+	scripting::Environment::instance()->createObject("Entity", this);
 
 	m_transform = addComponent<Transform>();
 }
@@ -64,80 +62,24 @@ void Entity::extractComponents(const nlohmann::json& json)
 	}
 }
 
-void Entity::registerScriptClass()
-{
-	auto se = scripting::Environment::instance();
-	se->addClass("Entity");
+SCRIPTING_REGISTER_CLASS(Entity)
 
-	se->addMethods("Entity", {
-		{ "getid",			&Entity::lua_getid },
-		{ "getname",		&Entity::lua_getname },
-		{ "isactive",		&Entity::lua_isactive },
-		{ "ispersistent",	&Entity::lua_ispersistent },
-		{ "setname",		&Entity::lua_setname },
-		{ "setactive",		&Entity::lua_setactive },
-		{ "setpersistent",	&Entity::lua_setpersistent },
-		{ "getcomponent",	&Entity::lua_getcomponent },
-		{ "addcomponent",	&Entity::lua_addcomponent }
-	});
-}
+SCRIPTING_DEFINE_GETTER(Entity, getid, getId)
+SCRIPTING_DEFINE_GETTER(Entity, getname, getName)
+SCRIPTING_DEFINE_GETTER(Entity, isactive, isActive)
+SCRIPTING_DEFINE_GETTER(Entity, ispersistent, isPersistent)
 
-int Entity::lua_getid(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	scripting::push_value(L, self->getId());
-	return 1;
-}
+SCRIPTING_DEFINE_SETTER(Entity, setname, setName)
+SCRIPTING_DEFINE_SETTER(Entity, setactive, setActive)
+SCRIPTING_DEFINE_SETTER(Entity, setpersistent, setPersistent)
 
-int Entity::lua_getname(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	scripting::push_value(L, self->getName());
-	return 1;
-}
-
-int Entity::lua_isactive(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	scripting::push_value(L, self->isActive());
-	return 1;
-}
-
-int Entity::lua_ispersistent(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	scripting::push_value(L, self->isPersistent());
-	return 1;
-}
-
-int Entity::lua_setname(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	self->setName(scripting::check_arg<std::string>(L, 2));
-	return 0;
-}
-
-int Entity::lua_setactive(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	self->setActive(scripting::check_arg<bool>(L, 2));
-	return 0;
-}
-
-int Entity::lua_setpersistent(lua_State* L)
-{
-	auto self = scripting::check_self<Entity>(L);
-	self->setPersistent(scripting::check_arg<bool>(L, 2));
-	return 0;
-}
-
-int Entity::lua_getcomponent(lua_State* L)
+SCRIPTING_DEFINE_METHOD(Entity, getcomponent)
 {
 	// TODO
 	return 0;
 }
 
-int Entity::lua_addcomponent(lua_State* L)
+SCRIPTING_DEFINE_METHOD(Entity, addcomponent)
 {
 	// TODO
 	return 0;

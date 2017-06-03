@@ -1,4 +1,5 @@
 Object = { }
+_objects = { }
 
 function Object:new (o)
     o = o or { }

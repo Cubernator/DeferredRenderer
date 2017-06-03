@@ -13,8 +13,6 @@
 
 #include "guid.hpp"
 
-struct lua_State;
-
 class Scene;
 class Transform;
 
@@ -103,8 +101,6 @@ public:
 		return getComponent<T>();
 	}
 
-	static void registerScriptClass();
-
 private:
 	const guid m_id;
 	std::string m_name;
@@ -153,18 +149,6 @@ private:
 	void extractComponents(const nlohmann::json& json);
 
 	friend struct json_initializable<Entity>;
-
-	static int lua_getid(lua_State* L);
-	static int lua_getname(lua_State* L);
-	static int lua_isactive(lua_State* L);
-	static int lua_ispersistent(lua_State* L);
-
-	static int lua_setname(lua_State* L);
-	static int lua_setactive(lua_State* L);
-	static int lua_setpersistent(lua_State* L);
-
-	static int lua_getcomponent(lua_State* L);
-	static int lua_addcomponent(lua_State* L);
 };
 
 #endif // ENTITY_HPP

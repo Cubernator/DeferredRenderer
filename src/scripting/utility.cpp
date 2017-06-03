@@ -19,29 +19,30 @@ namespace scripting
 
 		int top = lua_gettop(L);
 		for (int i = 1; i <= top; ++i) {
-			std::cout << (fmt("[%1$2i] ") % i);
-			fmt o;
+			std::cout << (fmt("[%1$2i] %2$8s: %3%")
+				% i
+				% value_typename(L, i)
+				% value_to_string(L, i))
+				<< std::endl;
+		}
+	}
 
-			int t = lua_type(L, i);
-			switch (t) {
-			case LUA_TNIL:
-				o = fmt("     nil");
-				break;
-			case LUA_TBOOLEAN:
-				o = fmt(" boolean: %1%") % (lua_toboolean(L, i) ? "true" : "false");
-				break;
-			case LUA_TNUMBER:
-				o = fmt("  number: %1%") % lua_tonumber(L, i);
-				break;
-			case LUA_TSTRING:
-				o = fmt("  string: \"%1%\"") % lua_tostring(L, i);
-				break;
-			default:
-				o = fmt("%1$8s: 0x%2%") % lua_typename(L, t) % lua_topointer(L, i);
-				break;
-			}
+	std::string value_to_string(lua_State* L, int idx)
+	{
+		using fmt = boost::format;
 
-			std::cout << o << std::endl;
+		int t = lua_type(L, idx);
+		switch (t) {
+		case LUA_TNIL:
+			return "nil";
+		case LUA_TBOOLEAN:
+			return lua_toboolean(L, idx) ? "true" : "false";
+		case LUA_TNUMBER:
+			return (fmt("%1%") % lua_tonumber(L, idx)).str();
+		case LUA_TSTRING:
+			return (fmt("\"%1%\"") % lua_tostring(L, idx)).str();
+		default:
+			return (fmt("0x%1%") % lua_topointer(L, idx)).str();
 		}
 	}
 

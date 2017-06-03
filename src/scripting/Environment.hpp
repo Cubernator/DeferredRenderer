@@ -48,7 +48,24 @@ namespace scripting
 		void addClass(const std::string& name, const std::string& base);
 		void addClass(const std::string& name);
 
-		void addMethods(const std::string& className, std::initializer_list<std::pair<std::string, lua_CFunction>> methods);
+		template<typename Iter>
+		void addMethods(const std::string& className, Iter beginMethods, Iter endMethods)
+		{
+			lua_getglobal(m_L, className.c_str());
+
+			for (Iter it = beginMethods; it != endMethods; ++it) {
+				lua_pushcfunction(m_L, it->second);
+				set_field(m_L, -2, it->first);
+			}
+
+			pop();
+		}
+
+		void addMethods(const std::string& className, std::initializer_list<std::pair<std::string, lua_CFunction>> methods)
+		{
+			addMethods(className, methods.begin(), methods.end());
+		}
+
 		void addMethod(const std::string& className, const std::string& name, lua_CFunction f)
 		{
 			addMethods(className, { { name, f } });

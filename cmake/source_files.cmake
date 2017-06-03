@@ -84,6 +84,8 @@ set(SOURCE_FILES
 	src/input/keys.hpp
 	src/scripting/Behaviour.cpp
 	src/scripting/Behaviour.hpp
+	src/scripting/class_registry.cpp
+	src/scripting/class_registry.hpp
 	src/scripting/Environment.cpp
 	src/scripting/Environment.hpp
 	src/scripting/utility.cpp

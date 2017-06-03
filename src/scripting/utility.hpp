@@ -17,9 +17,24 @@ namespace scripting
 		return lua_gettop(L) + i + 1;
 	}
 
+	inline void set_field(lua_State* L, int idx, const std::string& k)
+	{
+		lua_setfield(L, idx, k.c_str());
+	}
+
+	inline void set_field(lua_State* L, int idx, const char* k)
+	{
+		lua_setfield(L, idx, k);
+	}
+
 	void raise_error(lua_State* L, const std::string& msg);
 
 	void stack_dump(lua_State* L);
+	std::string value_to_string(lua_State* L, int idx);
+	inline std::string value_typename(lua_State* L, int idx)
+	{
+		return lua_typename(L, lua_type(L, idx));
+	}
 
 	void swap_top_2(lua_State* L);
 
@@ -68,6 +83,83 @@ namespace scripting
 	{
 		push_value(L, std::forward<T>(value));
 		push_values(L, std::forward<Args>(args)...);
+	}
+
+	template<typename ObjT, typename ValueT>
+	using obj_getter_func = ValueT(ObjT::*)();
+
+	template<typename ObjT, typename ValueT>
+	using const_obj_getter_func = ValueT(ObjT::*)() const;
+
+	template<typename ObjT, typename ValueT>
+	using obj_setter_func = void (ObjT::*)(ValueT);
+
+	template<typename ObjT, typename ValueT>
+	using obj_member_ptr = ValueT ObjT::*;
+
+	template<typename T, typename U>
+	void push_member(lua_State* L, T* self, obj_getter_func<T, U> member)
+	{
+		push_value<U>(L, (self->*member)());
+	}
+
+	template<typename T, typename U>
+	void push_member(lua_State* L, const T* self, const_obj_getter_func<T, U> member)
+	{
+		push_value<U>(L, (self->*member)());
+	}
+
+	template<typename T, typename U>
+	auto push_member(lua_State* L, const T* self, obj_member_ptr<T, U> member) -> std::enable_if_t<!std::is_function<U>::value>
+	{
+		push_value<U>(L, self->*member);
+	}
+
+	template<typename T, typename U>
+	void check_member(lua_State* L, int arg, T* self, obj_setter_func<T, U> member)
+	{
+		(self->*member)(check_arg<std::decay_t<U>>(L, arg));
+	}
+
+	template<typename T, typename U>
+	void check_member(lua_State* L, int arg, T* self, obj_member_ptr<T, U> member)
+	{
+		self->*member = check_arg<U>(L, arg);
+	}
+
+	template<typename T, typename U>
+	int getter_helper(lua_State* L, obj_getter_func<T, U> getMember)
+	{
+		push_member(L, check_self<T>(L), getMember);
+		return 1;
+	}
+
+	template<typename T, typename U>
+	auto getter_helper(lua_State* L, const_obj_getter_func<T, U> getMember) -> std::enable_if_t<!std::is_pointer<U>::value, int>
+	{
+		push_member(L, check_self<T>(L), getMember);
+		return 1;
+	}
+
+	template<typename T, typename U>
+	int getter_helper(lua_State* L, obj_member_ptr<T, U> getMember)
+	{
+		push_member(L, check_self<T>(L), getMember);
+		return 1;
+	}
+
+	template<typename T, typename U>
+	int setter_helper(lua_State* L, obj_setter_func<T, U> setMember)
+	{
+		check_member(L, 2, check_self<T>(L), setMember);
+		return 0;
+	}
+
+	template<typename T, typename U>
+	int setter_helper(lua_State* L, obj_member_ptr<T, U> setMember)
+	{
+		check_member(L, 2, check_self<T>(L), setMember);
+		return 0;
 	}
 
 	template<>

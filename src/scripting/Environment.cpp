@@ -1,7 +1,6 @@
 #include "Environment.hpp"
+#include "class_registry.hpp"
 #include "content/Content.hpp"
-#include "core/Entity.hpp"
-#include "core/Component.hpp"
 #include "util/app_info.hpp"
 
 #include "lua.hpp"
@@ -38,11 +37,7 @@ namespace scripting
 
 		loadModule("Object");
 
-		lua_newtable(m_L);
-		lua_setglobal(m_L, "_objects");
-
-		Entity::registerScriptClass();
-		Component::registerScriptClass();
+		class_registry::applyAllClasses();
 	}
 
 	Environment::~Environment()
@@ -66,18 +61,6 @@ namespace scripting
 	void Environment::addClass(const std::string& name)
 	{
 		addClass(name, "Object");
-	}
-
-	void Environment::addMethods(const std::string& className, std::initializer_list<std::pair<std::string, lua_CFunction>> methods)
-	{
-		lua_getglobal(m_L, className.c_str());
-
-		for (auto m : methods) {
-			lua_pushcfunction(m_L, m.second);
-			lua_setfield(m_L, -2, m.first.c_str());
-		}
-
-		pop();
 	}
 
 	void Environment::instantiateClass(const std::string& className, Object* obj)
@@ -142,7 +125,19 @@ namespace scripting
 
 	int Environment::traceback(lua_State* L)
 	{
-		// TODO
+		std::string msg;
+		int hasMeta = luaL_callmeta(L, -1, "__tostring");
+
+		if (lua_isstring(L, -1)) {
+			msg = lua_tostring(L, -1);
+		} else {
+			msg = value_typename(L, -1) + ": " + value_to_string(L, -1);
+		}
+
+		if (hasMeta)
+			lua_pop(L, 1);
+
+		luaL_traceback(L, L, msg.c_str(), 1);
 		return 1;
 	}
 

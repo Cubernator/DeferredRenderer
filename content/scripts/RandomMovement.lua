@@ -1,4 +1,4 @@
-require("ScriptBehaviour")
+require("Behaviour")
 
 RandomMovement = ScriptBehaviour:new{
     minSpeed = 0.1,
