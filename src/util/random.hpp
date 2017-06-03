@@ -81,7 +81,7 @@ namespace random
 
 	inline float normal_float(float mean = 0.0f, float stddev = 1.0f)
 	{
-		return normal_real<float>(mean, stddev);
+		return float(normal_real<double>(mean, stddev));
 	}
 
 	glm::vec3 uniform_direction();

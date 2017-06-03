@@ -40,9 +40,9 @@ glm::mat4 Transform::getInverseRigidMatrix() const
 	return glm::translate(glm::toMat4(glm::inverse(m_rotation)), -m_position);
 }
 
-void Transform::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
+void Transform::apply_json_impl(const nlohmann::json& json)
 {
-	Component::apply_json_property_impl(name, json);
-	s_properties.interpret_property(name, this, json);
+	Component::apply_json_impl(json);
+	s_properties.interpret_all(this, json);
 }
 

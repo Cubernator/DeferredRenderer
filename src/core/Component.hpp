@@ -4,6 +4,7 @@
 #include <string>
 
 #include "boost/mpl/bool.hpp"
+#include "Object.hpp"
 #include "util/import.hpp"
 #include "util/json_initializable.hpp"
 #include "util/json_interpreter.hpp"
@@ -14,9 +15,11 @@
 #define COMPONENT_DISALLOW_MULTIPLE COMPONENT_SET_MULTIPLE_ALLOWED(false)
 
 
+struct lua_State;
+
 class Entity;
 
-class Component : public json_initializable<Component>
+class Component : public Object, public json_initializable<Component>
 {
 public:
 	explicit Component(Entity* parent);
@@ -33,10 +36,12 @@ public:
 	void start() { if (m_enabled) start_impl(); }
 	void update() { if (m_enabled) update_impl(); }
 
+	static void registerScriptClass();
+
 	COMPONENT_ALLOW_MULTIPLE;
 
 protected:
-	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json);
+	virtual void apply_json_impl(const nlohmann::json& json);
 
 	virtual void start_impl() { }
 	virtual void update_impl() { }
@@ -48,6 +53,12 @@ private:
 	bool m_enabled;
 
 	static json_interpreter<Component> s_properties;
+
+	static int lua_getentity(lua_State* L);
+	static int lua_isenabled(lua_State* L);
+	static int lua_isactiveandenabled(lua_State* L);
+
+	static int lua_setenabled(lua_State* L);
 };
 
 #endif // COMPONENT_HPP

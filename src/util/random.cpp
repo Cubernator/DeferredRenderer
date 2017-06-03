@@ -19,11 +19,11 @@ namespace random
 
 	glm::vec3 uniform_direction()
 	{
-		std::normal_distribution<float> dist{ 0.0f, 1.0f };
+		std::normal_distribution<double> dist{ 0.0f, 1.0f };
 		auto& gen = default_gen();
 
 		// if each coordinate is normally distributed then the normalized vector is uniformly distributed on the surface of the unit sphere
-		glm::vec3 result{ dist(gen), dist(gen), dist(gen) };
+		glm::vec3 result{ float(dist(gen)), float(dist(gen)), float(dist(gen)) };
 		float l2 = glm::max(0.001f, glm::length2(result));
 		return result * glm::inversesqrt(l2);
 	}

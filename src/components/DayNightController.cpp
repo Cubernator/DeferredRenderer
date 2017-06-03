@@ -38,10 +38,10 @@ void DayNightController::update_impl()
 	}
 }
 
-void DayNightController::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
+void DayNightController::apply_json_impl(const nlohmann::json& json)
 {
-	Component::apply_json_property_impl(name, json);
-	s_properties.interpret_property(name, this, json);
+	Component::apply_json_impl(json);
+	s_properties.interpret_all(this, json);
 }
 
 void DayNightController::setDayTime(bool val)

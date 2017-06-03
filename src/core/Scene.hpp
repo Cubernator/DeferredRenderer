@@ -14,7 +14,7 @@ class Entity;
 class Scene : public json_initializable<Scene>
 {
 public:
-	Scene() = default;
+	Scene();
 	~Scene();
 
 	Scene(Scene&& other) = default;

@@ -20,7 +20,7 @@ public:
 protected:
 	virtual const Drawable* getDrawable_impl(unsigned int index) const override;
 	virtual bool hasGeometry() const override;
-	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
+	virtual void apply_json_impl(const nlohmann::json& json) override;
 
 private:
 	Mesh* m_mesh;

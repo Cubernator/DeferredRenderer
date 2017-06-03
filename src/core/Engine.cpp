@@ -6,6 +6,7 @@
 #include "graphics/RenderEngine.hpp"
 #include "content/Content.hpp"
 #include "input/Input.hpp"
+#include "scripting/Environment.hpp"
 
 #include "util/app_info.hpp"
 
@@ -16,7 +17,7 @@
 
 Engine* Engine::s_instance = nullptr;
 
-Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0),  m_loadingScene(false)
+Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_nextID(0), m_loadingScene(false)
 {
 	s_instance = this;
 
@@ -90,6 +91,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0),  m_lo
 	m_input = std::make_unique<Input>(m_window);
 	m_content = std::make_unique<Content>();
 	m_renderer = std::make_unique<RenderEngine>(this);
+	m_scriptEnv = std::make_unique<scripting::Environment>();
 
 	swapBuffers();
 
@@ -119,6 +121,7 @@ Engine::~Engine()
 {
 	m_scene.reset();
 	m_entities.clear();
+	m_scriptEnv.reset();
 	m_renderer.reset();
 	m_content.reset();
 	m_input.reset();
@@ -202,7 +205,7 @@ void Engine::loadFirstScene()
 	loadScene(firstSceneName);
 }
 
-Entity* Engine::getEntityInternal(const uuid& id) const
+Entity* Engine::getEntityInternal(const guid& id) const
 {
 	auto it = m_entities.find(id);
 	if (it != m_entities.end())
@@ -217,13 +220,15 @@ void Engine::onResize(int width, int height)
 
 void Engine::addEntity(std::unique_ptr<Entity> entity)
 {
-	auto p = m_entities.emplace(entity->getId(), std::move(entity));
+	auto id = entity->getId();
+	auto p = m_entities.emplace(id, std::move(entity));
+	auto e = p.first->second.get();
 	if (m_renderer) {
-		m_renderer->addEntity(p.first->second.get());
+		m_renderer->addEntity(e);
 	}
 }
 
-void Engine::destroyEntity(const uuid& id)
+void Engine::destroyEntity(const guid& id)
 {
 	auto it = m_entities.find(id);
 	if (it != m_entities.end()) {
@@ -247,6 +252,11 @@ Engine::const_entity_iterator Engine::entities_begin() const
 Engine::const_entity_iterator Engine::entities_end() const
 {
 	return m_entities.cend();
+}
+
+guid Engine::getGUID()
+{
+	return m_nextID++;
 }
 
 void Engine::update()

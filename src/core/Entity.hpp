@@ -5,27 +5,35 @@
 #include <vector>
 #include <string>
 
-#include "uuid.hpp"
-#include "core/Component.hpp"
+#include "Object.hpp"
+#include "Component.hpp"
 #include "util/import.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
 
+#include "guid.hpp"
+
+struct lua_State;
+
 class Scene;
 class Transform;
 
-class Entity : public json_initializable<Entity>
+class Entity : public Object, public json_initializable<Entity>
 {
 public:
 	Entity();
+	virtual ~Entity();
 
-	const uuid& getId() const { return m_id; }
+	const guid& getId() const { return m_id; }
 
 	const std::string& getName() const { return m_name; }
 	void setName(const std::string& name) { m_name = name; }
 
 	bool isActive() const { return m_active; }
 	void setActive(bool val) { m_active = val; }
+
+	bool isPersistent() const { return m_persistent; }
+	void setPersistent(bool val) { m_persistent = val; }
 
 	Scene* getParentScene() { return m_parentScene; }
 	const Scene* getParentScene() const { return m_parentScene; }
@@ -95,10 +103,13 @@ public:
 		return getComponent<T>();
 	}
 
+	static void registerScriptClass();
+
 private:
-	const uuid m_id;
+	const guid m_id;
 	std::string m_name;
 	bool m_active;
+	bool m_persistent;
 
 	std::vector<std::unique_ptr<Component>> m_components;
 	Transform* m_transform; // every entity must have a transform, so cache it here for fast access
@@ -142,6 +153,18 @@ private:
 	void extractComponents(const nlohmann::json& json);
 
 	friend struct json_initializable<Entity>;
+
+	static int lua_getid(lua_State* L);
+	static int lua_getname(lua_State* L);
+	static int lua_isactive(lua_State* L);
+	static int lua_ispersistent(lua_State* L);
+
+	static int lua_setname(lua_State* L);
+	static int lua_setactive(lua_State* L);
+	static int lua_setpersistent(lua_State* L);
+
+	static int lua_getcomponent(lua_State* L);
+	static int lua_addcomponent(lua_State* L);
 };
 
 #endif // ENTITY_HPP

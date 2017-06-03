@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "glm.hpp"
-#include "uuid.hpp"
+#include "guid.hpp"
 
 using time_type = double;
 using duration_type = std::chrono::duration<time_type>;
@@ -17,12 +17,17 @@ class RenderEngine;
 class Scene;
 class Entity;
 
+namespace scripting
+{
+	class Environment;
+}
+
 struct GLFWwindow;
 
 class Engine
 {
 public:
-	using entity_collection = std::unordered_map<uuid, std::unique_ptr<Entity>>;
+	using entity_collection = std::unordered_map<guid, std::unique_ptr<Entity>>;
 	using const_entity_iterator = typename entity_collection::const_iterator;
 
 	Engine();
@@ -47,15 +52,17 @@ public:
 	void loadScene(const std::string& sceneName);
 	void loadFirstScene();
 
-	Entity* getEntity(const uuid& id) { return getEntityInternal(id); }
-	const Entity* getEntity(const uuid& id) const { return getEntityInternal(id); }
+	Entity* getEntity(const guid& id) { return getEntityInternal(id); }
+	const Entity* getEntity(const guid& id) const { return getEntityInternal(id); }
 
 	void addEntity(std::unique_ptr<Entity> entity);
-	void destroyEntity(const uuid& id);
+	void destroyEntity(const guid& id);
 	void destroyEntity(Entity *entity);
 
 	const_entity_iterator entities_begin() const;
 	const_entity_iterator entities_end() const;
+
+	guid getGUID();
 
 	static Engine* instance() { return s_instance; }
 
@@ -71,9 +78,11 @@ private:
 	std::unique_ptr<Input> m_input;
 	std::unique_ptr<Content> m_content;
 	std::unique_ptr<RenderEngine> m_renderer;
+	std::unique_ptr<scripting::Environment> m_scriptEnv;
 
 	std::unique_ptr<Scene> m_scene;
 	entity_collection m_entities;
+	guid m_nextID;
 
 	bool m_loadingScene;
 	std::string m_loadingSceneName;
@@ -96,7 +105,7 @@ private:
 	void setScene(std::unique_ptr<Scene> scene);
 	void loadSceneInternal(const std::string& sceneName);
 
-	Entity* getEntityInternal(const uuid& id) const;
+	Entity* getEntityInternal(const guid& id) const;
 
 	void onResize(int width, int height);
 

@@ -25,10 +25,10 @@ const Drawable* MeshRenderer::getDrawable_impl(unsigned int index) const
 	return m_mesh->getSubMesh(index);
 }
 
-void MeshRenderer::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
+void MeshRenderer::apply_json_impl(const nlohmann::json& json)
 {
-	Renderer::apply_json_property_impl(name, json);
-	s_properties.interpret_property(name, this, json);
+	Renderer::apply_json_impl(json);
+	s_properties.interpret_all(this, json);
 }
 
 void MeshRenderer::extractMesh(const nlohmann::json& json)

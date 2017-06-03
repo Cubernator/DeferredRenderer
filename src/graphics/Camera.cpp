@@ -32,9 +32,9 @@ glm::mat4 Camera::getProjectionMatrix(float width, float height) const
 	return glm::perspectiveFov(glm::radians(m_fov), width, height, m_nearPlane, m_farPlane);
 }
 
-void Camera::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
+void Camera::apply_json_impl(const nlohmann::json& json)
 {
-	Component::apply_json_property_impl(name, json);
-	s_properties.interpret_property(name, this, json);
+	Component::apply_json_impl(json);
+	s_properties.interpret_all(this, json);
 }
 

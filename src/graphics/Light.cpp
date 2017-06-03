@@ -56,9 +56,9 @@ void Light::getUniforms(glm::vec4& color, glm::vec4& dir, glm::vec4& atten, glm:
 	}
 }
 
-void Light::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
+void Light::apply_json_impl(const nlohmann::json& json)
 {
-	Component::apply_json_property_impl(name, json);
-	s_properties.interpret_property(name, this, json);
+	Component::apply_json_impl(json);
+	s_properties.interpret_all(this, json);
 }
 

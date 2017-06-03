@@ -25,7 +25,7 @@ protected:
 	virtual void start_impl() override;
 	virtual void update_impl() override;
 
-	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
+	virtual void apply_json_impl(const nlohmann::json& json) override;
 
 private:
 	bool m_lightsEnabled, m_lightsMoving;

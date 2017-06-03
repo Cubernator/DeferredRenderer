@@ -41,7 +41,7 @@ public:
 	void getUniforms(glm::vec4& color, glm::vec4& dir, glm::vec4& atten, glm::vec4& spot) const;
 
 protected:
-	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
+	virtual void apply_json_impl(const nlohmann::json& json) override;
 
 private:
 	type m_type;

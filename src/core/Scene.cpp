@@ -3,8 +3,10 @@
 #include "Entity.hpp"
 #include "util/json_utils.hpp"
 #include "util/type_registry.hpp"
+#include "scripting/Environment.hpp"
 
 #include "boost/format.hpp"
+#include "lua.hpp"
 
 REGISTER_OBJECT_TYPE_NO_EXT(Scene, "scene");
 
@@ -14,11 +16,22 @@ json_interpreter<Scene> Scene::s_properties({
 	{ "entities", &Scene::extractEntities }
 });
 
+Scene::Scene() : m_active(false)
+{
+	/*auto L = scripting::Environment::instance()->state();
+
+	lua_newtable(L);
+	lua_setglobal(L, "scene");*/
+}
+
 Scene::~Scene()
 {
 	applyAddEntities();
 
 	for (auto e : m_entities) {
+		if (e->isPersistent())
+			continue;
+
 		Engine::instance()->destroyEntity(e);
 	}
 }

@@ -26,7 +26,7 @@ public:
 	COMPONENT_DISALLOW_MULTIPLE;
 
 protected:
-	virtual void apply_json_property_impl(const std::string& name, const nlohmann::json& json) override;
+	virtual void apply_json_impl(const nlohmann::json& json) override;
 
 private:
 	glm::vec3 m_position;

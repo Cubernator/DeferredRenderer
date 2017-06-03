@@ -14,7 +14,6 @@ FILTERS = [
     # ----------------------------------------------------------------------------------------
     ("src",         "SOURCE_FILES",     "^.*\.[hc](pp)?$",      ""),
     ("cmake",       "CMAKE_FILES",      ".*",                   "CMake Files"),
-    ("scripts",     "SCRIPT_FILES",     ".*",                   "Script Files"),
     ("content",     "OBJECT_FILES",	    [".json"],              "Object Files"),
     ("content",     "SHADER_FILES",     [".glsl",".glh"],       "Shader Files"),
     ("content",     "IMAGE_FILES",      [".tif",".jpg",".png"], "Image Files"),

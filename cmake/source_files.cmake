@@ -1,10 +1,10 @@
 set(SOURCE_FILES
 	src/glm.hpp
+	src/guid.hpp
 	src/half.hpp
 	src/main.cpp
 	src/path.hpp
 	src/types.hpp
-	src/uuid.hpp
 	src/components/DayNightController.cpp
 	src/components/DayNightController.hpp
 	src/components/DebugControls.cpp
@@ -25,6 +25,8 @@ set(SOURCE_FILES
 	src/core/Engine.hpp
 	src/core/Entity.cpp
 	src/core/Entity.hpp
+	src/core/Object.cpp
+	src/core/Object.hpp
 	src/core/Scene.cpp
 	src/core/Scene.hpp
 	src/core/Transform.cpp
@@ -80,6 +82,12 @@ set(SOURCE_FILES
 	src/input/Input.hpp
 	src/input/keys.cpp
 	src/input/keys.hpp
+	src/scripting/Behaviour.cpp
+	src/scripting/Behaviour.hpp
+	src/scripting/Environment.cpp
+	src/scripting/Environment.hpp
+	src/scripting/utility.cpp
+	src/scripting/utility.hpp
 	src/util/app_info.cpp
 	src/util/app_info.hpp
 	src/util/bounds.hpp
@@ -110,12 +118,6 @@ set(CMAKE_FILES
 	cmake/source_files.cmake
 )
 source_group("CMake Files" FILES ${CMAKE_FILES})
-
-set(SCRIPT_FILES
-	scripts/find_sources.py
-	scripts/msvc14.bat
-)
-source_group("Script Files" FILES ${SCRIPT_FILES})
 
 set(OBJECT_FILES
 	content/effects/effect-deferred_light.json
@@ -394,4 +396,14 @@ set(MODEL_FILES
 	content/meshes/veg_plant_02.fbx
 )
 source_group("Model Files" FILES ${MODEL_FILES})
+
+set(SCRIPT_FILES
+	content/scripts/Behaviour.lua
+	content/scripts/Component.lua
+	content/scripts/Entity.lua
+	content/scripts/Object.lua
+	content/scripts/RandomMovement.lua
+	content/scripts/TestBehaviour.lua
+)
+source_group("Script Files" FILES ${SCRIPT_FILES})
 

@@ -48,7 +48,7 @@ add_definitions( -DBOOST_ALL_NO_LIB )
 
 set(OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/DeferredRenderer)
 
-set(ALL_SOURCE_FILES ${SOURCE_FILES} ${CMAKE_FILES} ${SCRIPT_FILES})
+set(ALL_SOURCE_FILES ${SOURCE_FILES} ${CMAKE_FILES})
 
 add_executable(DeferredRenderer ${WIN32FLAG} ${ALL_SOURCE_FILES})
 set_target_out_dir(DeferredRenderer ${OUT_DIR})
@@ -73,6 +73,7 @@ add_dependencies(conproc boost assimp json tiff squish)
 foreach(lib_file ${EXT_SHARED_LIBS})
 	set(lib_file_src ${BIN_DIR}/${lib_file})
 	set(lib_file_dst ${OUT_DIR}/${lib_file})
+
 	add_custom_command(
 		TARGET DeferredRenderer POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${lib_file_src} ${lib_file_dst}
