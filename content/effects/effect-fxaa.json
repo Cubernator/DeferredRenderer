@@ -1,5 +1,5 @@
 {
-  "type": "effect",
+  "type": "Effect",
   "name": "fxaa",
   "properties": [
     {

@@ -3,7 +3,9 @@
 
 #include "GL/glew.h"
 
-class Texture
+#include "core/NamedObject.hpp"
+
+class Texture : public NamedObject
 {
 public:
 	explicit Texture(GLenum target) : m_target(target), m_glObj(0)

@@ -15,20 +15,24 @@ public:
 
 	std::size_t materialCount() const { return m_materials.size(); }
 
-	Material* getMaterial(unsigned int index) { return m_materials[index]; }
-	const Material* getMaterial(unsigned int index) const { return m_materials[index]; }
+	Material* material(std::size_t index = 0) { return m_materials[index]; }
+	const Material* material(std::size_t index = 0) const { return m_materials[index]; }
+
+	std::vector<Material*> materials() { return m_materials; }
+
+	void setMaterials(std::vector<Material*> mats) { m_materials = mats; }
 
 	void addMaterial(Material* mat) { m_materials.push_back(mat); }
 	void clearMaterials() { m_materials.clear(); }
 
-	const Drawable* getDrawable(unsigned int index) const { return getDrawable_impl(index); }
+	const Drawable* getDrawable(std::size_t index) const { return getDrawable_impl(index); }
 
 	bool isVisible() const { return hasGeometry(); }
 
 	COMPONENT_DISALLOW_MULTIPLE;
 
 protected:
-	virtual const Drawable* getDrawable_impl(unsigned int index) const = 0;
+	virtual const Drawable* getDrawable_impl(std::size_t index) const = 0;
 	virtual bool hasGeometry() const = 0;
 	virtual void apply_json_impl(const nlohmann::json& json) override;
 

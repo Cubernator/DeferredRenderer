@@ -10,7 +10,7 @@ public:
 
 	virtual void attach(GLenum attPoint) const = 0;
 	virtual void detach(GLenum attPoint) const = 0;
-	virtual void getDimensions(unsigned int& width, unsigned int& height) const = 0;
+	virtual void dimensions(unsigned int& width, unsigned int& height) const = 0;
 };
 
 #endif // RENDERTARGET_HPP

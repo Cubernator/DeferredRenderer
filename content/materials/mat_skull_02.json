@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "mat_skull_02",
   "effect": "pbr_sn",
   "properties": {

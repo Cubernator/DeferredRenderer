@@ -1,22 +1,27 @@
 #include "Environment.hpp"
+#include "Behaviour.hpp"
 #include "class_registry.hpp"
 #include "content/Content.hpp"
-#include "util/app_info.hpp"
+#include "core/app_info.hpp"
+#include "core/Component.hpp"
+
+#include "boost/format.hpp"
 
 #include "lua.hpp"
 
 namespace scripting
 {
-	Environment* Environment::s_instance = nullptr;
+	int lua_destroy(lua_State* L)
+	{
+		destroy_object(check_object_arg(L, 1));
+		return 0;
+	}
 
 	Environment::Environment()
 	{
-		s_instance = this;
-
 		m_L = luaL_newstate();
 
 		lua_atpanic(m_L, &Environment::onPanic);
-		lua_pushcfunction(m_L, &Environment::traceback);
 
 		luaL_openlibs(m_L);
 
@@ -26,8 +31,11 @@ namespace scripting
 
 		path croot = Content::instance()->contentRoot();
 		auto searchDirs = app_info::get<std::vector<path>>("scriptSearchDirs");
+
+		auto fmt = boost::format(";./%1%/?.lua;./%1%/?/init.lua");
+
 		for (path& dir : searchDirs) {
-			luaPath += ";./" + (croot / dir).generic_string() + "/?.lua";
+			luaPath += (fmt % (croot / dir).generic_string()).str();
 		}
 
 		lua_pop(m_L, 1);
@@ -36,6 +44,8 @@ namespace scripting
 		lua_pop(m_L, 1);
 
 		loadModule("Object");
+		lua_pushcfunction(m_L, lua_destroy);
+		lua_setglobal(m_L, "destroy");
 
 		class_registry::applyAllClasses();
 	}
@@ -45,11 +55,11 @@ namespace scripting
 		lua_close(m_L);
 	}
 
-	int Environment::loadModule(const std::string& name)
+	bool Environment::loadModule(const std::string& name)
 	{
 		lua_getglobal(m_L, "require");
 		lua_pushstring(m_L, name.c_str());
-		return pcall(1, 0);
+		return !safeCall(1, 0);
 	}
 
 	void Environment::addClass(const std::string& name, const std::string& base)
@@ -63,12 +73,24 @@ namespace scripting
 		addClass(name, "Object");
 	}
 
+	void Environment::addStaticClass(const std::string& name)
+	{
+		lua_newtable(m_L);
+		lua_setglobal(m_L, name.c_str());
+	}
+
 	void Environment::instantiateClass(const std::string& className, Object* obj)
 	{
 		lua_getglobal(m_L, className.c_str());
+		if (!lua_istable(m_L, -1)) {
+			pop();
+			std::cout << "WARNING: Could not find class \"" << className << "\"! Instantiating as Object instead." << std::endl;
+			lua_getglobal(m_L, "Object");
+		}
+
 		lua_getfield(m_L, -1, "new");
 		swap_top_2(m_L);
-		pcall(1, 1);
+		safeCall(1, 1);
 
 		if (obj) {
 			// store object pointer (lua -> C++)
@@ -112,15 +134,67 @@ namespace scripting
 		push_object(m_L, obj);
 	}
 
-	int Environment::pcall(int argc, int resc)
+	int Environment::safeCall(int argc, int resc)
 	{
-		int status = lua_pcall(m_L, argc, resc, 1);
+		int base = lua_gettop(m_L) - argc;
+		lua_pushcfunction(m_L, &Environment::traceback);
+		lua_insert(m_L, base);
+		int status = lua_pcall(m_L, argc, resc, base);
 		if (status != LUA_OK) {
 			const char* msg = lua_tostring(m_L, -1);
 			std::cout << "ERROR: " << msg << std::endl;
 			pop();
 		}
+		lua_remove(m_L, base);
 		return status;
+	}
+
+	void Environment::callBehaviourMethod(Behaviour* bhv, const std::string& methodName)
+	{
+		if (bhv->isGood()) {
+			callMethod(bhv, methodName, 0);
+		}
+	}
+
+	void Environment::addComponent(Component* cmpt)
+	{
+		auto b = dynamic_cast<Behaviour*>(cmpt);
+		if (b) {
+			m_addBhvs.push_back(b);
+		}
+	}
+
+	void Environment::removeComponent(Component* cmpt)
+	{
+		auto b = dynamic_cast<Behaviour*>(cmpt);
+		if (b) {
+			m_removeBhvs.push_back(b);
+		}
+	}
+
+	void Environment::update()
+	{
+		while (m_addBhvs.size() > 0) {
+			m_behaviours.insert(m_behaviours.end(), m_addBhvs.begin(), m_addBhvs.end());
+			auto abs = std::move(m_addBhvs);
+			
+			for (auto b : abs) {
+				callBehaviourMethod(b, "init");
+			}
+		}
+
+		for (auto rb : m_removeBhvs) {
+			m_behaviours.erase(std::remove(m_behaviours.begin(), m_behaviours.end(), rb), m_behaviours.end());
+		}
+		m_removeBhvs.clear();
+
+		// TODO: call start functions (on the first frame a behaviour is enabled)
+
+		for (auto b : m_behaviours) {
+			if (b->isActiveAndEnabled()) {
+				callBehaviourMethod(b, "update");
+			}
+		}
 	}
 
 	int Environment::traceback(lua_State* L)

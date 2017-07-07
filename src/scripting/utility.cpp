@@ -7,6 +7,13 @@
 
 namespace scripting
 {
+	void load_module(lua_State* L, const std::string& name)
+	{
+		lua_getglobal(L, "require");
+		lua_pushstring(L, name.c_str());
+		lua_call(L, 1, 1);
+	}
+
 	void raise_error(lua_State* L, const std::string& msg)
 	{
 		lua_pushstring(L, msg.c_str());
@@ -75,5 +82,13 @@ namespace scripting
 	{
 		luaL_checktype(L, arg, LUA_TTABLE);
 		return get_object(L, arg);
+	}
+
+	std::size_t table_length(lua_State* L, int idx)
+	{
+		lua_len(L, idx);
+		auto l = lua_tounsigned(L, -1);
+		lua_pop(L, 1);
+		return l;
 	}
 }

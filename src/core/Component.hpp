@@ -15,8 +15,6 @@
 #define COMPONENT_DISALLOW_MULTIPLE COMPONENT_SET_MULTIPLE_ALLOWED(false)
 
 
-struct lua_State;
-
 class Entity;
 
 class Component : public Object, public json_initializable<Component>
@@ -25,24 +23,18 @@ public:
 	explicit Component(Entity* parent);
 	virtual ~Component() = 0;
 
-	Entity* getEntity() { return m_parent; }
-	const Entity* getEntity() const { return m_parent; }
+	Entity* entity() { return m_parent; }
+	const Entity* entity() const { return m_parent; }
 
 	bool isEnabled() const { return m_enabled; }
 	void setEnabled(bool val) { m_enabled = val; }
 
 	bool isActiveAndEnabled() const;
 
-	void start() { if (m_enabled) start_impl(); }
-	void update() { if (m_enabled) update_impl(); }
-
 	COMPONENT_ALLOW_MULTIPLE;
 
 protected:
 	virtual void apply_json_impl(const nlohmann::json& json);
-
-	virtual void start_impl() { }
-	virtual void update_impl() { }
 
 	friend struct json_initializable<Component>;
 
@@ -52,5 +44,7 @@ private:
 
 	static json_interpreter<Component> s_properties;
 };
+
+void destroy_component(Component* cmpt);
 
 #endif // COMPONENT_HPP

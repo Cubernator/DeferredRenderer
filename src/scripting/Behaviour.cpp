@@ -1,49 +1,106 @@
 #include "Behaviour.hpp"
 #include "Environment.hpp"
 #include "core/Entity.hpp"
-#include "util/component_registry.hpp"
+#include "core/component_registry.hpp"
 
 #include "lua.hpp"
+#include "json_to_lua.hpp"
+#include "class_registry.hpp"
 
 namespace scripting
 {
-	REGISTER_COMPONENT_CLASS(Behaviour, "scriptBehaviour");
+	REGISTER_COMPONENT_CLASS(Behaviour);
 
-	Behaviour::Behaviour(Entity* parent) : Component(parent) { }
+	Behaviour::Behaviour(Entity* parent) : Component(parent), m_good(false), m_objIdx(0) { }
 
 	Behaviour::~Behaviour()
 	{
-		Environment::instance()->invalidateObject(this);
+		destroyObj();
 	}
 
-	void Behaviour::start_impl()
+	void Behaviour::destroyObj()
 	{
-		Environment::instance()->callMethod(this, "start", 0);
+		if (m_good) {
+			Environment::instance()->invalidateObject(this);
+			m_good = false;
+		}
 	}
 
-	void Behaviour::update_impl()
+	void Behaviour::setScript(const std::string& name)
 	{
-		Environment::instance()->callMethod(this, "update", 0);
+		destroyObj();
+		m_script = name;
+
+		auto scriptEnv = Environment::instance();
+		auto L = scriptEnv->state();
+
+		m_good = scriptEnv->loadModule(m_script);
+		if (!m_good) return;
+
+		scriptEnv->createObject(m_script, this, false);
+		m_good = lua_istable(L, -1);
+		scriptEnv->pop();
 	}
 
 	void Behaviour::apply_json_impl(const nlohmann::json& json)
 	{
 		Component::apply_json_impl(json);
 
-		if (::get_value(json, "script", m_behaviourName)) {
-			auto scriptEnv = Environment::instance();
+		std::string scriptName;
+		if (::get_value(json, "script", scriptName)) {
+			setScript(scriptName);
 
-			scriptEnv->loadModule(m_behaviourName);
-			scriptEnv->createObject(m_behaviourName, this, false);
+			if (m_good) {
+				auto it = json.find("properties");
+				if (it != json.end() && it->is_object()) {
+					auto L = getState();
 
-			auto it = json.find("properties");
-			if (it != json.end() && it->is_object()) {
-				for (auto pit = it->begin(); pit != it->end(); ++pit) {
-					// apply property to behaviour
+					beginProperties(L);
+					for (auto pit = it->begin(); pit != it->end(); ++pit) {
+						push_json(L, pit.value());
+						submitProperty(L, pit.key());
+					}
+					endProperties(L);
 				}
 			}
-
-			scriptEnv->pop();
 		}
 	}
+
+	void Behaviour::beginProperties(lua_State* L)
+	{
+		push_object(L, this);
+		m_objIdx = lua_gettop(L);
+	}
+
+	void Behaviour::endProperties(lua_State* L)
+	{
+		lua_remove(L, m_objIdx);
+	}
+
+	void Behaviour::submitProperty(lua_State* L, const std::string& name)
+	{
+		lua_setfield(L, m_objIdx, name.c_str());
+	}
+
+	lua_State* Behaviour::getState()
+	{
+		return instance<Environment>()->state();
+	}
+}
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Behaviour, Component)
+
+SCRIPTING_DEFINE_METHOD(Behaviour, init)
+{
+	return 0;
+}
+
+SCRIPTING_DEFINE_METHOD(Behaviour, start)
+{
+	return 0;
+}
+
+SCRIPTING_DEFINE_METHOD(Behaviour, update)
+{
+	return 0;
 }

@@ -34,8 +34,8 @@ namespace scripting
 		while (classes.size() < s_classes.size()) {
 			for (const registered_class& c : s_classes) {
 
-				// only apply class if base class has already been applied
-				if (classes.count(c.baseName) || (c.baseName == "Object")) {
+				// only apply class if base class has already been applied (or if it is static)
+				if (classes.count(c.baseName) || (c.baseName == "Object") || c.baseName.empty()) {
 
 					// try inserting class
 					auto p = classes.insert(c.name);
@@ -53,7 +53,12 @@ namespace scripting
 	{
 		auto se = Environment::instance();
 
-		se->addClass(name, baseName);
+		if (baseName.empty()) {
+			se->addStaticClass(name);
+		} else {
+			se->addClass(name, baseName);
+		}
+
 		se->addMethods(name, methods.begin(), methods.end());
 	}
 

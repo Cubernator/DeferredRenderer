@@ -13,9 +13,9 @@ public:
 
 	void setAsMain() { setMain(this); }
 
-	float getFov() const { return m_fov; }
-	float getNearPlane() const { return m_nearPlane; }
-	float getFarPlane() const { return m_farPlane; }
+	float fov() const { return m_fov; }
+	float nearPlane() const { return m_nearPlane; }
+	float farPlane() const { return m_farPlane; }
 
 	void setFov(float val) { m_fov = val; }
 	void setNearPlane(float val) { m_nearPlane = val; }

@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "brick",
   "effect": "pbr_mn",
   "properties": {

@@ -68,7 +68,7 @@ public:
 	Texture2DTarget(const Texture2D* texture, int level = 0) : m_texture(texture), m_level(level) { }
 	virtual void attach(GLenum attPoint) const final;
 	virtual void detach(GLenum attPoint) const final;
-	virtual void getDimensions(unsigned int& width, unsigned int& height) const final;
+	virtual void dimensions(unsigned int& width, unsigned int& height) const final;
 
 private:
 	const Texture2D* m_texture;

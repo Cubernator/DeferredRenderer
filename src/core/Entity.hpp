@@ -4,28 +4,27 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <typeindex>
 
-#include "Object.hpp"
+#include "NamedObject.hpp"
 #include "Component.hpp"
 #include "util/import.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
 
-#include "guid.hpp"
-
 class Scene;
 class Transform;
 
-class Entity : public Object, public json_initializable<Entity>
+namespace scripting
+{
+	class Behaviour;
+}
+
+class Entity : public NamedObject, public json_initializable<Entity>
 {
 public:
 	Entity();
-	virtual ~Entity();
-
-	const guid& getId() const { return m_id; }
-
-	const std::string& getName() const { return m_name; }
-	void setName(const std::string& name) { m_name = name; }
+	~Entity();
 
 	bool isActive() const { return m_active; }
 	void setActive(bool val) { m_active = val; }
@@ -33,31 +32,40 @@ public:
 	bool isPersistent() const { return m_persistent; }
 	void setPersistent(bool val) { m_persistent = val; }
 
-	Scene* getParentScene() { return m_parentScene; }
-	const Scene* getParentScene() const { return m_parentScene; }
+	Scene* parentScene() { return m_parentScene; }
+	const Scene* parentScene() const { return m_parentScene; }
 	void setParentScene(Scene* scene) { m_parentScene = scene; }
 
-	void start();
-	void update();
+	Transform* transform() { return m_transform; }
+	const Transform* transform() const { return m_transform; }
 
-	Transform* getTransform() { return m_transform; }
-	const Transform* getTransform() const { return m_transform; }
+	scripting::Behaviour* getBehaviour(const std::string& className)
+	{
+		return getBehaviourInternal(className);
+	}
+	const scripting::Behaviour* getBehaviour(const std::string& className) const
+	{
+		return getBehaviourInternal(className);
+	}
 
 	template<typename T>
 	T* addComponent()
 	{
 		T* r = nullptr;
-		if (!multiple_components_allowed<T>::type::value) {
+		if (!multiple_components_allowed<T>::value) {
 			r = getComponent<T>();
 		}
 
 		if (!r) {
 			m_components.push_back(std::make_unique<T>(this));
 			r = static_cast<T*>(m_components.back().get());
+			initComponent(typeid(T), r);
 		}
 
 		return r;
 	}
+
+	void removeComponent(Component* cmpt);
 
 	template<typename T>
 	T* getComponent()
@@ -74,13 +82,13 @@ public:
 	template<>
 	Transform* getComponent<Transform>()
 	{
-		return getTransform();
+		return transform();
 	}
 
 	template<>
 	const Transform* getComponent<Transform>() const
 	{
-		return getTransform();
+		return transform();
 	}
 
 	template<typename T>
@@ -92,7 +100,7 @@ public:
 	template<typename T>
 	std::vector<const T*> getComponents() const
 	{
-		return getComponentsInternal<T>();
+		return getComponentsInternal<const T>();
 	}
 
 	template<typename T>
@@ -101,18 +109,24 @@ public:
 		return getComponent<T>();
 	}
 
-private:
-	const guid m_id;
-	std::string m_name;
-	bool m_active;
-	bool m_persistent;
+	void preInit(const nlohmann::json& json);
 
-	std::vector<std::unique_ptr<Component>> m_components;
-	Transform* m_transform; // every entity must have a transform, so cache it here for fast access
+private:
+	bool m_active, m_persistent;
+
+	using cmpt_ptr = std::unique_ptr<Component>;
+
+	std::vector<cmpt_ptr> m_components;
+	std::vector<scripting::Behaviour*> m_behaviours;
+	// every entity must have a transform, so cache it here for fast access
+	Transform* m_transform;
 
 	Scene* m_parentScene;
 
 	static json_interpreter<Entity> s_properties;
+
+	void initComponent(std::type_index id, Component* cmpt);
+
 
 	template<typename T>
 	T* getComponentInternal() const
@@ -142,6 +156,8 @@ private:
 		return result;
 	}
 
+	scripting::Behaviour* getBehaviourInternal(const std::string& className) const;
+
 	// cppcheck-suppress unusedPrivateFunction
 	void apply_json_impl(const nlohmann::json& json);
 
@@ -150,5 +166,12 @@ private:
 
 	friend struct json_initializable<Entity>;
 };
+
+Entity* create_entity(const std::string& name);
+
+inline Entity* create_entity()
+{
+	return create_entity("unnamed");
+}
 
 #endif // ENTITY_HPP

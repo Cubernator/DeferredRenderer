@@ -1,10 +1,11 @@
 #include "MeshRenderer.hpp"
 #include "Mesh.hpp"
-#include "util/component_registry.hpp"
+#include "scripting/class_registry.hpp"
+#include "core/component_registry.hpp"
 #include "core/Entity.hpp"
-#include "content/Content.hpp"
+#include "content/pooled.hpp"
 
-REGISTER_COMPONENT_CLASS(MeshRenderer, "meshRenderer");
+REGISTER_COMPONENT_CLASS(MeshRenderer);
 
 json_interpreter<MeshRenderer> MeshRenderer::s_properties({
 	{ "mesh", &MeshRenderer::extractMesh }
@@ -17,7 +18,7 @@ bool MeshRenderer::hasGeometry() const
 	return m_mesh != nullptr;
 }
 
-const Drawable* MeshRenderer::getDrawable_impl(unsigned int index) const
+const Drawable* MeshRenderer::getDrawable_impl(std::size_t index) const
 {
 	if (index >= m_mesh->subMeshCount())
 		return nullptr;
@@ -33,6 +34,10 @@ void MeshRenderer::apply_json_impl(const nlohmann::json& json)
 
 void MeshRenderer::extractMesh(const nlohmann::json& json)
 {
-	setMesh(Content::instance()->getPooledFromDisk<Mesh>(json.get<std::string>()));
+	setMesh(content::get_pooled<Mesh>(json));
 }
 
+SCRIPTING_REGISTER_DERIVED_CLASS(MeshRenderer, Renderer)
+
+SCRIPTING_AUTO_METHOD(MeshRenderer, mesh)
+SCRIPTING_AUTO_METHOD(MeshRenderer, setMesh)

@@ -12,13 +12,13 @@ class MeshRenderer : public Renderer
 public:
 	explicit MeshRenderer(Entity* parent);
 
-	Mesh* getMesh() { return m_mesh; }
-	const Mesh* getMesh() const { return m_mesh; }
+	Mesh* mesh() { return m_mesh; }
+	const Mesh* mesh() const { return m_mesh; }
 
 	void setMesh(Mesh* mesh) { m_mesh = mesh; }
 
 protected:
-	virtual const Drawable* getDrawable_impl(unsigned int index) const override;
+	virtual const Drawable* getDrawable_impl(std::size_t index) const override;
 	virtual bool hasGeometry() const override;
 	virtual void apply_json_impl(const nlohmann::json& json) override;
 

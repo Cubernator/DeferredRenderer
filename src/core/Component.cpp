@@ -20,9 +20,14 @@ void Component::apply_json_impl(const nlohmann::json& json)
 	s_properties.interpret_all(this, json);
 }
 
+void destroy_component(Component* cmpt)
+{
+	cmpt->entity()->removeComponent(cmpt);
+}
+
 SCRIPTING_REGISTER_CLASS(Component)
 
-SCRIPTING_DEFINE_GETTER(Component, getentity, getEntity)
-SCRIPTING_DEFINE_GETTER(Component, isenabled, isEnabled)
-SCRIPTING_DEFINE_GETTER(Component, isactiveandenabled, isActiveAndEnabled)
-SCRIPTING_DEFINE_SETTER(Component, setenabled, setEnabled)
+SCRIPTING_AUTO_METHOD(Component, entity)
+SCRIPTING_AUTO_METHOD(Component, isEnabled)
+SCRIPTING_AUTO_METHOD(Component, isActiveAndEnabled)
+SCRIPTING_AUTO_METHOD(Component, setEnabled)

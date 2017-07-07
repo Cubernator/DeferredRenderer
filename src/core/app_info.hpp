@@ -4,7 +4,7 @@
 #include <string>
 
 #include "path.hpp"
-#include "json_utils.hpp"
+#include "util/json_utils.hpp"
 
 struct app_info
 {

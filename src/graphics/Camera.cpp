@@ -1,9 +1,10 @@
+#include "Camera.hpp"
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
-#include "util/component_registry.hpp"
-#include "Camera.hpp"
+#include "core/component_registry.hpp"
+#include "scripting/class_registry.hpp"
 
-REGISTER_COMPONENT_CLASS(Camera, "camera");
+REGISTER_COMPONENT_CLASS(Camera);
 
 Camera * Camera::s_mainCamera(nullptr);
 
@@ -38,3 +39,27 @@ void Camera::apply_json_impl(const nlohmann::json& json)
 	s_properties.interpret_all(this, json);
 }
 
+SCRIPTING_REGISTER_DERIVED_CLASS(Camera, Component)
+
+SCRIPTING_AUTO_METHOD(Camera, setAsMain)
+
+SCRIPTING_AUTO_METHOD(Camera, fov)
+SCRIPTING_AUTO_METHOD(Camera, nearPlane)
+SCRIPTING_AUTO_METHOD(Camera, farPlane)
+
+SCRIPTING_AUTO_METHOD(Camera, setFov)
+SCRIPTING_AUTO_METHOD(Camera, setNearPlane)
+SCRIPTING_AUTO_METHOD(Camera, setFarPlane)
+
+SCRIPTING_DEFINE_METHOD(Camera, main)
+{
+	scripting::push_object(L, Camera::main());
+	return 1;
+}
+
+SCRIPTING_DEFINE_METHOD(Camera, setMain)
+{
+	auto cam = scripting::check_arg<Camera*>(L, 1);
+	Camera::setMain(cam);
+	return 0;
+}

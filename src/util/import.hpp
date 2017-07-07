@@ -34,7 +34,7 @@ std::unique_ptr<T> import_object(std::istream& stream)
 		}
 	}
 
-	return std::unique_ptr<T>();
+	return nullptr;
 }
 
 template<typename T>

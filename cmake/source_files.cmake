@@ -5,32 +5,35 @@ set(SOURCE_FILES
 	src/main.cpp
 	src/path.hpp
 	src/types.hpp
-	src/components/DayNightController.cpp
-	src/components/DayNightController.hpp
-	src/components/DebugControls.cpp
-	src/components/DebugControls.hpp
-	src/components/FlyCamera.cpp
-	src/components/FlyCamera.hpp
-	src/components/LightingTest.cpp
-	src/components/LightingTest.hpp
-	src/components/LightSwitch.cpp
-	src/components/LightSwitch.hpp
-	src/components/RandomMovement.cpp
-	src/components/RandomMovement.hpp
 	src/content/Content.cpp
 	src/content/Content.hpp
+	src/content/pooled.cpp
+	src/content/pooled.hpp
+	src/core/app_info.cpp
+	src/core/app_info.hpp
 	src/core/Component.cpp
 	src/core/Component.hpp
+	src/core/ComponentModule.hpp
+	src/core/component_registry.cpp
+	src/core/component_registry.hpp
 	src/core/Engine.cpp
 	src/core/Engine.hpp
 	src/core/Entity.cpp
 	src/core/Entity.hpp
+	src/core/NamedObject.cpp
+	src/core/NamedObject.hpp
 	src/core/Object.cpp
 	src/core/Object.hpp
+	src/core/ObjectRegistry.cpp
+	src/core/ObjectRegistry.hpp
+	src/core/object_pointers.cpp
+	src/core/object_pointers.hpp
 	src/core/Scene.cpp
 	src/core/Scene.hpp
 	src/core/Transform.cpp
 	src/core/Transform.hpp
+	src/core/type_registry.cpp
+	src/core/type_registry.hpp
 	src/graphics/Buffer.hpp
 	src/graphics/Camera.cpp
 	src/graphics/Camera.hpp
@@ -40,6 +43,7 @@ set(SOURCE_FILES
 	src/graphics/FrameBuffer.cpp
 	src/graphics/FrameBuffer.hpp
 	src/graphics/gl_types.hpp
+	src/graphics/ImageEffect.cpp
 	src/graphics/ImageEffect.hpp
 	src/graphics/Light.cpp
 	src/graphics/Light.hpp
@@ -65,6 +69,8 @@ set(SOURCE_FILES
 	src/graphics/shader/Shader.hpp
 	src/graphics/shader/ShaderProgram.cpp
 	src/graphics/shader/ShaderProgram.hpp
+	src/graphics/shader/shader_preprocessor.cpp
+	src/graphics/shader/shader_preprocessor.hpp
 	src/graphics/shader/shader_property.cpp
 	src/graphics/shader/shader_property.hpp
 	src/graphics/shader/uniform_id.hpp
@@ -88,13 +94,11 @@ set(SOURCE_FILES
 	src/scripting/class_registry.hpp
 	src/scripting/Environment.cpp
 	src/scripting/Environment.hpp
+	src/scripting/json_to_lua.cpp
+	src/scripting/json_to_lua.hpp
 	src/scripting/utility.cpp
 	src/scripting/utility.hpp
-	src/util/app_info.cpp
-	src/util/app_info.hpp
 	src/util/bounds.hpp
-	src/util/component_registry.cpp
-	src/util/component_registry.hpp
 	src/util/import.hpp
 	src/util/intersection_tests.cpp
 	src/util/intersection_tests.hpp
@@ -103,15 +107,10 @@ set(SOURCE_FILES
 	src/util/json_utils.cpp
 	src/util/json_utils.hpp
 	src/util/logging.hpp
-	src/util/object_pool.cpp
-	src/util/object_pool.hpp
 	src/util/property_interpreter.hpp
 	src/util/random.cpp
 	src/util/random.hpp
-	src/util/shader_preprocessor.cpp
-	src/util/shader_preprocessor.hpp
-	src/util/type_registry.cpp
-	src/util/type_registry.hpp
+	src/util/singleton.hpp
 )
 
 set(CMAKE_FILES
@@ -400,12 +399,23 @@ set(MODEL_FILES
 source_group("Model Files" FILES ${MODEL_FILES})
 
 set(SCRIPT_FILES
-	content/scripts/Behaviour.lua
-	content/scripts/Component.lua
-	content/scripts/Entity.lua
+	content/scripts/BounceInBox.lua
+	content/scripts/DayNightController.lua
+	content/scripts/DebugControls.lua
+	content/scripts/FlyCamera.lua
+	content/scripts/LightingTest.lua
+	content/scripts/LightSwitch.lua
 	content/scripts/Object.lua
-	content/scripts/RandomMovement.lua
-	content/scripts/TestBehaviour.lua
+	content/scripts/Test.lua
+	content/scripts/xmath/aabb.lua
+	content/scripts/xmath/color.lua
+	content/scripts/xmath/init.lua
+	content/scripts/xmath/quat.lua
+	content/scripts/xmath/random.lua
+	content/scripts/xmath/struct.lua
+	content/scripts/xmath/vec2.lua
+	content/scripts/xmath/vec3.lua
+	content/scripts/xmath/vec4.lua
 )
 source_group("Script Files" FILES ${SCRIPT_FILES})
 

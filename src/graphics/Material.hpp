@@ -1,6 +1,7 @@
 #ifndef MATERIAL_HPP
 #define MATERIAL_HPP
 
+#include "core/NamedObject.hpp"
 #include "util/import.hpp"
 #include "util/json_initializable.hpp"
 #include "graphics/shader/shader_property.hpp"
@@ -8,13 +9,13 @@
 class Effect;
 class ShaderProgram;
 
-class Material : public json_initializable<Material>
+class Material : public NamedObject, public json_initializable<Material>
 {
 public:
 	Material();
 
-	Effect* getEffect() { return m_effect; }
-	const Effect* getEffect() const { return m_effect; }
+	Effect* effect() { return m_effect; }
+	const Effect* effect() const { return m_effect; }
 	void setEffect(Effect* effect);
 
 	const shader_property* getProperty(uniform_id id) const;

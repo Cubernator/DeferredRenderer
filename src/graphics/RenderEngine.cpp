@@ -4,7 +4,8 @@
 #include "core/Scene.hpp"
 #include "core/Entity.hpp"
 #include "core/Transform.hpp"
-#include "content/Content.hpp"
+#include "core/ObjectRegistry.hpp"
+#include "core/app_info.hpp"
 #include "Material.hpp"
 #include "Effect.hpp"
 #include "shader/Shader.hpp"
@@ -16,8 +17,8 @@
 #include "texture/RenderTexture.hpp"
 #include "FrameBuffer.hpp"
 #include "ImageEffect.hpp"
-#include "util/app_info.hpp"
 #include "util/intersection_tests.hpp"
+#include "scripting/class_registry.hpp"
 
 #include "boost/format.hpp"
 #include "GL/glew.h"
@@ -64,16 +65,12 @@ DEF_UNIFORM_ID(img_source);
 DEF_UNIFORM_ID(img_resolution);
 
 
-RenderEngine* RenderEngine::s_instance = nullptr;
-
 RenderEngine::RenderEngine(Engine* parent)
 	: m_parent(parent), m_camera(nullptr), m_lightMeshVAO(0), m_fsQuadVAO(0), m_currentSourceBuf(nullptr),
 	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
 	m_enableDeferred(true), m_enableViewFrustumCulling(true),
 	m_outputMode(output_default), m_avgLightsPerObj(0.0f), m_triangleCount(0)
 {
-	s_instance = this;
-
 #ifdef _DEBUG
 	glEnable(GL_DEBUG_OUTPUT);
 	//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -112,7 +109,7 @@ void RenderEngine::setupDeferredPath()
 		m_auxBuffers[i]->setParams(false, filter_bilinear, wrap_clampToEdge);
 	}
 
-	onResize(m_parent->getScreenWidth(), m_parent->getScreenHeight());
+	onResize(m_parent->screenWidth(), m_parent->screenHeight());
 
 	FrameBuffer::target_array gTargets;
 	gTargets.push_back(make_tex2D_tgt(m_gBufDiff.get()));
@@ -285,12 +282,12 @@ void main()
 }
 )"_json;
 
-	auto content = Content::instance();
+	auto objReg = ObjectRegistry::instance();
 
-	auto copyVS = content->emplaceInPool<Shader>("builtin_copy.vert", Shader::type_vertex, vs);
-	auto copyFS = content->emplaceInPool<Shader>("builtin_copy.frag", Shader::type_fragment, fs);
+	auto copyVS = objReg->emplace<Shader>("builtin_copy.vert", Shader::type_vertex, vs);
+	auto copyFS = objReg->emplace<Shader>("builtin_copy.frag", Shader::type_fragment, fs);
 
-	auto copyEffect = content->getPooledFromJson<Effect>(copyEffectJson);
+	auto copyEffect = content::get_pooled_json<Effect>(copyEffectJson);
 
 	m_copyMat = std::make_unique<Material>();
 	m_copyMat->setEffect(copyEffect);
@@ -315,19 +312,21 @@ void main()
 
 void RenderEngine::createDefaultResources()
 {
-	auto content = Content::instance();
+	auto objReg = ObjectRegistry::instance();
 
 	pixel::srgb pw{ 255U, 255U, 255U };
 	auto texWhite = std::make_unique<Texture2D>();
 	texWhite->setParams(false, filter_point, wrap_repeat);
 	texWhite->setData(&pw, 1, 1);
-	content->addToPool("white", std::move(texWhite));
+	texWhite->setName("white");
+	objReg->add(std::move(texWhite));
 
 	pixel::srgb pb{ 0U, 0U, 0U };
 	auto texBlack = std::make_unique<Texture2D>();
 	texBlack->setParams(false, filter_point, wrap_repeat);
 	texBlack->setData(&pb, 1, 1);
-	content->addToPool("black", std::move(texBlack));
+	texBlack->setName("black");
+	objReg->add(std::move(texBlack));
 }
 
 RenderEngine::~RenderEngine()
@@ -361,10 +360,10 @@ void RenderEngine::onResize(int width, int height)
 
 void RenderEngine::render()
 {
-	Scene* scene = m_parent->getScene();
+	Scene* scene = m_parent->scene();
 	if (scene) {
-		m_clearColor = scene->getBackColor();
-		m_ambientLight = scene->getAmbientLight();
+		m_clearColor = scene->backColor();
+		m_ambientLight = scene->ambientLight();
 	}
 
 	getImgEffects();
@@ -399,7 +398,7 @@ void RenderEngine::getImgEffects()
 
 	if (m_camera != oldCam) {
 		if (m_camera) {
-			m_imgEffects = m_camera->getEntity()->getComponents<ImageEffect>();
+			m_imgEffects = m_camera->entity()->getComponents<ImageEffect>();
 		} else {
 			m_imgEffects.clear();
 		}
@@ -441,15 +440,15 @@ void RenderEngine::fillQueues()
 		if (!(renderer->isActiveAndEnabled() && renderer->isVisible()))
 			continue;
 
-		const Transform* transform = renderer->getEntity()->getTransform();
+		const Transform* transform = renderer->entity()->transform();
 
 		for (unsigned int i = 0; i < renderer->materialCount(); ++i) {
 
-			const Material* material = renderer->getMaterial(i);
+			const Material* material = renderer->material(i);
 			if (!material)
 				continue;
 
-			const Effect* effect = material->getEffect();
+			const Effect* effect = material->effect();
 			if (!effect)
 				continue;
 
@@ -464,7 +463,7 @@ void RenderEngine::fillQueues()
 			m_triangleCount += obj->triangles();
 
 			// if the object is not transparent and has a deferred pass, put it into deferred queue (deferred pass will be ignored in transparent effects)
-			if (m_enableDeferred && (effect->getRenderType() != type_transparent)) {
+			if (m_enableDeferred && (effect->renderType() != type_transparent)) {
 				const Pass* passDeferred = effect->getPass(light_deferred);
 				if (passDeferred && passDeferred->program) {
 					m_deferredQueue.insert({ transform, obj, material, passDeferred, nullptr });
@@ -575,8 +574,8 @@ void RenderEngine::lightingPass()
 
 	if (m_outputMode) {
 		ap->program->setUniform(g_mode_id, static_cast<int>(m_outputMode));
-		ap->program->setUniform(g_nearPlane_id, m_camera->getNearPlane());
-		ap->program->setUniform(g_farPlane_id, m_camera->getFarPlane());
+		ap->program->setUniform(g_nearPlane_id, m_camera->nearPlane());
+		ap->program->setUniform(g_farPlane_id, m_camera->farPlane());
 	}
 
 	drawDeferredLight(nullptr, ap->program);
@@ -672,7 +671,7 @@ void RenderEngine::blit(const Texture2D* source, const RenderTexture* dest, cons
 	if (!material)
 		material = m_copyMat.get();
 
-	auto effect = material->getEffect();
+	auto effect = material->effect();
 	if (effect && (passIndex < effect->passCount())) {
 		auto pass = effect->getPass(passIndex);
 		if (pass && pass->program) {
@@ -719,27 +718,27 @@ void RenderEngine::setConvertToSRGB(bool l)
 	}
 }
 
-void RenderEngine::addEntity(const Entity* entity)
+void RenderEngine::addComponent(Component* cmpt)
 {
-	const Renderer* r = entity->getComponent<Renderer>();
+	auto r = dynamic_cast<Renderer*>(cmpt);
 	if (r) {
 		m_renderers.push_back(r);
 	}
 
-	const Light* l = entity->getComponent<Light>();
+	auto l = dynamic_cast<Light*>(cmpt);
 	if (l) {
 		m_lights.push_back(l);
 	}
 }
 
-void RenderEngine::removeEntity(const Entity* entity)
+void RenderEngine::removeComponent(Component* cmpt)
 {
-	const Renderer* r = entity->getComponent<Renderer>();
+	auto r = dynamic_cast<Renderer*>(cmpt);
 	if (r) {
 		m_renderers.erase(std::remove(m_renderers.begin(), m_renderers.end(), r), m_renderers.end());
 	}
 
-	const Light* l = entity->getComponent<Light>();
+	auto l = dynamic_cast<Light*>(cmpt);
 	if (l) {
 		m_lights.erase(std::remove(m_lights.begin(), m_lights.end(), l), m_lights.end());
 	}
@@ -747,21 +746,21 @@ void RenderEngine::removeEntity(const Entity* entity)
 
 bool RenderEngine::checkIntersection(const Light* light, const Transform* transform, const Drawable* obj) const
 {
-	if (light->getType() == Light::type_directional) return true;
+	if (light->type() == Light::type_directional) return true;
 
-	const Transform* lTrans = light->getEntity()->getTransform();
+	const Transform* lTrans = light->entity()->transform();
 
 	// get light position relative to renderer's coordinate system (without scale)
-	glm::vec4 lp(lTrans->getPosition(), 1.0f);
+	glm::vec4 lp(lTrans->position(), 1.0f);
 	lp = transform->getInverseRigidMatrix() * lp;
 	glm::vec3 lPos(lp);
 
 	// apply renderer's scale directly to bounds
 	aabb rBounds = obj->bounds();
-	rBounds *= transform->getScale();
+	rBounds *= transform->scale();
 
 	// intersect aabb (renderer's bounds) with lights's sphere of influence
-	return intersect_aabb_sphere(rBounds, { lPos, light->getRange() });
+	return intersect_aabb_sphere(rBounds, { lPos, light->range() });
 }
 
 void RenderEngine::computeViewFrustum()
@@ -778,11 +777,11 @@ void RenderEngine::computeViewFrustum()
 
 bool RenderEngine::checkIntersection(const frustum& viewFrustum, const Transform* transform, const Drawable* obj) const
 {
-	glm::quat rot = transform->getRotation();
-	aabb scaledBounds = obj->bounds() * glm::abs(transform->getScale());
+	glm::quat rot = transform->rotation();
+	aabb scaledBounds = obj->bounds() * glm::abs(transform->scale());
 	glm::vec3 rmin = rot * scaledBounds.min, rmax = rot * scaledBounds.max;
 	obb rBounds{
-		transform->getPosition() + (rmax + rmin) * 0.5f,
+		transform->position() + (rmax + rmin) * 0.5f,
 		scaledBounds.extents(),
 		glm::mat3_cast(rot)
 	};
@@ -792,10 +791,10 @@ bool RenderEngine::checkIntersection(const frustum& viewFrustum, const Transform
 
 bool RenderEngine::checkIntersection(const frustum& viewFrustum, const Light* light) const
 {
-	if (light->getType() == Light::type_directional) return true;
+	if (light->type() == Light::type_directional) return true;
 
-	const Transform* lTrans = light->getEntity()->getTransform();
-	return intersect_sphere_frustum({ lTrans->getPosition(), light->getRange() }, viewFrustum);
+	const Transform* lTrans = light->entity()->transform();
+	return intersect_sphere_frustum({ lTrans->position(), light->range() }, viewFrustum);
 }
 
 void RenderEngine::bindDeferredLightPass(const Pass* pass)
@@ -819,16 +818,16 @@ void RenderEngine::drawDeferredLight(const Light* light, const ShaderProgram* pr
 	auto c = m_quadCount;
 
 	if (light) {
-		Light::type t = light->getType();
+		Light::light_type t = light->type();
 
 		if (t != Light::type_directional) {
-			float r = light->getRange();
+			float r = light->range();
 			float lr = r * m_lightMeshRadius;
-			const Transform* lt = light->getEntity()->getTransform();
-			glm::vec4 lp = {lt->getPosition(), 1.0f};
+			const Transform* lt = light->entity()->transform();
+			glm::vec4 lp = {lt->position(), 1.0f};
 			glm::vec3 lpos = m_objUniforms.view * lp;
 			
-			if ((-lpos.z - lr) > m_camera->getNearPlane()) {
+			if ((-lpos.z - lr) > m_camera->nearPlane()) {
 				transform = m_objUniforms.vp * lt->getRigidMatrix() * glm::scale(glm::vec3(r));
 				// TODO: add spot light mesh
 				switch (t) {
@@ -871,12 +870,12 @@ void RenderEngine::updateRenderState(const RenderState& newState)
 
 void RenderEngine::uniforms_per_obj::setPerFrame(const Camera* camera, float w, float h)
 {
-	const Transform* camTrans = camera->getEntity()->getTransform();
+	const Transform* camTrans = camera->entity()->transform();
 	proj = camera->getProjectionMatrix(w, h);
 	view = camTrans->getInverseRigidMatrix();
 	vp = proj * view;
 	ivp = glm::inverse(vp);
-	camPos = camTrans->getPosition();
+	camPos = camTrans->position();
 }
 
 void RenderEngine::uniforms_per_obj::setPerObject(const Transform* transform)
@@ -899,8 +898,8 @@ void RenderEngine::uniforms_per_obj::apply(const ShaderProgram* program) const
 	program->setUniform(g_cm_cam_pos_id, camPos);
 }
 
-inline const Effect * RenderEngine::render_job::effect() const { return material->getEffect(); }
-inline int RenderEngine::render_job::priority() const { return effect()->getQueuePriority(); }
+inline const Effect * RenderEngine::render_job::effect() const { return material->effect(); }
+inline int RenderEngine::render_job::priority() const { return effect()->queuePriority(); }
 inline unsigned int RenderEngine::render_job::lightMode() const { return pass->mode; }
 inline const ShaderProgram * RenderEngine::render_job::program() const { return pass->program; }
 
@@ -979,3 +978,22 @@ std::string RenderEngine::dbgSeverityString(GLenum v)
 		return "Unknown";
 	}
 }
+
+SCRIPTING_REGISTER_STATIC_CLASS(Graphics)
+
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, screenWidth, RenderEngine)
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, screenHeight, RenderEngine)
+
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, isDeferredEnabled, RenderEngine)
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, setDeferredEnabled, RenderEngine)
+
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, isVFCEnabled, RenderEngine)
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, setVFCEnabled, RenderEngine)
+
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, outputMode, RenderEngine)
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, setOutputMode, RenderEngine)
+
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, avgLightsPerObj, RenderEngine)
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, triangleCount, RenderEngine)
+
+SCRIPTING_AUTO_MODULE_METHOD_C(Graphics, setConvertToSRGB, RenderEngine)

@@ -1,7 +1,8 @@
 #include "Texture2D.hpp"
-#include "util/type_registry.hpp"
+#include "core/type_registry.hpp"
 #include "util/json_utils.hpp"
 #include "content/Content.hpp"
+#include "scripting/class_registry.hpp"
 
 #include <assert.h>
 
@@ -9,7 +10,7 @@
 #define STBI_NO_STDIO
 #include "stb_image.h"
 
-REGISTER_OBJECT_TYPE(Texture2D, "texture2D", ".rbt");
+REGISTER_OBJECT_TYPE(Texture2D, ".rbt");
 
 Texture2D::Texture2D() : Texture(GL_TEXTURE_2D), m_width(0), m_height(0), m_mipmaps(true) { }
 
@@ -77,7 +78,6 @@ void Texture2D::setParams(bool mipmaps, filter filtering, wrap wrapping, float a
 template<>
 std::unique_ptr<Texture2D> import_object<Texture2D>(const path& filename)
 {
-	// TODO
 	boost::filesystem::ifstream file(filename, std::ios::binary);
 	if (file) {
 		auto newTexture = std::make_unique<Texture2D>();
@@ -133,8 +133,13 @@ void Texture2DTarget::detach(GLenum attPoint) const
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attPoint, GL_TEXTURE_2D, 0, 0);
 }
 
-void Texture2DTarget::getDimensions(unsigned int& width, unsigned int& height) const
+void Texture2DTarget::dimensions(unsigned int& width, unsigned int& height) const
 {
 	width = m_texture->width();
 	height = m_texture->height();
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Texture2D, NamedObject)
+
+SCRIPTING_AUTO_METHOD(Texture2D, width)
+SCRIPTING_AUTO_METHOD(Texture2D, height)

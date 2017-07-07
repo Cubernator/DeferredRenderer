@@ -1,8 +1,9 @@
 #include "Shader.hpp"
-#include "util/shader_preprocessor.hpp"
-#include "util/type_registry.hpp"
+#include "shader_preprocessor.hpp"
+#include "core/type_registry.hpp"
+#include "scripting/class_registry.hpp"
 
-REGISTER_OBJECT_TYPE(Shader, "shader", ".glsl");
+REGISTER_OBJECT_TYPE(Shader, ".glsl");
 
 Shader::Shader(shader_type type, const std::string& source) : m_glObj(0), m_type(type), m_compilerStatus(GL_FALSE)
 {
@@ -47,21 +48,6 @@ Shader& Shader::operator=(Shader&& other)
 	return *this;
 }
 
-GLuint Shader::getObj() const
-{
-	return m_glObj;
-}
-
-bool Shader::hasCompilerErrors() const
-{
-	return m_compilerStatus == GL_FALSE;
-}
-
-const std::string& Shader::getLog() const
-{
-	return m_compilerLog;
-}
-
 
 template<>
 std::unique_ptr<Shader> import_object<Shader>(std::istream& stream)
@@ -82,3 +68,5 @@ std::unique_ptr<Shader> import_object<Shader>(const path& fname)
 	}
 	return std::unique_ptr<Shader>();
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Shader, NamedObject)

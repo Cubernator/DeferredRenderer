@@ -1,5 +1,5 @@
 {
-  "type": "scene",
+  "type": "Scene",
   "name": "test",
   "backColor": "#304f82",
   "ambientLight": "#304f82",
@@ -8,12 +8,12 @@
       "name": "floor",
       "components": [
         {
-          "type": "transform",
+          "type": "Transform",
           "position": [ 0, -1, 0 ],
           "scale": [ 20, 1, 20 ]
         },
         {
-          "type": "meshRenderer",
+          "type": "MeshRenderer",
           "mesh": "cube",
           "materials": [ "brick" ]
         }
@@ -23,11 +23,11 @@
       "name": "obj0",
       "components": [
         {
-          "type": "transform",
+          "type": "Transform",
           "position": [ -7, 1, 4 ]
         },
         {
-          "type": "meshRenderer",
+          "type": "MeshRenderer",
           "mesh": "cube",
           "materials": [ "steel" ]
         }
@@ -37,11 +37,11 @@
       "name": "obj1",
       "components": [
         {
-          "type": "transform",
+          "type": "Transform",
           "position": [ 2, 1, -5 ]
         },
         {
-          "type": "meshRenderer",
+          "type": "MeshRenderer",
           "mesh": "cube",
           "materials": [ "steel" ]
         }
@@ -51,24 +51,35 @@
       "name": "camera",
       "components": [
         {
-          "type": "camera",
+          "type": "Transform",
+          "position": [ 0, 3, 0 ]
+        },
+        {
+          "type": "Camera",
           "fov": 60,
           "nearPlane": 0.1,
           "farPlane": 100
         },
         {
-          "type": "flyCamera",
-          "normalSpeed": 3.0,
-          "fastSpeed": 10.0,
-          "sensitivityX": 0.15,
-          "sensitivityY": 0.2
+          "type": "Behaviour",
+          "script": "FlyCamera",
+          "properties": {
+            "normalSpeed": 3.0,
+            "fastSpeed": 15.0,
+            "sensitivityX": 0.15,
+            "sensitivityY": 0.2
+          }
         },
         {
-          "type": "debugControls"
+          "type": "Behaviour",
+          "script": "DebugControls"
         },
         {
-          "type": "scriptBehaviour",
-          "script": "TestBehaviour"
+          "type": "Behaviour",
+          "script": "Test",
+          "properties": {
+            "light": { "type": "component", "value": [ "light01", "Light" ] }
+          }
         }
       ]
     },
@@ -77,12 +88,12 @@
       "active": true,
       "components": [
         {
-          "type": "transform",
+          "type": "Transform",
           "position": [ -8, 3, 6 ],
           "rotation": [ 75, 20, 0 ]
         },
         {
-          "type": "light",
+          "type": "Light",
           "lightType": "directional",
           "color": "#fffdf4",
           "intensity": 0.8
@@ -94,11 +105,11 @@
       "active": true,
       "components": [
         {
-          "type": "transform",
+          "type": "Transform",
           "position": [ -0.3, 0.5, 1 ]
         },
         {
-          "type": "light",
+          "type": "Light",
           "lightType": "point",
           "color": "#89beff",
           "range": 8,
@@ -111,12 +122,12 @@
       "active": true,
       "components": [
         {
-          "type": "transform",
+          "type": "Transform",
           "position": [ 9, 3, 8 ],
           "rotation": [ 70, -10, 0 ]
         },
         {
-          "type": "light",
+          "type": "Light",
           "lightType": "spot",
           "color": "#ff6646",
           "intensity": 2,

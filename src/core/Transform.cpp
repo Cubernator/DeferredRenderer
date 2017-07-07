@@ -1,9 +1,10 @@
 #include "Transform.hpp"
 #include "Entity.hpp"
-#include "util/component_registry.hpp"
+#include "core/component_registry.hpp"
 #include "util/json_utils.hpp"
+#include "scripting/class_registry.hpp"
 
-REGISTER_COMPONENT_CLASS(Transform, "transform");
+REGISTER_COMPONENT_CLASS(Transform);
 
 json_interpreter<Transform> Transform::s_properties({
 	{ "position", &Transform::setPosition },
@@ -46,3 +47,11 @@ void Transform::apply_json_impl(const nlohmann::json& json)
 	s_properties.interpret_all(this, json);
 }
 
+SCRIPTING_REGISTER_DERIVED_CLASS(Transform, Component)
+
+SCRIPTING_AUTO_METHOD(Transform, position)
+SCRIPTING_AUTO_METHOD(Transform, rotation)
+SCRIPTING_AUTO_METHOD(Transform, scale)
+SCRIPTING_AUTO_METHOD(Transform, setPosition)
+SCRIPTING_AUTO_METHOD(Transform, setRotation)
+SCRIPTING_AUTO_METHOD(Transform, setScale)

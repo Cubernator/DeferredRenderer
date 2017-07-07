@@ -12,6 +12,7 @@ public:
 	explicit ImageEffect(Entity* parent) : Component(parent) { }
 
 	virtual void apply(const Texture2D* input, const RenderTexture* output) = 0;
+	virtual bool isGood() const = 0;
 
 	COMPONENT_ALLOW_MULTIPLE;
 };

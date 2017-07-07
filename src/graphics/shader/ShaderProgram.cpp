@@ -2,13 +2,14 @@
 #include "Shader.hpp"
 #include "graphics/texture/Texture.hpp"
 #include "graphics/texture/texture_unit_manager.hpp"
-#include "util/type_registry.hpp"
-#include "content/Content.hpp"
+#include "core/type_registry.hpp"
+#include "content/pooled.hpp"
+#include "scripting/class_registry.hpp"
 
 #include <algorithm>
 #include <numeric>
 
-REGISTER_OBJECT_TYPE_NO_EXT(ShaderProgram, "shaderProgram");
+REGISTER_OBJECT_TYPE_NO_EXT(ShaderProgram);
 
 ShaderProgram::~ShaderProgram()
 {
@@ -51,7 +52,7 @@ void ShaderProgram::init()
 	m_glObj = glCreateProgram();
 
 	for (auto& shader : m_shaders) {
-		glAttachShader(m_glObj, shader->getObj());
+		glAttachShader(m_glObj, shader->glObj());
 	}
 
 	glLinkProgram(m_glObj);
@@ -101,31 +102,6 @@ void ShaderProgram::getUniforms()
 			m_uniforms.emplace(id, loc);
 		}
 	}
-}
-
-GLuint ShaderProgram::getObj() const
-{
-	return m_glObj;
-}
-
-bool ShaderProgram::hasLinkerErrors() const
-{
-	return m_linkerStatus == GL_FALSE;
-}
-
-const std::string& ShaderProgram::getLog() const
-{
-	return m_linkerLog;
-}
-
-bool ShaderProgram::isGood() const
-{
-	return m_good;
-}
-
-ShaderProgram::operator bool() const
-{
-	return isGood();
 }
 
 bool ShaderProgram::getUniformLoc(uniform_id id, GLint& loc) const
@@ -179,7 +155,7 @@ std::unique_ptr<ShaderProgram> json_to_object<ShaderProgram>(const nlohmann::jso
 		std::vector<Shader*> shaders;
 		for (auto& j : shaderList) {
 			if (j.is_string()) {
-				Shader* s = Content::instance()->getPooledFromDisk<Shader>(j.get<std::string>());
+				Shader* s = content::get_pooled<Shader>(j);
 				if (s) shaders.push_back(s);
 			}
 		}
@@ -232,3 +208,5 @@ GLenum sampler_type_to_target(GLenum type)
 		return 0;
 	}
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(ShaderProgram, NamedObject)

@@ -11,7 +11,7 @@ class Renderer;
 class Light : public Component
 {
 public:
-	enum type
+	enum light_type
 	{
 		type_directional = 0,
 		type_point = 1,
@@ -20,15 +20,15 @@ public:
 
 	explicit Light(Entity* parent);
 
-	type getType() const { return m_type; }
-	const glm::vec4& getColor() const { return m_color; }
-	float getIntensity() const { return m_intensity; }
-	float getRange() const { return m_range; }
-	float getSpotAngle() const { return m_spotAngle; }
-	float getSpotFalloff() const { return m_spotFalloff; }
-	int getPriority() const { return m_priority; }
+	light_type type() const { return m_type; }
+	const glm::vec4& color() const { return m_color; }
+	float intensity() const { return m_intensity; }
+	float range() const { return m_range; }
+	float spotAngle() const { return m_spotAngle; }
+	float spotFalloff() const { return m_spotFalloff; }
+	int priority() const { return m_priority; }
 
-	void setType(type val) { m_type = val; }
+	void setType(light_type val) { m_type = val; }
 	void setColor(const glm::vec4& val) { m_color = val; }
 	void setIntensity(float val) { m_intensity = val; }
 	void setRange(float val) { m_range = val; }
@@ -44,16 +44,13 @@ protected:
 	virtual void apply_json_impl(const nlohmann::json& json) override;
 
 private:
-	type m_type;
+	light_type m_type;
 	glm::vec4 m_color;
 	float m_intensity;
 	float m_range;
 	float m_spotAngle;
 	float m_spotFalloff;
 	int m_priority;
-
-	static json_interpreter<Light> s_properties;
-	static keyword_helper<type> s_types;
 };
 
 #endif // LIGHT_HPP

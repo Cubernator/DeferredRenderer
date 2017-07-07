@@ -1,13 +1,14 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
-#include <string>
+#include "core/NamedObject.hpp"
+#include "util/import.hpp"
 
 #include "GL/glew.h"
 
-#include "util/import.hpp"
+#include <string>
 
-class Shader
+class Shader : public NamedObject
 {
 public:
 	enum shader_type {
@@ -26,10 +27,12 @@ public:
 	Shader(Shader&& other);
 	Shader& operator=(Shader&& other);
 
-	GLuint getObj() const;
+	GLuint glObj() const { return m_glObj; }
 
-	bool hasCompilerErrors() const;
-	const std::string& getLog() const;
+	GLint compilerStatus() const { return m_compilerStatus; }
+	const std::string& compilerLog() const { return m_compilerLog; }
+
+	bool hasCompilerErrors() const { return m_compilerStatus == GL_FALSE; }
 
 private:
 	GLuint m_glObj;

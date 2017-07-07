@@ -48,7 +48,7 @@ namespace
 		{ "x", key_x },
 		{ "y", key_y },
 		{ "z", key_z },
-		{ "left_bracket", key_left_bracket },
+		{ "leftBracket", key_left_bracket },
 		{ "backslash", key_backslash },
 		{ "rightBracket", key_right_bracket },
 		{ "graveAccent", key_grave_accent },
@@ -68,7 +68,7 @@ namespace
 		{ "pageDown", key_page_down },
 		{ "home", key_home },
 		{ "end", key_end },
-		{ "caps_lock", key_caps_lock },
+		{ "capsLock", key_caps_lock },
 		{ "scrollLock", key_scroll_lock },
 		{ "numLock", key_num_lock },
 		{ "printScreen", key_print_screen },
@@ -141,16 +141,16 @@ namespace
 	};
 }
 
-input_key json_getter<input_key>::get(const nlohmann::json& j)
+input_key string_to_input_key(const std::string& s)
 {
 	input_key result = key_unknown;
-	g_keys.get(j, result);
+	g_keys.get(s, result);
 	return result;
 }
 
-input_mbutton json_getter<input_mbutton>::get(const nlohmann::json& j)
+input_mbutton string_to_input_mbutton(const std::string& s)
 {
 	input_mbutton result = mbutton_unknown;
-	g_mbuttons.get(j, result);
+	g_mbuttons.get(s, result);
 	return result;
 }

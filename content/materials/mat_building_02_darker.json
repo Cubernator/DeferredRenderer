@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "mat_building_02_darker",
   "effect": "pbr_sn",
   "properties": {

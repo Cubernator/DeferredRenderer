@@ -1,16 +1,16 @@
 #ifndef CONTENT_HPP
 #define CONTENT_HPP
 
+#include "core/type_registry.hpp"
+#include "util/singleton.hpp"
+#include "util/import.hpp"
+#include "util/json_utils.hpp"
+
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
 
-#include "util/import.hpp"
-#include "util/json_utils.hpp"
-#include "util/object_pool.hpp"
-#include "util/type_registry.hpp"
-
-class Content
+class Content : public singleton<Content>
 {
 public:
 	Content();
@@ -21,90 +21,51 @@ public:
 	bool findGenericFirst(const std::string& name, path& result);
 	std::vector<path> findGenericAll(const std::string& name);
 
-	bool findObject(const std::type_info& type, const std::string& name, path& result);
-	path findObject(const std::type_info& type, const std::string& name)
+	bool findObject(std::type_index tid, const std::string& name, path& result);
+	path findObject(std::type_index tid, const std::string& name)
 	{
 		path p;
-		findObject(type, name, p);
+		findObject(tid, name, p);
 		return p;
+	}
+
+	std::unique_ptr<NamedObject> getFromDisk(const object_type& type, const std::string& name);
+	std::unique_ptr<NamedObject> getFromDisk(std::type_index tid, const std::string& name)
+	{
+		return getFromDisk(type_registry::findById(tid), name);
+	}
+	std::unique_ptr<NamedObject> getFromDisk(const std::string& typeName, const std::string& name)
+	{
+		return getFromDisk(type_registry::findByName(typeName), name);
 	}
 
 	template<typename T>
 	std::unique_ptr<T> getFromDisk(const std::string& name)
 	{
-		const std::type_info& type = typeid(T);
-		auto& t = type_registry::findByType(type);
+		CHECK_NAMED_OBJECT_TYPE(T);
+		return getFromDiskInt<T>(type_registry::get<T>(), name);
+	}
 
-		path p;
-		if (findObject(type, name, p)) {
-			//std::cout << "loading " << t.name << ": \"" << name << "\"" << std::endl;
-			return import_object<T>(p);
-		}
-
-		std::cout << "could not find " << t.name << ": \"" << name << "\"" << std::endl;
-		return nullptr;
+	std::unique_ptr<NamedObject> getFromJson(const object_type& type, const nlohmann::json& json);
+	std::unique_ptr<NamedObject> getFromJson(std::type_index tid, const nlohmann::json& json)
+	{
+		return getFromJson(type_registry::findById(tid), json);
+	}
+	std::unique_ptr<NamedObject> getFromJson(const std::string& typeName, const nlohmann::json& json)
+	{
+		return getFromJson(type_registry::findByName(typeName), json);
 	}
 
 	template<typename T>
 	std::unique_ptr<T> getFromJson(const nlohmann::json& json)
 	{
-		if (json.is_string()) {
-			return getFromDisk<T>(json.get<std::string>());
-		} else if (json.is_object()) {
-			return json_to_object<T>(json);
-		}
-		return std::unique_ptr<T>();
-	}
-
-	template<typename T>
-	T* getPooled(const std::string& name)
-	{
-		return m_pool.get<T>(name);
-	}
-
-	template<typename T>
-	T* getPooledFromDisk(const std::string& name)
-	{
-		T* obj = getPooled<T>(name);
-		if (!obj) {
-			auto ptr = getFromDisk<T>(name);
-			if (ptr) {
-				return m_pool.add<T>(name, std::move(ptr));
-			}
-		}
-		return obj;
-	}
-
-	template<typename T>
-	T* getPooledFromJson(const nlohmann::json& json)
-	{
-		if (json.is_string()) {
-			return getPooledFromDisk<T>(json.get<std::string>());
-		} else if (json.is_object()) {
-			std::string name = getObjectName<T>(json);
-			T* obj = getPooled<T>(name);
-			if (obj) return obj;
-
-			return m_pool.add<T>(name, json_to_object<T>(json));
-		}
-		return nullptr;
-	}
-
-	template<typename T>
-	T* addToPool(const std::string& name, std::unique_ptr<T> obj)
-	{
-		return m_pool.add<T>(name, std::move(obj));
-	}
-
-	template<typename T, typename... Args>
-	T* emplaceInPool(const std::string& name, Args&&... args)
-	{
-		return m_pool.add<T>(name, std::make_unique<T>(std::forward<Args>(args)...));
+		CHECK_NAMED_OBJECT_TYPE(T);
+		return getFromJsonInt<T>(type_registry::get<T>(), json);
 	}
 
 	bool findShaderFile(const path& p, path& result) const;
 
-	static Content* instance() { return s_instance; }
+	std::string getObjectName(const nlohmann::json& json);
 
 private:
 	using simple_registry = std::unordered_multimap<std::string, path>;
@@ -114,29 +75,46 @@ private:
 	path m_contentRoot;
 	registry m_registry;
 	simple_registry m_genericRegistry;
-	object_pool m_pool;
 
 	std::vector<path> m_shaderIncludeDirs;
 
 	bool m_logSearch;
 	unsigned int m_logIndentLevel;
 
-	static Content* s_instance;
+	unsigned int m_anonCounter;
 
 
-	template<typename T>
-	std::string getObjectName(const nlohmann::json& json)
-	{
-		auto it = json.find("name");
-		if (it != json.end() && it->is_string()) {
-			return it->get<std::string>();
-		}
-
-		return m_pool.getNewAnonymousName<T>();
-	}
+	std::string getAnonName();
 
 	void scanContentFolder(const path& p);
 	void addFile(const path& p);
+
+	template<typename T>
+	std::unique_ptr<T> getFromDiskInt(const object_type& type, const std::string& name)
+	{
+		path p;
+		if (type && findObject(type.id, name, p)) {
+			auto obj = import_object<T>(type, p);
+			if (obj) obj->setName(name);
+			return std::move(obj);
+		}
+
+		std::cout << "could not find " << type.name << ": \"" << name << "\"" << std::endl;
+		return nullptr;
+	}
+
+	template<typename T>
+	std::unique_ptr<T> getFromJsonInt(const object_type& type, const nlohmann::json& json)
+	{
+		if (json.is_string()) {
+			return getFromDiskInt<T>(type, json);
+		} else if (json.is_object() && type) {
+			auto obj = json_to_object<T>(type, json);
+			if (obj) obj->setName(getObjectName(json));
+			return std::move(obj);
+		}
+		return nullptr;
+	}
 };
 
 #endif // CONTENT_HPP

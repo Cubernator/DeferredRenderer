@@ -1,16 +1,17 @@
 #ifndef MESH_HPP
 #define MESH_HPP
 
-#include <memory>
-
 #include "Buffer.hpp"
 #include "Drawable.hpp"
+#include "core/NamedObject.hpp"
 #include "util/import.hpp"
 #include "util/bounds.hpp"
 
 #include "glm.hpp"
 
-class SubMesh : public Drawable
+#include <memory>
+
+class SubMesh : public Object, public Drawable
 {
 public:
 	using position_type			= glm::vec3;
@@ -56,10 +57,8 @@ public:
 	virtual void unbind() const final;
 	virtual void draw() const final;
 
-	virtual aabb bounds() const final { return getBounds(); }
+	virtual aabb bounds() const final { return m_bounds; }
 	virtual std::size_t triangles() const final;
-
-	const aabb& getBounds() const { return m_bounds; }
 
 private:
 	GLuint m_vao;
@@ -100,18 +99,18 @@ private:
 	}
 };
 
-class Mesh
+class Mesh : public NamedObject
 {
 public:
 	std::size_t subMeshCount() const { return m_subMeshes.size(); }
 
-	SubMesh* getSubMesh(unsigned int index) { return m_subMeshes[index].get(); }
-	const SubMesh* getSubMesh(unsigned int index) const { return m_subMeshes[index].get(); }
+	SubMesh* getSubMesh(std::size_t index) { return m_subMeshes[index].get(); }
+	const SubMesh* getSubMesh(std::size_t index) const { return m_subMeshes[index].get(); }
 
 	void addSubMesh(std::unique_ptr<SubMesh> subMesh);
 	void clearSubMeshes();
 
-	const aabb& getBounds() const { return m_bounds; }
+	const aabb& bounds() const { return m_bounds; }
 
 private:
 	std::vector<std::unique_ptr<SubMesh>> m_subMeshes;

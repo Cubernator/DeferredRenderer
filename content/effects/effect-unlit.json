@@ -1,5 +1,5 @@
 {
-  "type": "effect",
+  "type": "Effect",
   "name": "unlit",
   "renderQueue": [ "transparent", 0 ],
   "renderType": "transparent",

@@ -12,7 +12,7 @@
 #include "boost/type_erasure/typeid_of.hpp"
 #include "boost/type_erasure/free.hpp"
 
-#include "content/Content.hpp"
+#include "content/pooled.hpp"
 #include "util/json_initializable.hpp"
 #include "util/property_interpreter.hpp"
 #include "util/json_utils.hpp"
@@ -96,7 +96,7 @@ private:
 	{
 		value_type operator() (const nlohmann::json& j) const
 		{
-			return value_type(Content::instance()->getPooledFromDisk<T>(j));
+			return value_type(content::get_pooled<T>(j));
 		}
 	};
 
@@ -105,7 +105,7 @@ private:
 	{
 		value_type operator() (const nlohmann::json& j) const
 		{
-			return value_type(Content::instance()->getPooledFromJson<T>(j));
+			return value_type(content::get_pooled_json<T>(j));
 		}
 	};
 

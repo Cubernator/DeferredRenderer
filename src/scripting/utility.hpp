@@ -3,9 +3,13 @@
 
 #include <string>
 #include <type_traits>
+#include <vector>
 
 #include "lua.hpp"
+#include "glm.hpp"
+#include "util/bounds.hpp"
 #include "boost/polymorphic_pointer_cast.hpp"
+#include "json_to_lua.hpp"
 
 class Object;
 
@@ -27,9 +31,12 @@ namespace scripting
 		lua_setfield(L, idx, k);
 	}
 
+	void load_module(lua_State* L, const std::string& name);
+
 	void raise_error(lua_State* L, const std::string& msg);
 
 	void stack_dump(lua_State* L);
+
 	std::string value_to_string(lua_State* L, int idx);
 	inline std::string value_typename(lua_State* L, int idx)
 	{
@@ -45,7 +52,7 @@ namespace scripting
 	template<typename T>
 	struct assert_false : std::false_type { };
 
-	template<typename T>
+	template<typename T, typename Enable = void>
 	struct type_handler
 	{
 		static_assert(assert_false<T>::value, "This type is not supported by the scripting environment!");
@@ -54,19 +61,19 @@ namespace scripting
 	template<typename T>
 	T get_value(lua_State* L, int idx = -1)
 	{
-		return type_handler<T>::get_value(L, idx);
+		return T(type_handler<T>::get_value(L, idx));
 	}
 
 	template<typename T>
-	void push_value(lua_State* L, T&& value)
+	void push_value(lua_State* L, const T& value)
 	{
-		type_handler<std::decay_t<T>>::push_value(L, std::forward<T>(value));
+		type_handler<std::decay_t<T>>::push_value(L, value);
 	}
 
 	template<typename T>
 	T check_arg(lua_State* L, int arg)
 	{
-		return type_handler<T>::check_arg(L, arg);
+		return T(type_handler<T>::check_arg(L, arg));
 	}
 
 	template<typename T>
@@ -85,82 +92,89 @@ namespace scripting
 		push_values(L, std::forward<Args>(args)...);
 	}
 
-	template<typename ObjT, typename ValueT>
-	using obj_getter_func = ValueT(ObjT::*)();
+	template<typename ObjT, typename Ret, typename... Args>
+	using obj_method = Ret(ObjT::*)(Args...);
 
-	template<typename ObjT, typename ValueT>
-	using const_obj_getter_func = ValueT(ObjT::*)() const;
+	template<typename ObjT, typename Ret, typename... Args>
+	using const_obj_method = Ret(ObjT::*)(Args...) const;
 
-	template<typename ObjT, typename ValueT>
-	using obj_setter_func = void (ObjT::*)(ValueT);
-
-	template<typename ObjT, typename ValueT>
-	using obj_member_ptr = ValueT ObjT::*;
-
-	template<typename T, typename U>
-	void push_member(lua_State* L, T* self, obj_getter_func<T, U> member)
+	template<typename T, typename Func, typename Ret, typename... Args>
+	struct method_caller
 	{
-		push_value<U>(L, (self->*member)());
+		static int call(lua_State* L, T* self, Func method, int firstArg)
+		{
+			int a = firstArg - 1;
+			push_value<Ret>(L, (self->*method)(check_arg<std::decay_t<Args>>(L, ++a)...));
+			return 1;
+		}
+	};
+
+	template<typename T, typename Func, typename... Args>
+	struct method_caller<T, Func, void, Args...>
+	{
+		static int call(lua_State* L, T* self, Func method, int firstArg)
+		{
+			int a = firstArg - 1;
+			(self->*method)(check_arg<std::decay_t<Args>>(L, ++a)...);
+			return 0;
+		}
+	};
+
+	template<typename T, typename Func, typename Ret, typename... Args>
+	int call_method_self(lua_State* L, Func method)
+	{
+		return method_caller<T, Func, Ret, Args...>::call(L, check_self<T>(L), method, 2);
 	}
 
-	template<typename T, typename U>
-	void push_member(lua_State* L, const T* self, const_obj_getter_func<T, U> member)
+	template<typename T, typename Func, typename Ret, typename... Args>
+	int call_method_module(lua_State* L, Func method)
 	{
-		push_value<U>(L, (self->*member)());
+		return method_caller<T, Func, Ret, Args...>::call(L, instance<T>(), method, 1);
 	}
 
-	template<typename T, typename U>
-	auto push_member(lua_State* L, const T* self, obj_member_ptr<T, U> member) -> std::enable_if_t<!std::is_function<U>::value>
+	template<typename T, typename Ret, typename... Args>
+	int method_self_helper(lua_State* L, obj_method<T, Ret, Args...> method)
 	{
-		push_value<U>(L, self->*member);
+		return call_method_self<T, obj_method<T, Ret, Args...>, Ret, Args...>(L, method);
 	}
 
-	template<typename T, typename U>
-	void check_member(lua_State* L, int arg, T* self, obj_setter_func<T, U> member)
+	template<typename T, typename Ret, typename... Args>
+	auto method_self_helper(lua_State* L, const_obj_method<T, Ret, Args...> method) -> std::enable_if_t<!std::is_pointer<Ret>::value, int>
 	{
-		(self->*member)(check_arg<std::decay_t<U>>(L, arg));
+		return call_method_self<T, const_obj_method<T, Ret, Args...>, Ret, Args...>(L, method);
 	}
 
-	template<typename T, typename U>
-	void check_member(lua_State* L, int arg, T* self, obj_member_ptr<T, U> member)
+	template<typename T, typename Ret, typename... Args>
+	int method_module_helper(lua_State* L, obj_method<T, Ret, Args...> method)
 	{
-		self->*member = check_arg<U>(L, arg);
+		return call_method_module<T, obj_method<T, Ret, Args...>, Ret, Args...>(L, method);
 	}
 
-	template<typename T, typename U>
-	int getter_helper(lua_State* L, obj_getter_func<T, U> getMember)
+	template<typename T, typename Ret, typename... Args>
+	auto method_module_helper(lua_State* L, const_obj_method<T, Ret, Args...> method) -> std::enable_if_t<!std::is_pointer<Ret>::value, int>
 	{
-		push_member(L, check_self<T>(L), getMember);
-		return 1;
+		return call_method_module<T, const_obj_method<T, Ret, Args...>, Ret, Args...>(L, method);
 	}
 
-	template<typename T, typename U>
-	auto getter_helper(lua_State* L, const_obj_getter_func<T, U> getMember) -> std::enable_if_t<!std::is_pointer<U>::value, int>
+	template<>
+	struct type_handler<std::nullptr_t>
 	{
-		push_member(L, check_self<T>(L), getMember);
-		return 1;
-	}
+		static std::nullptr_t get_value(lua_State* L, int idx)
+		{
+			return nullptr;
+		}
 
-	template<typename T, typename U>
-	int getter_helper(lua_State* L, obj_member_ptr<T, U> getMember)
-	{
-		push_member(L, check_self<T>(L), getMember);
-		return 1;
-	}
+		static void push_value(lua_State* L, std::nullptr_t value)
+		{
+			lua_pushnil(L);
+		}
 
-	template<typename T, typename U>
-	int setter_helper(lua_State* L, obj_setter_func<T, U> setMember)
-	{
-		check_member(L, 2, check_self<T>(L), setMember);
-		return 0;
-	}
-
-	template<typename T, typename U>
-	int setter_helper(lua_State* L, obj_member_ptr<T, U> setMember)
-	{
-		check_member(L, 2, check_self<T>(L), setMember);
-		return 0;
-	}
+		static std::nullptr_t check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TNIL);
+			return nullptr;
+		}
+	};
 
 	template<>
 	struct type_handler<bool>
@@ -349,6 +363,221 @@ namespace scripting
 	template<typename T>
 	struct type_handler<T*> : public ptr_type_handler<T>
 	{ };
+
+	template<typename T>
+	struct type_handler<T, std::enable_if_t<std::is_enum<T>::value>>
+	{
+		static T get_value(lua_State* L, int idx)
+		{
+			return static_cast<T>(scripting::get_value<lua_Integer>(L, idx));
+		}
+
+		static void push_value(lua_State* L, T value)
+		{
+			scripting::push_value(L, static_cast<lua_Integer>(value));
+		}
+
+		static T check_arg(lua_State* L, int arg)
+		{
+			return static_cast<T>(scripting::check_arg<lua_Integer>(L, arg));
+		}
+	};
+
+	std::size_t table_length(lua_State* L, int idx);
+
+	template<typename T>
+	void get_array(lua_State* L, int idx, T* ptr, std::size_t count)
+	{
+		for (std::size_t i = 0; i < count; ++i) {
+			lua_geti(L, idx, i + 1);
+			ptr[i] = get_value<T>(L, -1);
+			lua_pop(L, 1);
+		}
+	}
+
+	template<typename T>
+	void push_array(lua_State* L, const T* ptr, std::size_t count)
+	{
+		lua_createtable(L, int(count), 0);
+		for (std::size_t i = 0; i < count; ++i) {
+			scripting::push_value<T>(L, ptr[i]);
+			lua_seti(L, -2, i + 1);
+		}
+	}
+
+	template<typename T>
+	struct type_handler<std::vector<T>>
+	{
+		static std::vector<T> get_value(lua_State* L, int idx)
+		{
+			auto l = table_length(L, idx);
+			std::vector<T> result{l};
+			get_array(L, idx, result.data(), l);
+			return result;
+		}
+
+		static void push_value(lua_State* L, const std::vector<T>& value)
+		{
+			push_array(L, value.data(), value.size());
+		}
+
+		static std::vector<T> check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TTABLE);
+			// TODO: check type of each element
+			return get_value(L, arg);
+		}
+	};
+
+	template<typename T>
+	void push_struct(lua_State* L, const std::string& cn, const T* ptr, std::size_t size)
+	{
+		load_module(L, cn.c_str());
+		lua_getfield(L, -1, "new");
+		lua_remove(L, -2);
+		for (std::size_t i = 0; i < size; ++i) {
+			push_value<T>(L, ptr[i]);
+		}
+		lua_call(L, int(size), 1);
+	}
+
+	template<typename T, glm::precision p>
+	struct type_handler<glm::tvec2<T, p>>
+	{
+		static glm::tvec2<T, p> get_value(lua_State* L, int idx)
+		{
+			glm::tvec2<T, p> result;
+			get_array(L, idx, &result[0], 2);
+			return result;
+		}
+
+		static void push_value(lua_State* L, const glm::tvec2<T, p>& value)
+		{
+			push_struct(L, "xmath.vec2", &value[0], 2);
+		}
+
+		static glm::tvec2<T, p> check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TTABLE);
+			auto l = table_length(L, arg);
+			luaL_argcheck(L, l >= 2, arg, "expected vector with 2 elements");
+			return get_value(L, arg);
+		}
+	};
+
+	template<typename T, glm::precision p>
+	struct type_handler<glm::tvec3<T, p>>
+	{
+		static glm::tvec3<T, p> get_value(lua_State* L, int idx)
+		{
+			glm::tvec3<T, p> result;
+			get_array(L, idx, &result[0], 3);
+			return result;
+		}
+
+		static void push_value(lua_State* L, const glm::tvec3<T, p>& value)
+		{
+			push_struct(L, "xmath.vec3", &value[0], 3);
+		}
+
+		static glm::tvec3<T, p> check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TTABLE);
+			auto l = table_length(L, arg);
+			luaL_argcheck(L, l >= 3, arg, "expected vector with 3 elements");
+			return get_value(L, arg);
+		}
+	};
+
+	template<typename T, glm::precision p>
+	struct type_handler<glm::tvec4<T, p>>
+	{
+		static glm::tvec4<T, p> get_value(lua_State* L, int idx)
+		{
+			glm::tvec4<T, p> result;
+			get_array(L, idx, &result[0], 4);
+			return result;
+		}
+
+		static void push_value(lua_State* L, const glm::tvec4<T, p>& value)
+		{
+			push_struct(L, "xmath.vec4", &value[0], 4);
+		}
+
+		static glm::tvec4<T, p> check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TTABLE);
+			auto l = table_length(L, arg);
+			luaL_argcheck(L, l >= 4, arg, "expected vector with 4 elements");
+			return get_value(L, arg);
+		}
+	};
+
+	template<>
+	struct type_handler<aabb>
+	{
+		static aabb get_value(lua_State* L, int idx)
+		{
+			lua_getfield(L, idx, "min");
+			lua_getfield(L, idx, "max");
+			aabb result{
+				scripting::get_value<glm::vec3>(L, -2),
+				scripting::get_value<glm::vec3>(L, -1)
+			};
+			lua_pop(L, 2);
+			return result;
+		}
+
+		static void push_value(lua_State* L, const aabb& value)
+		{
+			load_module(L, "xmath.aabb");
+			lua_getfield(L, -1, "new");
+			lua_remove(L, -2);
+			scripting::push_value<glm::vec3>(L, value.min);
+			scripting::push_value<glm::vec3>(L, value.max);
+			lua_call(L, 2, 1);
+		}
+
+		static aabb check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TTABLE);
+			return get_value(L, arg);
+		}
+	};
+
+
+	template<typename T, glm::precision p>
+	struct type_handler<glm::tquat<T, p>>
+	{
+		static glm::tquat<T, p> get_value(lua_State* L, int idx)
+		{
+			glm::tquat<T, p> result;
+			get_array(L, idx, &result[0], 4);
+			return result;
+		}
+
+		static void push_value(lua_State* L, const glm::tquat<T, p>& value)
+		{
+			push_struct(L, "xmath.quat", &value[0], 4);
+		}
+
+		static glm::tquat<T, p> check_arg(lua_State* L, int arg)
+		{
+			luaL_checktype(L, arg, LUA_TTABLE);
+			auto l = table_length(L, arg);
+			luaL_argcheck(L, l >= 4, arg, "expected quaternion with 4 elements");
+			return get_value(L, arg);
+		}
+	};
+
+	template<>
+	struct type_handler<nlohmann::json>
+	{
+		static void push_value(lua_State* L, const nlohmann::json& value)
+		{
+			push_json(L, value);
+		}
+	};
 }
 
 #endif // SCRIPTING_UTILITY_HPP

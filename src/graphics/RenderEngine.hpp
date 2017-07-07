@@ -1,6 +1,10 @@
 #ifndef RENDERENGINE_HPP
 #define RENDERENGINE_HPP
 
+#include "core/ComponentModule.hpp"
+
+#include "util/singleton.hpp"
+
 #include "graphics/Buffer.hpp"
 #include "graphics/Light.hpp"
 #include "graphics/RenderState.hpp"
@@ -35,7 +39,7 @@ class FrameBuffer;
 class RenderTexture;
 class ImageEffect;
 
-class RenderEngine
+class RenderEngine : public singleton<RenderEngine>, public ComponentModule
 {
 public:
 	enum output_mode
@@ -52,8 +56,8 @@ public:
 	explicit RenderEngine(Engine *parent);
 	~RenderEngine();
 
-	Engine *getParent() { return m_parent; }
-	const Engine *getParent() const { return m_parent; }
+	Engine *parent() { return m_parent; }
+	const Engine *parent() const { return m_parent; }
 
 	int screenWidth() const { return m_width; }
 	int screenHeight() const { return m_height; }
@@ -64,26 +68,24 @@ public:
 	bool isVFCEnabled() const { return m_enableViewFrustumCulling; }
 	void setVFCEnabled(bool val) { m_enableViewFrustumCulling = val; }
 
-	output_mode getOutputMode() const { return m_outputMode; }
+	output_mode outputMode() const { return m_outputMode; }
 	void setOutputMode(output_mode val) { m_outputMode = val; }
 
-	float getAvgLightsPerObj() const { return m_avgLightsPerObj; }
-	std::size_t getTriangleCount() const { return m_triangleCount; }
+	float avgLightsPerObj() const { return m_avgLightsPerObj; }
+	std::size_t triangleCount() const { return m_triangleCount; }
 
 	void setConvertToSRGB(bool l);
-
-	void render();
 
 	void blit(const Texture2D* source, const RenderTexture* dest, const Material* material = nullptr, std::size_t passIndex = 0);
 
 	const RenderTexture* getAuxRenderTexture();
 
-	void addEntity(const Entity* entity);
-	void removeEntity(const Entity* entity);
+	virtual void addComponent(Component* cmpt) final;
+	virtual void removeComponent(Component* cmpt) final;
+
+	void render();
 
 	void onResize(int width, int height);
-
-	static RenderEngine* instance() { return s_instance; }
 
 private:
 	struct uniforms_per_obj
@@ -146,8 +148,8 @@ private:
 
 	struct light_queue_indices : public mi::indexed_by<
 		mi::ordered_non_unique<mi::composite_key<Light,
-			mi::const_mem_fun<Light, Light::type, &Light::getType>,
-			mi::const_mem_fun<Light, int, &Light::getPriority>
+			mi::const_mem_fun<Light, Light::light_type, &Light::type>,
+			mi::const_mem_fun<Light, int, &Light::priority>
 		>>
 	> { };
 
@@ -209,8 +211,6 @@ private:
 
 	float m_avgLightsPerObj;
 	std::size_t m_triangleCount;
-
-	static RenderEngine* s_instance;
 
 
 	void setupDeferredPath();

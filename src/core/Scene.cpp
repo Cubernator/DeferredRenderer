@@ -1,14 +1,15 @@
 #include "Scene.hpp"
-#include "Engine.hpp"
 #include "Entity.hpp"
+#include "ObjectRegistry.hpp"
+#include "type_registry.hpp"
+#include "component_registry.hpp"
 #include "util/json_utils.hpp"
-#include "util/type_registry.hpp"
-#include "scripting/Environment.hpp"
+#include "scripting/class_registry.hpp"
 
 #include "boost/format.hpp"
 #include "lua.hpp"
 
-REGISTER_OBJECT_TYPE_NO_EXT(Scene, "scene");
+REGISTER_OBJECT_TYPE_NO_EXT(Scene);
 
 json_interpreter<Scene> Scene::s_properties({
 	{ "backColor", &Scene::setBackColor },
@@ -16,63 +17,36 @@ json_interpreter<Scene> Scene::s_properties({
 	{ "entities", &Scene::extractEntities }
 });
 
-Scene::Scene() : m_active(false)
+Scene::Scene()
 {
-	/*auto L = scripting::Environment::instance()->state();
-
-	lua_newtable(L);
-	lua_setglobal(L, "scene");*/
+	// collect all "orphaned" entities
+	for (auto e : instance<ObjectRegistry>()->findTAll<Entity>()) {
+		addEntity(e);
+	}
 }
 
 Scene::~Scene()
 {
-	applyAddEntities();
-
+	// destroy all non-persistent entities
 	for (auto e : m_entities) {
-		if (e->isPersistent())
+		if (e->isPersistent()) {
 			continue;
-
-		Engine::instance()->destroyEntity(e);
-	}
-}
-
-void Scene::addEntity(std::unique_ptr<Entity> entity)
-{
-	m_addEntities.push_back(entity.get());
-	entity->setParentScene(this);
-	if (m_active)
-		entity->start();
-
-	Engine::instance()->addEntity(std::move(entity));
-}
-
-void Scene::setActive(bool val)
-{
-	if (val != m_active) {
-		m_active = val;
-		if (m_active) {
-			applyAddEntities();
-
-			for (auto& e : m_entities) {
-				e->start();
-			}
 		}
+
+		instance<ObjectRegistry>()->destroy(e);
 	}
 }
 
-void Scene::update()
+void Scene::addEntity(Entity* entity)
 {
-	for (auto e : m_entities) {
-		e->update();
-	}
-
-	applyAddEntities();
+	m_entities.push_back(entity);
+	entity->setParentScene(this);
 }
 
-void Scene::applyAddEntities()
+void Scene::removeEntity(Entity* entity)
 {
-	auto it = m_entities.insert(m_entities.end(), m_addEntities.begin(), m_addEntities.end());
-	m_addEntities.clear();
+	entity->setParentScene(nullptr);
+	m_entities.erase(std::remove(m_entities.begin(), m_entities.end(), entity), m_entities.end());
 }
 
 void Scene::apply_json_impl(const nlohmann::json& json)
@@ -83,16 +57,55 @@ void Scene::apply_json_impl(const nlohmann::json& json)
 void Scene::extractEntities(const nlohmann::json& json)
 {
 	if (json.is_array()) {
+		auto fmt = boost::format("\r[%1$3i%%] %2%...");
 		std::size_t entityCount = json.size(), i = 0;
 
-		auto fmt = boost::format("[%1$3i%%]");
+		auto objreg = instance<ObjectRegistry>();
 
-		for (auto ej : json) {
-			addEntity(json_to_object<Entity>(ej));
+		std::vector<std::pair<Component*, nlohmann::json>> components;
+
+		// NOTE: entity-creation is split into two passes to allow cross-referencing during initialization
+
+		// first pass: create entities and add components
+		for (auto& ej : json) {
+			Entity* e = objreg->emplace<Entity>(get_name(ej));
+			addEntity(e);
+			e->preInit(ej);
+
+			auto it = ej.find("components");
+			if (it != ej.end() && it->is_array()) {
+				for (auto& cj : *it) {
+					auto type = component_registry::findByName(get_type(cj));
+					if (type) {
+						Component* cmpt = type.factory->add(e);
+						components.emplace_back(cmpt, cj);
+					}
+				}
+			}
+
 			int progress = int((float(++i) / float(entityCount)) * 100.0f);
-			std::cout << "\r" << (fmt % progress) << " loading scene... ";
+			std::cout << fmt % progress % "creating entities";
+		}
+
+		std::cout << std::endl;
+
+		i = 0;
+		std::size_t cmptCount = components.size();
+
+		// second pass: initialize components
+		for (auto p : components) {
+			p.first->apply_json(p.second);
+			int progress = int((float(++i) / float(cmptCount)) * 100.0f);
+			std::cout << fmt % progress % "initializing components";
 		}
 
 		std::cout << std::endl;
 	}
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Scene, NamedObject)
+
+SCRIPTING_AUTO_METHOD(Scene, backColor)
+SCRIPTING_AUTO_METHOD(Scene, setBackColor)
+SCRIPTING_AUTO_METHOD(Scene, ambientLight)
+SCRIPTING_AUTO_METHOD(Scene, setAmbientLight)

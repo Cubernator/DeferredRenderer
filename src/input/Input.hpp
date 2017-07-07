@@ -3,10 +3,11 @@
 
 #include <unordered_map>
 
+#include "util/singleton.hpp"
 #include "glm.hpp"
 #include "keys.hpp"
 
-class Input
+class Input : public singleton<Input>
 {
 public:
 	explicit Input(GLFWwindow* window);
@@ -22,19 +23,15 @@ public:
 	bool isCursorLocked() const;
 	void setCursorLocked(bool val);
 
-	float getCursorX() const { return m_cursorX; }
-	float getCursorY() const { return m_cursorY; }
-	void getCursorPos(float& x, float& y) const;
-	glm::vec2 getCursorPos() const;
+	float cursorX() const { return m_cursorX; }
+	float cursorY() const { return m_cursorY; }
+	glm::vec2 cursorPos() const;
 
-	float getCursorDeltaX() const { return m_cursorDeltaX; }
-	float getCursorDeltaY() const { return m_cursorDeltaY; }
-	void getCursorDelta(float& x, float& y) const;
-	glm::vec2 getCursorDelta() const;
+	float cursorDeltaX() const { return m_cursorDeltaX; }
+	float cursorDeltaY() const { return m_cursorDeltaY; }
+	glm::vec2 cursorDelta() const;
 
 	void update();
-
-	static Input* instance() { return s_instance; }
 
 private:
 	struct button
@@ -56,19 +53,17 @@ private:
 	float m_cursorX, m_cursorY;
 	float m_cursorDeltaX, m_cursorDeltaY;
 
-	static Input* s_instance;
-
 	void onKey(int key, int action);
 	void onMouseButton(int mbutton, int action);
 
 	static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
-		s_instance->onKey(key, action);
+		instance()->onKey(key, action);
 	}
 
 	static void mouseButtonCallback(GLFWwindow* window, int mbutton, int action, int mods)
 	{
-		s_instance->onMouseButton(mbutton, action);
+		instance()->onMouseButton(mbutton, action);
 	}
 };
 

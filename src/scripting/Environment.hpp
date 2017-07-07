@@ -4,20 +4,27 @@
 #include "path.hpp"
 #include "guid.hpp"
 
+#include "util/singleton.hpp"
+#include "core/ComponentModule.hpp"
+
 #include "utility.hpp"
 
 #include <string>
+#include <vector>
 
 class Entity;
-class Component;
 
 namespace scripting
 {
-	class Environment
+	class Behaviour;
+
+	class Environment : public singleton<Environment>, public ComponentModule
 	{
 	public:
 		Environment();
 		~Environment();
+
+		void update();
 
 		lua_State *state() { return m_L; }
 
@@ -43,10 +50,11 @@ namespace scripting
 			return get_value<T>(m_L, idx);
 		}
 
-		int loadModule(const std::string& name);
+		bool loadModule(const std::string& name);
 
 		void addClass(const std::string& name, const std::string& base);
 		void addClass(const std::string& name);
+		void addStaticClass(const std::string& name);
 
 		template<typename Iter>
 		void addMethods(const std::string& className, Iter beginMethods, Iter endMethods)
@@ -83,25 +91,39 @@ namespace scripting
 		void invalidateObject(Object* obj);
 		void pushObject(Object* obj);
 
-		int pcall(int argc, int resc = LUA_MULTRET);
+		int safeCall(int argc, int resc = LUA_MULTRET);
 
 		template<typename... Args>
 		void callMethod(Object* obj, const std::string& methodName, int numResults, Args&&... args)
 		{
 			pushObject(obj);
-			lua_getfield(m_L, -1, methodName.c_str());
-			swap_top_2(m_L);
-			push_values(m_L, std::forward<Args>(args)...);
-			int ac = 1 + sizeof...(args);
-			pcall(ac, numResults);
+
+			if (lua_istable(m_L, -1)) {
+				lua_getfield(m_L, -1, methodName.c_str());
+
+				if (lua_isfunction(m_L, -1)) {
+					swap_top_2(m_L);
+					push_values(m_L, std::forward<Args>(args)...);
+					int ac = 1 + sizeof...(args);
+					safeCall(ac, numResults);
+				} else {
+					std::cout << "ERROR: could not find method: \"" << methodName << "\"!" << std::endl;
+					pop(2);
+				}
+			} else {
+				std::cout << "ERROR: could not find object!" << std::endl;
+				pop();
+			}
 		}
 
-		static Environment* instance() { return s_instance; }
+		void callBehaviourMethod(Behaviour* bhv, const std::string& methodName);
+
+		virtual void addComponent(Component* cmpt) final;
+		virtual void removeComponent(Component* cmpt) final;
 
 	private:
 		lua_State *m_L;
-
-		static Environment* s_instance;
+		std::vector<Behaviour*> m_behaviours, m_addBhvs, m_removeBhvs;
 
 		static int traceback(lua_State* L);
 		static int onPanic(lua_State* L);

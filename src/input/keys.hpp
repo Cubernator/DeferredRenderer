@@ -145,16 +145,35 @@ enum input_mbutton
 	mbutton_middle = mbutton_3,
 };
 
+input_key string_to_input_key(const std::string& s);
+input_mbutton string_to_input_mbutton(const std::string& s);
+
 template<>
 struct json_getter<input_key>
 {
-	static input_key get(const nlohmann::json& j);
+	static input_key get(const nlohmann::json& j)
+	{
+		if (j.is_string()) {
+			return string_to_input_key(j);
+		} else if (j.is_number_integer()) {
+			return static_cast<input_key>(j.get<int>());
+		}
+		return key_unknown;
+	}
 };
 
 template<>
 struct json_getter<input_mbutton>
 {
-	static input_mbutton get(const nlohmann::json& j);
+	static input_mbutton get(const nlohmann::json& j)
+	{
+		if (j.is_string()) {
+			return string_to_input_mbutton(j);
+		} else if (j.is_number_integer()) {
+			return static_cast<input_mbutton>(j.get<int>());
+		}
+		return mbutton_unknown;
+	}
 };
 
 #endif // KEYS_HPP

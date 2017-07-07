@@ -1,18 +1,19 @@
-#include "core/Entity.hpp"
-#include "core/Transform.hpp"
-#include "util/component_registry.hpp"
 #include "SimpleImageEffect.hpp"
 #include "RenderEngine.hpp"
 #include "Material.hpp"
 #include "Effect.hpp"
 #include "texture/RenderTexture.hpp"
-#include "content/Content.hpp"
+#include "core/Entity.hpp"
+#include "core/Transform.hpp"
+#include "core/component_registry.hpp"
+#include "content/pooled.hpp"
+#include "scripting/class_registry.hpp"
 
-REGISTER_COMPONENT_CLASS(SimpleImageEffect, "simpleImageEffect");
+REGISTER_COMPONENT_CLASS(SimpleImageEffect);
 
 json_interpreter<SimpleImageEffect> SimpleImageEffect::s_properties({
 	{ "material", &SimpleImageEffect::extractMaterial },
-	{ "outputLinear", &SimpleImageEffect::m_outputLinear }
+	{ "outputLinear", &SimpleImageEffect::setOutputLinear }
 });
 
 SimpleImageEffect::SimpleImageEffect(Entity* parent) : ImageEffect(parent), m_material(nullptr), m_outputLinear(true) { }
@@ -20,7 +21,7 @@ SimpleImageEffect::SimpleImageEffect(Entity* parent) : ImageEffect(parent), m_ma
 void SimpleImageEffect::apply(const Texture2D* input, const RenderTexture* output)
 {
 	if (m_material) {
-		Effect* effect = m_material->getEffect();
+		Effect* effect = m_material->effect();
 		if (effect) {
 			auto graphics = RenderEngine::instance();
 			graphics->setConvertToSRGB(m_outputLinear);
@@ -41,13 +42,20 @@ void SimpleImageEffect::apply(const Texture2D* input, const RenderTexture* outpu
 	}
 }
 
-void SimpleImageEffect::apply_json_property_impl(const std::string& name, const nlohmann::json& json)
+bool SimpleImageEffect::isGood() const
 {
-	Component::apply_json_property_impl(name, json);
-	s_properties.interpret_property(name, this, json);
+	return m_material && m_material->effect();
+}
+
+void SimpleImageEffect::apply_json_impl(const nlohmann::json& json)
+{
+	Component::apply_json_impl(json);
+	s_properties.interpret_all(this, json);
 }
 
 void SimpleImageEffect::extractMaterial(const nlohmann::json& json)
 {
-	m_material = Content::instance()->getPooledFromJson<Material>(json);
+	m_material = content::get_pooled_json<Material>(json);
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(SimpleImageEffect, ImageEffect)

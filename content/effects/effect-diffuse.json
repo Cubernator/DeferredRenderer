@@ -1,5 +1,5 @@
 {
-  "type": "effect",
+  "type": "Effect",
   "name": "diffuse",
   "renderQueue": [ "geometry", 0 ],
   "renderType": "opaque",

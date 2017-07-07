@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "debug",
   "effect": "unlit",
   "properties": {

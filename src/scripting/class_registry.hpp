@@ -57,6 +57,11 @@ namespace scripting
 			{
 				class_registry::registerClass(name, baseName);
 			}
+
+			class_registerer(const std::string& name)
+			{
+				class_registry::registerClass(name, "");
+			}
 		};
 
 		struct method_registerer
@@ -75,29 +80,40 @@ namespace scripting
 	} class_registry_init;
 }
 
+#define SCRIPTING_REGISTER_STATIC_CLASS(className)						\
+namespace														\
+{																\
+	scripting::detail::class_registerer register_class##className (#className);	\
+}
 
-#define SCRIPTING_REGISTER_DERIVED_CLASS(c, b)						\
+#define SCRIPTING_REGISTER_DERIVED_CLASS(className, baseName)						\
 namespace															\
 {																	\
-	scripting::detail::class_registerer register_class##c (#c, #b);	\
+	scripting::detail::class_registerer register_class##className (#className, #baseName);	\
 }
 
 
-#define SCRIPTING_REGISTER_CLASS(c) SCRIPTING_REGISTER_DERIVED_CLASS(c, Object)
+#define SCRIPTING_REGISTER_CLASS(className) SCRIPTING_REGISTER_DERIVED_CLASS(className, Object)
 
-#define SCRIPTING_CALLBACK_NAME(c, n) lua_##c##_##n
-#define SCRIPTING_CALLBACK_SIG(c, n) int SCRIPTING_CALLBACK_NAME(c, n) (lua_State* L)
+#define SCRIPTING_CALLBACK_NAME(className, methodName) lua_##className##_##methodName
+#define SCRIPTING_CALLBACK_SIG(className, methodName) int SCRIPTING_CALLBACK_NAME(className, methodName) (lua_State* L)
 
 
-#define SCRIPTING_DEFINE_METHOD(c, n) SCRIPTING_CALLBACK_SIG(c, n);										\
+#define SCRIPTING_DEFINE_METHOD(className, methodName) SCRIPTING_CALLBACK_SIG(className, methodName);	\
 namespace																								\
 {																										\
-	scripting::detail::method_registerer register_method##c##n(#c, #n, (SCRIPTING_CALLBACK_NAME(c, n)));\
+	scripting::detail::method_registerer register_method_##className##_##methodName(#className, #methodName, (SCRIPTING_CALLBACK_NAME(className, methodName)));\
 }																										\
-SCRIPTING_CALLBACK_SIG(c, n)
+SCRIPTING_CALLBACK_SIG(className, methodName)
 
+#define SCRIPTING_AUTO_METHOD_CM(className, methodName, class, method) SCRIPTING_DEFINE_METHOD(className, methodName) { return scripting::method_self_helper(L, &class::method); }
+#define SCRIPTING_AUTO_METHOD_C(className, methodName, class) SCRIPTING_AUTO_METHOD_CM(className, methodName, class, methodName)
+#define SCRIPTING_AUTO_METHOD_M(className, methodName, method) SCRIPTING_AUTO_METHOD_CM(className, methodName, className, method)
+#define SCRIPTING_AUTO_METHOD(className, methodName) SCRIPTING_AUTO_METHOD_CM(className, methodName, className, methodName)
 
-#define SCRIPTING_DEFINE_GETTER(c, n, m) SCRIPTING_DEFINE_METHOD(c, n) { return scripting::getter_helper(L, &c::m); }
-#define SCRIPTING_DEFINE_SETTER(c, n, m) SCRIPTING_DEFINE_METHOD(c, n) { return scripting::setter_helper(L, &c::m); }
+#define SCRIPTING_AUTO_MODULE_METHOD_CM(className, methodName, class, method) SCRIPTING_DEFINE_METHOD(className, methodName) { return scripting::method_module_helper(L, &class::method); }
+#define SCRIPTING_AUTO_MODULE_METHOD_C(className, methodName, class) SCRIPTING_AUTO_MODULE_METHOD_CM(className, methodName, class, methodName)
+#define SCRIPTING_AUTO_MODULE_METHOD_M(className, methodName, method) SCRIPTING_AUTO_MODULE_METHOD_CM(className, methodName, className, method)
+#define SCRIPTING_AUTO_MODULE_METHOD(className, methodName) SCRIPTING_AUTO_MODULE_METHOD_CM(className, methodName, className, methodName)
 
 #endif // SCRIPTING_CLASS_REGISTRY_HPP

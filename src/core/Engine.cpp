@@ -3,24 +3,22 @@
 #include "Scene.hpp"
 #include "Entity.hpp"
 
+#include "ObjectRegistry.hpp"
 #include "graphics/RenderEngine.hpp"
 #include "content/Content.hpp"
 #include "input/Input.hpp"
 #include "scripting/Environment.hpp"
+#include "scripting/class_registry.hpp"
 
-#include "util/app_info.hpp"
+#include "app_info.hpp"
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
 #include <iostream>
 
-Engine* Engine::s_instance = nullptr;
-
-Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_nextID(0), m_loadingScene(false)
+Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_loadingScene(false)
 {
-	s_instance = this;
-
 	glfwSetErrorCallback([](int err, const char* msg) {
 		std::cout << msg << std::endl;
 	});
@@ -67,8 +65,7 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_nex
 
 	glfwMakeContextCurrent(m_window);
 
-	bool vsync = app_info::get("vSync", false);
-	glfwSwapInterval(vsync ? 1 : 0);
+	setVSync(app_info::get("vSync", false));
 	
 	glfwSetFramebufferSizeCallback(m_window, resizeCallback);
 
@@ -88,10 +85,14 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_nex
 		return;
 	}
 
-	m_input = std::make_unique<Input>(m_window);
 	m_content = std::make_unique<Content>();
-	m_renderer = std::make_unique<RenderEngine>(this);
 	m_scriptEnv = std::make_unique<scripting::Environment>();
+	m_objReg = std::make_unique<ObjectRegistry>();
+	m_renderer = std::make_unique<RenderEngine>(this);
+	m_input = std::make_unique<Input>(m_window);
+
+	m_cmptModules.push_back(m_scriptEnv.get());
+	m_cmptModules.push_back(m_renderer.get());
 
 	swapBuffers();
 
@@ -120,11 +121,11 @@ int Engine::run()
 Engine::~Engine()
 {
 	m_scene.reset();
-	m_entities.clear();
-	m_scriptEnv.reset();
-	m_renderer.reset();
-	m_content.reset();
 	m_input.reset();
+	m_renderer.reset();
+	m_objReg.reset();
+	m_scriptEnv.reset();
+	m_content.reset();
 
 	glfwTerminate();
 }
@@ -139,53 +140,52 @@ void Engine::stop()
 	m_running = false;
 }
 
-void Engine::getScreenSize(int& w, int& h) const
+Scene* Engine::scene()
+{
+	return m_scene.get();
+}
+
+const Scene * Engine::scene() const
+{
+	return m_scene.get();
+}
+
+void Engine::screenSize(int& w, int& h) const
 {
 	glfwGetWindowSize(m_window, &w, &h);
 }
 
-int Engine::getScreenWidth() const
+int Engine::screenWidth() const
 {
 	int w, h;
-	getScreenSize(w, h);
+	screenSize(w, h);
 	return w;
 }
 
-int Engine::getScreenHeight() const
+int Engine::screenHeight() const
 {
 	int w, h;
-	getScreenSize(w, h);
+	screenSize(w, h);
 	return h;
 }
 
-Scene* Engine::getScene()
+void Engine::setVSync(bool val)
 {
-	return m_scene.get();
+	m_vSync = val;
+	glfwSwapInterval(m_vSync ? 1 : 0);
 }
 
-const Scene* Engine::getScene() const
+void Engine::loadSceneInternal(const std::string& sceneName)
 {
-	return m_scene.get();
-}
+	if (m_scene) {
+		std::cout << "Unloading scene \"" << m_scene->name() << "\"..." << std::endl;
+		m_scene.reset();
+	}
 
-void Engine::setScene(std::unique_ptr<Scene> scene)
-{
-	if (m_scene)
-		m_scene->setActive(false);
-
-	m_scene = std::move(scene);
-
-	if (m_scene)
-		m_scene->setActive(true);
-}
-
-void Engine::loadSceneInternal(const std::string & sceneName)
-{
-	setScene(nullptr);
-
-	auto scene = Content::instance()->getFromDisk<Scene>(sceneName);
+	std::cout << "Loading scene \"" << sceneName << "\"..." << std::endl;
+	auto scene = m_content->getFromDisk<Scene>(sceneName);
 	if (scene) {
-		setScene(std::move(scene));
+		m_scene = m_objReg->addUnique(std::move(scene));
 	} else {
 		std::cout << "ERROR: could not find scene " << sceneName << std::endl;
 	}
@@ -205,58 +205,23 @@ void Engine::loadFirstScene()
 	loadScene(firstSceneName);
 }
 
-Entity* Engine::getEntityInternal(const guid& id) const
+void Engine::addComponent(Component* cmpt)
 {
-	auto it = m_entities.find(id);
-	if (it != m_entities.end())
-		return it->second.get();
-	return nullptr;
+	for (auto cm : m_cmptModules) {
+		cm->addComponent(cmpt);
+	}
+}
+
+void Engine::removeComponent(Component* cmpt)
+{
+	for (auto cm : m_cmptModules) {
+		cm->removeComponent(cmpt);
+	}
 }
 
 void Engine::onResize(int width, int height)
 {
 	m_renderer->onResize(width, height);
-}
-
-void Engine::addEntity(std::unique_ptr<Entity> entity)
-{
-	auto id = entity->getId();
-	auto p = m_entities.emplace(id, std::move(entity));
-	auto e = p.first->second.get();
-	if (m_renderer) {
-		m_renderer->addEntity(e);
-	}
-}
-
-void Engine::destroyEntity(const guid& id)
-{
-	auto it = m_entities.find(id);
-	if (it != m_entities.end()) {
-		if (m_renderer) {
-			m_renderer->removeEntity(it->second.get());
-		}
-		m_entities.erase(it);
-	}
-}
-
-void Engine::destroyEntity(Entity* entity)
-{
-	destroyEntity(entity->getId());
-}
-
-Engine::const_entity_iterator Engine::entities_begin() const
-{
-	return m_entities.cbegin();
-}
-
-Engine::const_entity_iterator Engine::entities_end() const
-{
-	return m_entities.cend();
-}
-
-guid Engine::getGUID()
-{
-	return m_nextID++;
 }
 
 void Engine::update()
@@ -266,10 +231,7 @@ void Engine::update()
 	}
 
 	m_input->update();
-
-	if (m_scene) {
-		m_scene->update();
-	}
+	m_scriptEnv->update();
 }
 
 void Engine::render()
@@ -285,3 +247,17 @@ void Engine::swapBuffers()
 {
 	glfwSwapBuffers(m_window);
 }
+
+SCRIPTING_REGISTER_STATIC_CLASS(Engine)
+
+SCRIPTING_AUTO_MODULE_METHOD(Engine, time)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, frameTime)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, fps)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, screenWidth)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, screenHeight)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, vSync)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, setVSync)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, stop)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, scene)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, loadScene)
+SCRIPTING_AUTO_MODULE_METHOD(Engine, loadFirstScene)

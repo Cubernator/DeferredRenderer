@@ -7,4 +7,6 @@ public:
 	virtual ~Object() = 0;
 };
 
+void destroy_object(Object* obj);
+
 #endif // OBJECT_HPP

@@ -1,21 +1,22 @@
 #ifndef SHADERPROGRAM_HPP
 #define SHADERPROGRAM_HPP
 
-#include <memory>
-#include <vector>
-#include <unordered_map>
-#include <type_traits>
+#include "core/NamedObject.hpp"
+#include "util/import.hpp"
 
 #include "glm.hpp"
 #include "set_uniform.hpp"
 #include "uniform_id.hpp"
 
-#include "util/import.hpp"
+#include <memory>
+#include <vector>
+#include <unordered_map>
+#include <type_traits>
 
 class Shader;
 class Texture;
 
-class ShaderProgram
+class ShaderProgram : public NamedObject
 {
 public:
 	template<typename Iter>
@@ -31,14 +32,15 @@ public:
 	ShaderProgram(ShaderProgram&& other);
 	ShaderProgram& operator=(ShaderProgram&& other);
 
-	GLuint getObj() const;
+	GLuint glObj() const { return m_glObj; }
 
-	bool hasLinkerErrors() const;
-	const std::string& getLog() const;
+	GLint linkerStatus() const { return m_linkerStatus; }
+	const std::string& linkerLog() const { return m_linkerLog; }
 
-	bool isGood() const;
+	bool hasLinkerErrors() const { return m_linkerStatus == GL_FALSE; }
 
-	operator bool() const;
+	bool isGood() const { return m_good; }
+	operator bool() const { return isGood(); }
 
 	bool getUniformLoc(uniform_id id, GLint& loc) const;
 

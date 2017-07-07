@@ -36,6 +36,15 @@ struct json_getter<nlohmann::json>
 	}
 };
 
+template<>
+struct json_getter<std::nullptr_t>
+{
+	static std::nullptr_t get(const nlohmann::json& j)
+	{
+		return nullptr;
+	}
+};
+
 template<typename T, glm::precision p>
 struct json_getter<glm::tvec2<T, p>>
 {

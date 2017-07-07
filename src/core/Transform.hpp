@@ -10,9 +10,9 @@ class Transform : public Component
 public:
 	explicit Transform(Entity* parent);
 
-	const glm::vec3& getPosition() const { return m_position; }
-	const glm::quat& getRotation() const { return m_rotation; }
-	const glm::vec3& getScale() const { return m_scale; }
+	const glm::vec3& position() const { return m_position; }
+	const glm::quat& rotation() const { return m_rotation; }
+	const glm::vec3& scale() const { return m_scale; }
 
 	void setPosition(const glm::vec3& position) { m_position = position; m_dirty = true; }
 	void setRotation(const glm::quat& rotation) { m_rotation = rotation; m_dirty = true; }

@@ -1,10 +1,11 @@
 #include "Mesh.hpp"
 #include "gl_types.hpp"
-#include "util/type_registry.hpp"
+#include "core/type_registry.hpp"
+#include "scripting/class_registry.hpp"
 
 #include <numeric>
 
-REGISTER_OBJECT_TYPE(Mesh, "mesh", ".rbm");
+REGISTER_OBJECT_TYPE(Mesh, ".rbm");
 
 SubMesh::SubMesh() : m_vao(0) { }
 
@@ -140,7 +141,7 @@ void SubMesh::updateBounds()
 
 void Mesh::addSubMesh(std::unique_ptr<SubMesh> subMesh)
 {
-	m_bounds = aabb_union(m_bounds, subMesh->getBounds());
+	m_bounds = aabb_union(m_bounds, subMesh->bounds());
 	m_subMeshes.push_back(std::move(subMesh));
 }
 
@@ -215,3 +216,14 @@ std::unique_ptr<Mesh> import_object(const path& filename)
 
 	return std::unique_ptr<Mesh>();
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(SubMesh, Object)
+
+SCRIPTING_AUTO_METHOD(SubMesh, bounds)
+SCRIPTING_AUTO_METHOD(SubMesh, triangles)
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Mesh, NamedObject)
+
+SCRIPTING_AUTO_METHOD(Mesh, subMeshCount)
+SCRIPTING_AUTO_METHOD(Mesh, getSubMesh)
+SCRIPTING_AUTO_METHOD(Mesh, bounds)

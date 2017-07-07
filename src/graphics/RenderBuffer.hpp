@@ -58,7 +58,7 @@ public:
 
 	virtual void attach(GLenum attPoint) const final;
 	virtual void detach(GLenum attPoint) const final;
-	virtual void getDimensions(unsigned int& width, unsigned int& height) const final;
+	virtual void dimensions(unsigned int& width, unsigned int& height) const final;
 
 private:
 	const RenderBuffer* m_buffer;

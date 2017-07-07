@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "mat_boulder_01",
   "effect": "pbr_sn",
   "properties": {

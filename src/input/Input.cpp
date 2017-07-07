@@ -1,13 +1,10 @@
 #include "Input.hpp"
+#include "scripting/class_registry.hpp"
 
 #include "GLFW/glfw3.h"
 
-Input* Input::s_instance(nullptr);
-
 Input::Input(GLFWwindow* window) : m_window(window), m_frame(0), m_cursorX(0.0f), m_cursorY(0.0f), m_cursorDeltaX(0.0f), m_cursorDeltaY(0.0f)
 {
-	s_instance = this;
-
 	glfwSetKeyCallback(m_window, Input::keyCallback);
 	glfwSetMouseButtonCallback(m_window, Input::mouseButtonCallback);
 }
@@ -56,24 +53,12 @@ void Input::setCursorLocked(bool val)
 	glfwSetInputMode(m_window, GLFW_CURSOR, val ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
-void Input::getCursorPos(float& x, float& y) const
-{
-	x = m_cursorX;
-	y = m_cursorY;
-}
-
-glm::vec2 Input::getCursorPos() const
+glm::vec2 Input::cursorPos() const
 {
 	return glm::vec2(m_cursorX, m_cursorY);
 }
 
-void Input::getCursorDelta(float& x, float& y) const
-{
-	x = m_cursorDeltaX;
-	y = m_cursorDeltaY;
-}
-
-glm::vec2 Input::getCursorDelta() const
+glm::vec2 Input::cursorDelta() const
 {
 	return glm::vec2(m_cursorDeltaX, m_cursorDeltaY);
 }
@@ -111,3 +96,104 @@ void Input::onMouseButton(int mbutton, int action)
 	mb.lastAction = m_frame;
 }
 
+
+input_key check_key(lua_State* L, int arg)
+{
+	int t = lua_type(L, arg);
+	switch (t) {
+	case LUA_TNUMBER:
+	{
+		auto i = lua_tointeger(L, arg);
+		return static_cast<input_key>(i);
+	}
+	case LUA_TSTRING:
+	{
+		std::string s = lua_tostring(L, arg);
+		input_key k = string_to_input_key(s);
+		if (k == key_unknown) {
+			luaL_argerror(L, 1, ("unknown key: " + s).c_str());
+		}
+		return k;
+	}
+	default:
+	{
+		luaL_argerror(L, arg, "expected string or integer");
+	}
+	}
+	return key_unknown;
+}
+
+input_mbutton check_mbutton(lua_State* L, int arg)
+{
+	int t = lua_type(L, arg);
+	switch (t) {
+	case LUA_TNUMBER:
+	{
+		auto i = lua_tointeger(L, arg);
+		return static_cast<input_mbutton>(i);
+	}
+	case LUA_TSTRING:
+	{
+		std::string s = lua_tostring(L, arg);
+		input_mbutton b = string_to_input_mbutton(s);
+		if (b == mbutton_unknown) {
+			luaL_argerror(L, arg, ("unknown mouse button: " + s).c_str());
+		}
+		return b;
+	}
+	default:
+	{
+		luaL_argerror(L, arg, "expected string or integer");
+	}
+	}
+	return mbutton_unknown;
+}
+
+SCRIPTING_REGISTER_STATIC_CLASS(Input)
+
+SCRIPTING_DEFINE_METHOD(Input, getKey)
+{
+	scripting::push_value(L, Input::instance()->getKey(check_key(L, 1)));
+	return 1;
+}
+
+SCRIPTING_DEFINE_METHOD(Input, getKeyPressed)
+{
+	scripting::push_value(L, Input::instance()->getKeyPressed(check_key(L, 1)));
+	return 1;
+}
+
+SCRIPTING_DEFINE_METHOD(Input, getKeyReleased)
+{
+	scripting::push_value(L, Input::instance()->getKeyReleased(check_key(L, 1)));
+	return 1;
+}
+
+SCRIPTING_DEFINE_METHOD(Input, getMouseButton)
+{
+	scripting::push_value(L, Input::instance()->getMouseButton(check_mbutton(L, 1)));
+	return 1;
+}
+
+SCRIPTING_DEFINE_METHOD(Input, getMouseButtonPressed)
+{
+	scripting::push_value(L, Input::instance()->getMouseButtonPressed(check_mbutton(L, 1)));
+	return 1;
+}
+
+SCRIPTING_DEFINE_METHOD(Input, getMouseButtonReleased)
+{
+	scripting::push_value(L, Input::instance()->getMouseButtonReleased(check_mbutton(L, 1)));
+	return 1;
+}
+
+SCRIPTING_AUTO_MODULE_METHOD(Input, isCursorLocked)
+SCRIPTING_AUTO_MODULE_METHOD(Input, setCursorLocked)
+
+SCRIPTING_AUTO_MODULE_METHOD(Input, cursorX)
+SCRIPTING_AUTO_MODULE_METHOD(Input, cursorY)
+SCRIPTING_AUTO_MODULE_METHOD(Input, cursorPos)
+
+SCRIPTING_AUTO_MODULE_METHOD(Input, cursorDeltaX)
+SCRIPTING_AUTO_MODULE_METHOD(Input, cursorDeltaY)
+SCRIPTING_AUTO_MODULE_METHOD(Input, cursorDelta)

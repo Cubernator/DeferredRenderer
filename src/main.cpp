@@ -1,5 +1,5 @@
 #include "core/Engine.hpp"
-#include "util/app_info.hpp"
+#include "core/app_info.hpp"
 
 #include "boost/program_options.hpp"
 

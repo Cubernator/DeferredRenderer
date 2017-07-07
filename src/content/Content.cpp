@@ -1,19 +1,19 @@
 #include "Content.hpp"
-#include "util/app_info.hpp"
+#include "pooled.hpp"
+#include "core/app_info.hpp"
+#include "scripting/class_registry.hpp"
 
 #include "boost/filesystem.hpp"
+#include "boost/format.hpp"
 
 #include <algorithm>
-
-Content* Content::s_instance = nullptr;
 
 Content::Content() :
 	m_contentRoot(app_info::get<path>("contentRoot", "content")),
 	m_shaderIncludeDirs(app_info::get<std::vector<path>>("shaderIncludeDirs")),
-	m_logSearch(false), m_logIndentLevel(0)
+	m_logSearch(app_info::get<bool>("logContentSearch", false)),
+	m_logIndentLevel(0), m_anonCounter(0)
 {
-	s_instance = this;
-
 	std::cout << "scanning content..." << std::endl;
 	scanContentFolder(m_contentRoot);
 }
@@ -48,9 +48,9 @@ std::vector<path> Content::findGenericAll(const std::string& name)
 	return std::move(result);
 }
 
-bool Content::findObject(const std::type_info& type, const std::string& name, path& result)
+bool Content::findObject(std::type_index tid, const std::string& name, path& result)
 {
-	auto it1 = m_registry.find(type);
+	auto it1 = m_registry.find(tid);
 	if (it1 != m_registry.end()) {
 
 		auto tr = it1->second;
@@ -62,6 +62,16 @@ bool Content::findObject(const std::type_info& type, const std::string& name, pa
 	}
 
 	return false;
+}
+
+std::unique_ptr<NamedObject> Content::getFromDisk(const object_type& type, const std::string& name)
+{
+	return getFromDiskInt<NamedObject>(type, name);
+}
+
+std::unique_ptr<NamedObject> Content::getFromJson(const object_type& type, const nlohmann::json& json)
+{
+	return getFromJsonInt<NamedObject>(type, json);
 }
 
 bool Content::findShaderFile(const path& p, path& result) const
@@ -110,7 +120,7 @@ void Content::addFile(const path& p)
 
 	std::string ext = p.extension().string();
 	std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
-	registered_type type = type_registry::findByExtension(ext);
+	object_type type = type_registry::findByExtension(ext);
 
 	if (type) {
 		name = p.stem().string();
@@ -121,8 +131,14 @@ void Content::addFile(const path& p)
 				nlohmann::json j;
 				j << f;
 				if (j.is_object()) {
-					type = type_registry::findByName(get_type(j));
+					std::string tn = get_type(j);
+					type = type_registry::findByName(tn);
 					name = get_name(j);
+
+					if (!type) {
+						std::cout << "WARNING: found json file with unknown object type: \"" << tn << "\"";
+						if (!m_logSearch) std::cout << std::endl;
+					}
 				}
 			}
 		} catch (std::invalid_argument&) {
@@ -132,10 +148,37 @@ void Content::addFile(const path& p)
 	}
 
 	if (type) {
-		m_registry[type.type][name] = p;
+		m_registry[type.id][name] = p;
 		if (m_logSearch) std::cout << "found " << type.name << " \"" << name << "\"";
 	}
 
 	if (m_logSearch) std::cout << std::endl;
 }
 
+std::string Content::getAnonName()
+{
+	auto fmt = boost::format("unnamed_%1$4i") % (m_anonCounter++);
+	return fmt.str();
+}
+
+std::string Content::getObjectName(const nlohmann::json& json)
+{
+	std::string result;
+	if (!get_value(json, "name", result)) {
+		result = getAnonName();
+	}
+	return result;
+}
+
+SCRIPTING_REGISTER_STATIC_CLASS(Content)
+
+SCRIPTING_DEFINE_METHOD(Content, get)
+{
+	scripting::push_value(L,
+		content::get_pooled(
+			scripting::check_arg<std::string>(L, 1),
+			scripting::check_arg<std::string>(L, 2)
+		)
+	);
+	return 1;
+}

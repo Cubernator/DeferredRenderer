@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "steel",
   "effect": "pbr_mn",
   "properties": {

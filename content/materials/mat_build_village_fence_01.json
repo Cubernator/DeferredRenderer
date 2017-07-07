@@ -1,5 +1,5 @@
 {
-  "type": "material",
+  "type": "Material",
   "name": "mat_build_village_fence_01",
   "effect": "pbr_sn",
   "properties": {

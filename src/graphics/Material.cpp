@@ -1,9 +1,10 @@
 #include "Material.hpp"
 #include "Effect.hpp"
-#include "util/type_registry.hpp"
-#include "content/Content.hpp"
+#include "core/type_registry.hpp"
+#include "content/pooled.hpp"
+#include "scripting/class_registry.hpp"
 
-REGISTER_OBJECT_TYPE_NO_EXT(Material, "material");
+REGISTER_OBJECT_TYPE_NO_EXT(Material);
 
 Material::Material() : m_effect(nullptr) { }
 
@@ -43,7 +44,7 @@ void Material::apply_json_impl(const nlohmann::json& json)
 {
 	auto eit = json.find("effect");
 	if (eit != json.end()) {
-		Effect* effect = Content::instance()->getPooledFromJson<Effect>(*eit);
+		Effect* effect = content::get_pooled_json<Effect>(*eit);
 		setEffect(effect);
 	}
 
@@ -64,4 +65,25 @@ void Material::setPropFromJson(const std::string& name, const nlohmann::json& js
 			prop.assign_json(json);
 		});
 	}
+}
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Material, NamedObject)
+
+SCRIPTING_AUTO_METHOD(Material, effect)
+SCRIPTING_AUTO_METHOD(Material, setEffect)
+
+SCRIPTING_DEFINE_METHOD(Material, getProperty)
+{
+	auto self = scripting::check_self<Material>(L);
+	scripting::raise_error(L, "method not implemented");
+	// TODO
+	return 0;
+}
+
+SCRIPTING_DEFINE_METHOD(Material, setProperty)
+{
+	auto self = scripting::check_self<Material>(L);
+	scripting::raise_error(L, "method not implemented");
+	// TODO
+	return 0;
 }

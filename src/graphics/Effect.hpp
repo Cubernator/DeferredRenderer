@@ -1,6 +1,7 @@
 #ifndef EFFECT_HPP
 #define EFFECT_HPP
 
+#include "core/NamedObject.hpp"
 #include "util/import.hpp"
 #include "util/json_interpreter.hpp"
 #include "util/json_initializable.hpp"
@@ -64,15 +65,15 @@ private:
 	friend struct json_initializable<Pass>;
 };
 
-class Effect : public json_initializable<Effect>
+class Effect : public NamedObject, public json_initializable<Effect>
 {
 public:
 	Effect();
 
-	render_type getRenderType() const { return m_renderType; }
+	render_type renderType() const { return m_renderType; }
 	void setRenderType(render_type val) { m_renderType = val; }
 
-	int getQueuePriority() const { return m_queuePriority; }
+	int queuePriority() const { return m_queuePriority; }
 	void setQueuePriority(int val) { m_queuePriority = val; }
 
 	std::size_t passCount() const;

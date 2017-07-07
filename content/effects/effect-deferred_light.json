@@ -1,5 +1,5 @@
 {
-  "type": "effect",
+  "type": "Effect",
   "name": "deferred_light",
   "passes": [
     {

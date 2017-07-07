@@ -1,8 +1,9 @@
 #include "Effect.hpp"
 #include "shader/ShaderProgram.hpp"
 #include "Material.hpp"
-#include "util/type_registry.hpp"
-#include "content/Content.hpp"
+#include "core/type_registry.hpp"
+#include "scripting/class_registry.hpp"
+#include "content/pooled.hpp"
 
 namespace
 {
@@ -28,7 +29,7 @@ namespace
 	});
 }
 
-REGISTER_OBJECT_TYPE_NO_EXT(Effect, "effect");
+REGISTER_OBJECT_TYPE_NO_EXT(Effect);
 
 json_interpreter<Effect> Effect::s_properties({
 	{ "renderQueue",	&Effect::extractRenderQueue },
@@ -154,7 +155,7 @@ void Effect::addPass(const nlohmann::json& json)
 		if (newPass.program) {
 			if (!newPass.program->isGood()) {
 				std::cout << "shader program has errors (" << newPass.name << "):" << std::endl;
-				std::cout << newPass.program->getLog() << std::endl;
+				std::cout << newPass.program->linkerLog() << std::endl;
 			}
 
 			auto p = m_passes.push_back(std::move(newPass));
@@ -172,5 +173,7 @@ void Pass::extractState(const nlohmann::json& json)
 
 void Pass::extractProgram(const nlohmann::json& json)
 {
-	program = Content::instance()->getPooledFromJson<ShaderProgram>(json);
+	program = content::get_pooled_json<ShaderProgram>(json);
 }
+
+SCRIPTING_REGISTER_DERIVED_CLASS(Effect, NamedObject)
