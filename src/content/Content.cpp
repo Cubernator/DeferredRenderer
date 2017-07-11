@@ -11,10 +11,11 @@
 Content::Content() :
 	m_contentRoot(app_info::get<path>("contentRoot", "content")),
 	m_shaderIncludeDirs(app_info::get<std::vector<path>>("shaderIncludeDirs")),
-	m_logSearch(app_info::get<bool>("logContentSearch", false)),
-	m_logIndentLevel(0), m_anonCounter(0)
+	m_logIndentLevel(0), m_anonCounter(0),
+	m_lg("Content")
 {
-	std::cout << "scanning content..." << std::endl;
+	LOG_INFO(m_lg) << "Root directory: " << m_contentRoot;
+	LOG_INFO(m_lg) << "Scanning for content files...";
 	scanContentFolder(m_contentRoot);
 }
 
@@ -33,7 +34,7 @@ bool Content::findGenericFirst(const std::string& name, path& result)
 		return true;
 	}
 
-	std::cout << "could not find generic file \"" << name << "\"" << std::endl;
+	LOG_ERROR(m_lg) << "Could not find generic file \"" << name << "\"";
 
 	return false;
 }
@@ -94,21 +95,10 @@ void Content::scanContentFolder(const path& p)
 {
 	using namespace boost::filesystem;
 
-	if (m_logSearch) {
-		for (unsigned int i = 0; i < m_logIndentLevel; ++i) std::cout << "  ";
-		std::cout << p.filename().string() << ": ";
-	}
-
 	if (is_directory(p)) {
-		if (m_logSearch) std::cout << std::endl;
-
-		++m_logIndentLevel;
-
 		for (auto dit = directory_iterator(p); dit != directory_iterator(); ++dit) {
 			scanContentFolder(dit->path());
 		}
-
-		--m_logIndentLevel;
 	} else if (is_regular_file(p)) {
 		addFile(p);
 	}
@@ -121,6 +111,9 @@ void Content::addFile(const path& p)
 	std::string ext = p.extension().string();
 	std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
 	object_type type = type_registry::findByExtension(ext);
+
+	logging::severity_level logSev = logging::debug;
+	std::string logMsg = p.generic_string() + ": ";
 
 	if (type) {
 		name = p.stem().string();
@@ -136,23 +129,23 @@ void Content::addFile(const path& p)
 					name = get_name(j);
 
 					if (!type) {
-						std::cout << "WARNING: found json file with unknown object type: \"" << tn << "\"";
-						if (!m_logSearch) std::cout << std::endl;
+						logSev = logging::warning;
+						logMsg += "Json file with unknown object type: \"" + tn + "\"";
 					}
 				}
 			}
 		} catch (std::invalid_argument&) {
 			m_genericRegistry.emplace(p.filename().string(), p);
-			if (m_logSearch) std::cout << "found generic file";
+			logMsg += "Generic file";
 		}
 	}
 
 	if (type) {
 		m_registry[type.id][name] = p;
-		if (m_logSearch) std::cout << "found " << type.name << " \"" << name << "\"";
+		logMsg += type.name + " \"" + name + "\"";
 	}
 
-	if (m_logSearch) std::cout << std::endl;
+	LOG(m_lg, logSev) << logMsg;
 }
 
 std::string Content::getAnonName()

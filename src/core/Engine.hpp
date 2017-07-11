@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "util/singleton.hpp"
+#include "logging/module_logger.hpp"
 #include "object_pointers.hpp"
 
 #include "glm.hpp"
@@ -85,6 +86,8 @@ private:
 	bool m_loadingScene;
 	std::string m_loadingSceneName;
 
+	logging::module_logger m_lg;
+
 
 	Engine(const Engine& other) = delete;
 	Engine(Engine&& other) = delete;
@@ -100,7 +103,13 @@ private:
 
 	void loadSceneInternal(const std::string& sceneName);
 
+	void onError(int err, const char* msg);
 	void onResize(int width, int height);
+
+	static void errorCallback(int err, const char* msg)
+	{
+		instance()->onError(err, msg);
+	}
 
 	static void resizeCallback(GLFWwindow* window, int width, int height)
 	{

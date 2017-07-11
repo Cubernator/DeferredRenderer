@@ -3,6 +3,11 @@ set(BOOST_COMPONENTS
 	system
 	filesystem
 	program_options
+	date_time
+	thread
+	regex
+	log
+	log_setup
 )
 set(BOOST_HASH 0445c22a5ef3bd69f5dfb48354978421a85ab395254a26b1ffb0aa1bfd63a108)
 
@@ -59,7 +64,11 @@ list(APPEND BUILD_CMD toolset=${TOOLSET})
 set(BOOST_LIBS "")
 
 foreach(component ${BOOST_COMPONENTS})
-	list(APPEND BUILD_CMD --with-${component})
+	#HACK: boost.log produces two libraries... WHY???
+	if(NOT ${component} STREQUAL log_setup)
+		list(APPEND BUILD_CMD --with-${component})
+	endif()
+	
 	list(APPEND BOOST_LIBS ${LIB_PREFIX}boost_${component}-mt$<$<CONFIG:Debug>:-gd>)
 endforeach()
 

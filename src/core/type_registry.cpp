@@ -28,10 +28,7 @@ object_type::operator bool() const
 
 void type_registry::registerObjectType(object_type type)
 {
-	// TODO: print warning upon duplicate names
 	s_types.insert(type);
-
-	std::cout << "type registered: " << type.name << std::endl;
 }
 
 const object_type& type_registry::findById(std::type_index type)

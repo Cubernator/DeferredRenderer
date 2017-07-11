@@ -22,11 +22,7 @@ public:
 		mapped_type fun;
 		if (get(propName, fun)) {
 			if (fun) {
-				try {
-					return fun(std::forward<Args>(args)...);
-				} catch (std::exception& e) {
-					std::cout << "ERROR: an exception was thrown while interpreting json property \"" << propName << "\": " << e.what() << std::endl;
-				}
+				return fun(std::forward<Args>(args)...);
 			}
 		}
 

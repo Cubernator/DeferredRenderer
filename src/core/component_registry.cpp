@@ -29,8 +29,6 @@ component_type::operator bool() const
 void component_registry::registerComponentType(component_type type)
 {
 	s_types.insert(type);
-
-	std::cout << "component registered: " << type.name << std::endl;
 }
 
 const component_type& component_registry::findByName(const std::string& name)

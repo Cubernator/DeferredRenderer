@@ -35,8 +35,6 @@ namespace scripting
 
 	void raise_error(lua_State* L, const std::string& msg);
 
-	void stack_dump(lua_State* L);
-
 	std::string value_to_string(lua_State* L, int idx);
 	inline std::string value_typename(lua_State* L, int idx)
 	{

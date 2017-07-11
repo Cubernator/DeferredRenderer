@@ -1,5 +1,7 @@
 #include "core/Engine.hpp"
 #include "core/app_info.hpp"
+#include "logging/setup.hpp"
+#include "logging/log.hpp"
 
 #include "boost/program_options.hpp"
 
@@ -43,8 +45,22 @@ int main(int argc, char *argv[])
 	store(command_line_parser(args).options(desc).run(), vm);
 	notify(vm);
 
+	logging::init();
+
 	app_info::load(aiPath);
 
-	Engine engine;
-	return engine.run();
+	int status = 0;
+
+	{
+		logging::severity_logger lg;
+
+		LOG_INFO(lg) << "Constructing engine...";
+		Engine engine;
+
+		status = engine.run();
+
+		LOG_INFO(lg) << "Cleaning up...";
+	}
+
+	return status;
 }

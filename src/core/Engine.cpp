@@ -10,6 +10,8 @@
 #include "scripting/Environment.hpp"
 #include "scripting/class_registry.hpp"
 
+#include "logging/log.hpp"
+
 #include "app_info.hpp"
 
 #include "GL/glew.h"
@@ -17,23 +19,22 @@
 
 #include <iostream>
 
-Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_loadingScene(false)
+Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_loadingScene(false), m_lg("Core")
 {
-	glfwSetErrorCallback([](int err, const char* msg) {
-		std::cout << msg << std::endl;
-	});
+	glfwSetErrorCallback(errorCallback);
 
-	// initialize GLFW
+	LOG_INFO(m_lg) << "Initializing GLFW...";
 	if (!glfwInit()) {
 		m_error = -1;
-		std::cout << "ERROR: Failed to initialize GLFW!" << std::endl;
+		LOG_CRITICAL(m_lg) << "Failed to initialize GLFW!";
 		return;
 	}
 
 	auto title = app_info::get<std::string>("title", "Untitled");
 	auto resolution = app_info::get("resolution", glm::ivec2(640, 480));
-	bool fullscreen = app_info::get("fullscreen", false);
-	bool windowedFullscreen = app_info::get("windowedFullscreen", false);
+	auto fullscreen = app_info::get("fullscreen", false);
+	auto windowedFullscreen = app_info::get("windowedFullscreen", false);
+	auto vSync = app_info::get("vSync", false);
 
 	GLFWmonitor* monitor = nullptr;
 
@@ -54,37 +55,41 @@ Engine::Engine() : m_error(0), m_running(true), m_time(0), m_frameTime(0), m_loa
 
 	glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
-	// create window
+	LOG_INFO(m_lg) << "Creating window...";
+	LOG_INFO(m_lg) << "Title: " << title;
+	LOG_INFO(m_lg) << "Resolution: " << resolution.x << "x" << resolution.y;
+	LOG_INFO(m_lg) << "Mode: " << (fullscreen ? (windowedFullscreen ? "Windowed Fullscreen" : "Fullscreen") : "Windowed");
+	LOG_INFO(m_lg) << "VSync: " << (vSync ? "Enabled" : "Disabled");
 	m_window = glfwCreateWindow(resolution.x, resolution.y, title.c_str(), monitor, nullptr);
-
 	if (!m_window) {
 		m_error = -2;
-		std::cout << "ERROR: Failed to create window!" << std::endl;
+		LOG_CRITICAL(m_lg) << "Failed to create window!";
 		return;
 	}
 
 	glfwMakeContextCurrent(m_window);
 
-	setVSync(app_info::get("vSync", false));
+	setVSync(vSync);
 	
 	glfwSetFramebufferSizeCallback(m_window, resizeCallback);
 
-	// initialize GLEW
+	LOG_INFO(m_lg) << "Initializing GLEW...";
 	GLenum err = glewInit();
 	if (err != GLEW_OK) {
 		m_error = -3;
-		std::cout << "ERROR: Failed to initialize GLEW!" << std::endl;
+		LOG_CRITICAL(m_lg) << "Failed to initialize GLEW!";
 		return;
 	}
 
-	std::cout << "Using OpenGL version: " << glGetString(GL_VERSION) << std::endl;
+	LOG_INFO(m_lg) << "Using OpenGL version: " << glGetString(GL_VERSION);
 
 	if (!GLEW_VERSION_3_3) {
 		m_error = -4;
-		std::cout << "ERROR: OpenGL version 3.3 or higher is required!" << std::endl;
+		LOG_CRITICAL(m_lg) << "OpenGL version 3.3 or higher is required!";
 		return;
 	}
 
+	LOG_INFO(m_lg) << "Constructing modules...";
 	m_content = std::make_unique<Content>();
 	m_scriptEnv = std::make_unique<scripting::Environment>();
 	m_objReg = std::make_unique<ObjectRegistry>();
@@ -121,6 +126,8 @@ int Engine::run()
 Engine::~Engine()
 {
 	m_scene.reset();
+
+	LOG_INFO(m_lg) << "Cleaning up modules...";
 	m_input.reset();
 	m_renderer.reset();
 	m_objReg.reset();
@@ -178,16 +185,16 @@ void Engine::setVSync(bool val)
 void Engine::loadSceneInternal(const std::string& sceneName)
 {
 	if (m_scene) {
-		std::cout << "Unloading scene \"" << m_scene->name() << "\"..." << std::endl;
+		LOG_INFO(m_lg) << "Unloading scene \"" << m_scene->name() << "\"...";
 		m_scene.reset();
 	}
 
-	std::cout << "Loading scene \"" << sceneName << "\"..." << std::endl;
+	LOG_INFO(m_lg) << "Loading scene \"" << sceneName << "\"...";
 	auto scene = m_content->getFromDisk<Scene>(sceneName);
 	if (scene) {
 		m_scene = m_objReg->addUnique(std::move(scene));
 	} else {
-		std::cout << "ERROR: could not find scene " << sceneName << std::endl;
+		LOG_ERROR(m_lg) << "Could not find scene " << sceneName;
 	}
 
 	m_loadingScene = false;
@@ -217,6 +224,11 @@ void Engine::removeComponent(Component* cmpt)
 	for (auto cm : m_cmptModules) {
 		cm->removeComponent(cmpt);
 	}
+}
+
+void Engine::onError(int err, const char* msg)
+{
+	LOG_ERROR(m_lg) << msg;
 }
 
 void Engine::onResize(int width, int height)

@@ -19,6 +19,7 @@
 #include "ImageEffect.hpp"
 #include "util/intersection_tests.hpp"
 #include "scripting/class_registry.hpp"
+#include "logging/log.hpp"
 
 #include "boost/format.hpp"
 #include "GL/glew.h"
@@ -69,7 +70,8 @@ RenderEngine::RenderEngine(Engine* parent)
 	: m_parent(parent), m_camera(nullptr), m_lightMeshVAO(0), m_fsQuadVAO(0), m_currentSourceBuf(nullptr),
 	m_deferredAmbientPass(nullptr), m_deferredLightPass(nullptr),
 	m_enableDeferred(true), m_enableViewFrustumCulling(true),
-	m_outputMode(output_default), m_avgLightsPerObj(0.0f), m_triangleCount(0)
+	m_outputMode(output_default), m_avgLightsPerObj(0.0f), m_triangleCount(0),
+	m_lg("Graphics")
 {
 #ifdef _DEBUG
 	glEnable(GL_DEBUG_OUTPUT);
@@ -89,6 +91,8 @@ RenderEngine::RenderEngine(Engine* parent)
 
 void RenderEngine::setupDeferredPath()
 {
+	LOG_INFO(m_lg) << "Creating g-buffer textures...";
+
 	m_gBufDiff = std::make_unique<Texture2D>();
 	m_gBufDiff->setParams(false, filter_point, wrap_clampToEdge);
 
@@ -101,15 +105,23 @@ void RenderEngine::setupDeferredPath()
 	m_gBufDepth = std::make_unique<Texture2D>();
 	m_gBufDepth->setParams(false, filter_point, wrap_clampToEdge);
 
+	LOG_INFO(m_lg) << "Creating accumulation buffer...";
+
 	m_accBuffer = std::make_unique<RenderTexture>();
 	m_accBuffer->setParams(false, filter_bilinear, wrap_clampToEdge);
+
+	LOG_INFO(m_lg) << "Creating auxiliary buffers...";
 
 	for (unsigned int i = 0; i < NUM_AUX_BUFFERS; ++i) {
 		m_auxBuffers.push_back(std::make_unique<RenderTexture>());
 		m_auxBuffers[i]->setParams(false, filter_bilinear, wrap_clampToEdge);
 	}
 
+	LOG_INFO(m_lg) << "Initializing fullscreen buffer textures...";
+
 	onResize(m_parent->screenWidth(), m_parent->screenHeight());
+
+	LOG_INFO(m_lg) << "Creating g-buffer rendertarget...";
 
 	FrameBuffer::target_array gTargets;
 	gTargets.push_back(make_tex2D_tgt(m_gBufDiff.get()));
@@ -119,9 +131,15 @@ void RenderEngine::setupDeferredPath()
 	m_gFrameBuffer = std::make_unique<FrameBuffer>();
 	m_gFrameBuffer->setTargetsDepth(make_tex2D_tgt(m_gBufDepth.get()), std::move(gTargets));
 
+	LOG_INFO(m_lg) << "Creating lightmesh...";
+
 	createCombinedLightMesh();
 
 	auto lightEffectName = app_info::get<std::string>("deferredLightEffect", "deferred_light");
+
+	LOG_INFO(m_lg) << "Fetching deferred light shaders...";
+	LOG_INFO(m_lg) << "Deferred light effect name: \"" << lightEffectName << "\"";
+
 	m_deferredLightEffect = Content::instance()->getFromDisk<Effect>(lightEffectName);
 
 	if (m_deferredLightEffect) {
@@ -130,14 +148,14 @@ void RenderEngine::setupDeferredPath()
 		m_deferredDebugPass = m_deferredLightEffect->getPass("debug");
 
 		if (!m_deferredAmbientPass) {
-			std::cout << "WARNING: could not initialize deferred ambient pass!" << std::endl;
+			LOG_ERROR(m_lg) << "Failed to get deferred ambient pass!";
 		}
 
 		if (!m_deferredLightPass) {
-			std::cout << "WARNING: could not initialize deferred light pass!" << std::endl;
+			LOG_ERROR(m_lg) << "Failed to get deferred light pass!";
 		}
 	} else {
-		std::cout << "WARNING: could not initialize deferred light effect!" << std::endl;
+		LOG_ERROR(m_lg) << "Failed to get deferred light effect!";
 	}
 }
 
@@ -282,6 +300,8 @@ void main()
 }
 )"_json;
 
+	LOG_INFO(m_lg) << "Creating built-in fullscreen copy shader...";
+
 	auto objReg = ObjectRegistry::instance();
 
 	auto copyVS = objReg->emplace<Shader>("builtin_copy.vert", Shader::type_vertex, vs);
@@ -312,6 +332,8 @@ void main()
 
 void RenderEngine::createDefaultResources()
 {
+	LOG_INFO(m_lg) << "Creating default resources...";
+
 	auto objReg = ObjectRegistry::instance();
 
 	pixel::srgb pw{ 255U, 255U, 255U };
@@ -904,24 +926,7 @@ inline unsigned int RenderEngine::render_job::lightMode() const { return pass->m
 inline const ShaderProgram * RenderEngine::render_job::program() const { return pass->program; }
 
 
-void RenderEngine::debugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	auto msg = boost::format("OpenGL Message [%s]: %s %s (ID %i): %s")
-		% dbgSeverityString(severity)
-		% dbgSourceString(source)
-		% dbgTypeString(type)
-		% id
-		% message;
-
-	std::cout << msg << std::endl;
-}
-
-void GLAPIENTRY glDbgMsg(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
-{
-	RenderEngine::debugMessage(source, type, id, severity, length, message, userParam);
-}
-
-std::string RenderEngine::dbgSourceString(GLenum v)
+std::string dbgSourceString(GLenum v)
 {
 	switch (v) {
 	case GL_DEBUG_SOURCE_API:
@@ -941,7 +946,7 @@ std::string RenderEngine::dbgSourceString(GLenum v)
 	}
 }
 
-std::string RenderEngine::dbgTypeString(GLenum v)
+std::string dbgTypeString(GLenum v)
 {
 	switch (v) {
 	case GL_DEBUG_TYPE_ERROR:
@@ -963,20 +968,36 @@ std::string RenderEngine::dbgTypeString(GLenum v)
 	}
 }
 
-std::string RenderEngine::dbgSeverityString(GLenum v)
+logging::severity_level getSeverity(GLenum v)
 {
 	switch (v) {
 	case GL_DEBUG_SEVERITY_HIGH:
-		return "High";
+		return logging::error;
 	case GL_DEBUG_SEVERITY_MEDIUM:
-		return "Medium";
+		return logging::warning;
 	case GL_DEBUG_SEVERITY_LOW:
-		return "Low";
+		return logging::warning;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
-		return "Notification";
+		return logging::info;
 	default:
-		return "Unknown";
+		return logging::debug;
 	}
+}
+
+void RenderEngine::debugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	auto msg = boost::format("OpenGL: %s %s (ID %i): %s")
+		% dbgSourceString(source)
+		% dbgTypeString(type)
+		% id
+		% message;
+
+	LOG(instance()->m_lg, getSeverity(severity)) << msg;
+}
+
+void GLAPIENTRY glDbgMsg(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+{
+	RenderEngine::debugMessage(source, type, id, severity, length, message, userParam);
 }
 
 SCRIPTING_REGISTER_STATIC_CLASS(Graphics)

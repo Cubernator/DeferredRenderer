@@ -17,8 +17,9 @@ namespace scripting
 		return 0;
 	}
 
-	Environment::Environment()
+	Environment::Environment() : m_lg("Scripting")
 	{
+		LOG_INFO(m_lg) << "Creating lua state...";
 		m_L = luaL_newstate();
 
 		lua_atpanic(m_L, &Environment::onPanic);
@@ -37,6 +38,7 @@ namespace scripting
 		for (path& dir : searchDirs) {
 			luaPath += (fmt % (croot / dir).generic_string()).str();
 		}
+		LOG_DEBUG(m_lg) << "Lua path: " << luaPath;
 
 		lua_pop(m_L, 1);
 		lua_pushstring(m_L, luaPath.c_str());
@@ -44,9 +46,9 @@ namespace scripting
 		lua_pop(m_L, 1);
 
 		loadModule("Object");
-		lua_pushcfunction(m_L, lua_destroy);
-		lua_setglobal(m_L, "destroy");
+		lua_register(m_L, "destroy", lua_destroy);
 
+		LOG_INFO(m_lg) << "Registering classes and methods...";
 		class_registry::applyAllClasses();
 	}
 
@@ -64,6 +66,7 @@ namespace scripting
 
 	void Environment::addClass(const std::string& name, const std::string& base)
 	{
+		LOG_DEBUG(m_lg) << "Adding class \"" << name << "\" (Derived from \"" << base << "\")";
 		instantiateClass(base, nullptr);
 		lua_setglobal(m_L, name.c_str());
 	}
@@ -75,6 +78,7 @@ namespace scripting
 
 	void Environment::addStaticClass(const std::string& name)
 	{
+		LOG_DEBUG(m_lg) << "Adding static class \"" << name << "\"";
 		lua_newtable(m_L);
 		lua_setglobal(m_L, name.c_str());
 	}
@@ -84,7 +88,7 @@ namespace scripting
 		lua_getglobal(m_L, className.c_str());
 		if (!lua_istable(m_L, -1)) {
 			pop();
-			std::cout << "WARNING: Could not find class \"" << className << "\"! Instantiating as Object instead." << std::endl;
+			LOG_WARNING(m_lg) << "Could not find class \"" << className << "\"! Instantiating as \"Object\" instead.";
 			lua_getglobal(m_L, "Object");
 		}
 
@@ -114,7 +118,7 @@ namespace scripting
 
 		if (!lua_istable(m_L, -1)) {
 			pop();
-			std::cout << "ERROR: failed to invalidate object: " << obj << std::endl;
+			LOG_ERROR(m_lg) << "Failed to invalidate object: " << obj;
 			return;
 		}
 
@@ -142,7 +146,7 @@ namespace scripting
 		int status = lua_pcall(m_L, argc, resc, base);
 		if (status != LUA_OK) {
 			const char* msg = lua_tostring(m_L, -1);
-			std::cout << "ERROR: " << msg << std::endl;
+			LOG_ERROR(m_lg) << msg;
 			pop();
 		}
 		lua_remove(m_L, base);
@@ -215,14 +219,25 @@ namespace scripting
 		return 1;
 	}
 
+	void Environment::stackDump(lua_State* L)
+	{
+		int top = lua_gettop(L);
+		for (int i = 1; i <= top; ++i) {
+			LOG_INFO(instance()->m_lg) << (boost::format("[%1$2i] %2$8s: %3%")
+				% i
+				% value_typename(L, i)
+				% value_to_string(L, i));
+		}
+	}
+
 	int Environment::onPanic(lua_State* L)
 	{
 		const char* msg = lua_tostring(L, -1);
 		lua_pop(L, 1);
 
-		std::cout << "ERROR: unprotected error in lua API: " << msg << std::endl;
-		std::cout << "stack contents:" << std::endl;
-		stack_dump(L);
+		LOG_ERROR(instance()->m_lg) << "Unprotected error in lua API: " << msg;
+		LOG_INFO(instance()->m_lg) << "stack contents:";
+		stackDump(L);
 
 		return 0;
 	}

@@ -7,6 +7,7 @@
 #include "GL/glew.h"
 
 #include "graphics/shader/Shader.hpp"
+#include "logging/module_logger.hpp"
 
 class shader_preprocessor
 {
@@ -33,6 +34,8 @@ private:
 	bool m_error;
 	unsigned int m_currentLine;
 	unsigned int m_srcId, m_nextSrcId;
+
+	logging::module_logger m_lg;
 
 	void process(std::istream& stream);
 

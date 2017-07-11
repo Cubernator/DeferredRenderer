@@ -25,13 +25,9 @@ template<typename T>
 std::unique_ptr<T> import_object(std::istream& stream)
 {
 	if (stream) {
-		try {
-			nlohmann::json json;
-			json << stream;
-			return json_to_object<T>(json);
-		} catch (std::invalid_argument& e) {
-			std::cout << "an error occured while parsing json: \"" << e.what() << "\"" << std::endl;
-		}
+		nlohmann::json json;
+		json << stream;
+		return json_to_object<T>(json);
 	}
 
 	return nullptr;

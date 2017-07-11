@@ -10,6 +10,8 @@
 #include "graphics/RenderState.hpp"
 #include "util/bounds.hpp"
 
+#include "logging/module_logger.hpp"
+
 #include "boost/multi_index_container.hpp"
 #include "boost/multi_index/indexed_by.hpp"
 #include "boost/multi_index/ordered_index.hpp"
@@ -212,6 +214,8 @@ private:
 	float m_avgLightsPerObj;
 	std::size_t m_triangleCount;
 
+	logging::module_logger m_lg;
+
 
 	void setupDeferredPath();
 	void createCombinedLightMesh();
@@ -241,10 +245,6 @@ private:
 	// cppcheck-suppress unusedPrivateFunction
 	static void debugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 	friend void GLAPIENTRY glDbgMsg(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
-
-	static std::string dbgSourceString(GLenum v);
-	static std::string dbgTypeString(GLenum v);
-	static std::string dbgSeverityString(GLenum v);
 };
 
 #endif // RENDERENGINE_HPP

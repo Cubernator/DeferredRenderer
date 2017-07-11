@@ -20,20 +20,6 @@ namespace scripting
 		lua_error(L);
 	}
 
-	void stack_dump(lua_State* L)
-	{
-		using fmt = boost::format;
-
-		int top = lua_gettop(L);
-		for (int i = 1; i <= top; ++i) {
-			std::cout << (fmt("[%1$2i] %2$8s: %3%")
-				% i
-				% value_typename(L, i)
-				% value_to_string(L, i))
-				<< std::endl;
-		}
-	}
-
 	std::string value_to_string(lua_State* L, int idx)
 	{
 		using fmt = boost::format;

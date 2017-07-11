@@ -1,5 +1,6 @@
 #include "shader_preprocessor.hpp"
 #include "content/Content.hpp"
+#include "logging/log.hpp"
 
 #include "boost/format.hpp"
 #include "boost/spirit/home/qi.hpp"
@@ -7,18 +8,18 @@
 
 #include <iostream>
 
-shader_preprocessor::shader_preprocessor(const path& fname, unsigned int srcId) : m_filename(fname), m_shaderType(Shader::type_undefined), m_error(false), m_srcId(srcId)
+shader_preprocessor::shader_preprocessor(const path& fname, unsigned int srcId) : m_filename(fname), m_shaderType(Shader::type_undefined), m_error(false), m_srcId(srcId), m_lg("Shader preprocessor")
 {
 	boost::filesystem::ifstream fs(fname);
 	if (!fs) {
-		std::cout << "Shader preprocessor error: could not open file " << fname << std::endl;
+		LOG_ERROR(m_lg) << "Could not open file " << fname;
 		m_error = true;
 	} else {
 		process(fs);
 	}
 }
 
-shader_preprocessor::shader_preprocessor(std::istream& stream, unsigned int srcId) : m_shaderType(Shader::type_undefined), m_error(false), m_srcId(srcId)
+shader_preprocessor::shader_preprocessor(std::istream& stream, unsigned int srcId) : m_shaderType(Shader::type_undefined), m_error(false), m_srcId(srcId), m_lg("Shader preprocessor")
 {
 	process(stream);
 }
@@ -163,7 +164,7 @@ void shader_preprocessor::include(const path& file)
 	}
 
 	if (!found) {
-		std::cout << m_filename.string() << "(" << m_currentLine << "): could not find include file " << file << std::endl;
+		LOG_ERROR(m_lg) << m_filename.string() << "(" << m_currentLine << "): could not find include file " << file;
 		m_error = true;
 		return;
 	}

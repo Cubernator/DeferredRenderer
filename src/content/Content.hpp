@@ -5,6 +5,8 @@
 #include "util/singleton.hpp"
 #include "util/import.hpp"
 #include "util/json_utils.hpp"
+#include "logging/module_logger.hpp"
+#include "logging/log.hpp"
 
 #include <typeinfo>
 #include <unordered_map>
@@ -83,6 +85,8 @@ private:
 
 	unsigned int m_anonCounter;
 
+	logging::module_logger m_lg;
+
 
 	std::string getAnonName();
 
@@ -94,12 +98,17 @@ private:
 	{
 		path p;
 		if (type && findObject(type.id, name, p)) {
-			auto obj = import_object<T>(type, p);
-			if (obj) obj->setName(name);
-			return std::move(obj);
+			try {
+				auto obj = import_object<T>(type, p);
+				if (obj) obj->setName(name);
+				return std::move(obj);
+			} catch (std::exception& e) {
+				LOG_ERROR(m_lg) << "Error while importing " << type.name << " \"" << name << "\": " << e.what();
+				return nullptr;
+			}
 		}
 
-		std::cout << "could not find " << type.name << ": \"" << name << "\"" << std::endl;
+		LOG_ERROR(m_lg) << "Could not find " << type.name << " \"" << name << "\"";
 		return nullptr;
 	}
 

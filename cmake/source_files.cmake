@@ -88,6 +88,11 @@ set(SOURCE_FILES
 	src/input/Input.hpp
 	src/input/keys.cpp
 	src/input/keys.hpp
+	src/logging/log.hpp
+	src/logging/module_logger.cpp
+	src/logging/module_logger.hpp
+	src/logging/setup.cpp
+	src/logging/setup.hpp
 	src/scripting/Behaviour.cpp
 	src/scripting/Behaviour.hpp
 	src/scripting/class_registry.cpp
@@ -106,7 +111,6 @@ set(SOURCE_FILES
 	src/util/json_interpreter.hpp
 	src/util/json_utils.cpp
 	src/util/json_utils.hpp
-	src/util/logging.hpp
 	src/util/property_interpreter.hpp
 	src/util/random.cpp
 	src/util/random.hpp

@@ -84,10 +84,10 @@ void Scene::extractEntities(const nlohmann::json& json)
 			}
 
 			int progress = int((float(++i) / float(entityCount)) * 100.0f);
-			std::cout << fmt % progress % "creating entities";
+			//std::cout << fmt % progress % "creating entities";
 		}
 
-		std::cout << std::endl;
+		//std::cout << std::endl;
 
 		i = 0;
 		std::size_t cmptCount = components.size();
@@ -96,10 +96,10 @@ void Scene::extractEntities(const nlohmann::json& json)
 		for (auto p : components) {
 			p.first->apply_json(p.second);
 			int progress = int((float(++i) / float(cmptCount)) * 100.0f);
-			std::cout << fmt % progress % "initializing components";
+			//std::cout << fmt % progress % "initializing components";
 		}
 
-		std::cout << std::endl;
+		//std::cout << std::endl;
 	}
 }
 

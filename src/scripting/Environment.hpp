@@ -7,6 +7,9 @@
 #include "util/singleton.hpp"
 #include "core/ComponentModule.hpp"
 
+#include "logging/module_logger.hpp"
+#include "logging/log.hpp"
+
 #include "utility.hpp"
 
 #include <string>
@@ -27,11 +30,6 @@ namespace scripting
 		void update();
 
 		lua_State *state() { return m_L; }
-
-		void stackDump()
-		{
-			stack_dump(m_L);
-		}
 
 		void pop(int n = 1)
 		{
@@ -107,11 +105,11 @@ namespace scripting
 					int ac = 1 + sizeof...(args);
 					safeCall(ac, numResults);
 				} else {
-					std::cout << "ERROR: could not find method: \"" << methodName << "\"!" << std::endl;
+					LOG_ERROR(m_lg) << "Could not find method: \"" << methodName << "\"!";
 					pop(2);
 				}
 			} else {
-				std::cout << "ERROR: could not find object!" << std::endl;
+				LOG_ERROR(m_lg) << "Failed to call method: Could not find object!";
 				pop();
 			}
 		}
@@ -121,9 +119,13 @@ namespace scripting
 		virtual void addComponent(Component* cmpt) final;
 		virtual void removeComponent(Component* cmpt) final;
 
+		static void stackDump(lua_State* L);
+
 	private:
 		lua_State *m_L;
 		std::vector<Behaviour*> m_behaviours, m_addBhvs, m_removeBhvs;
+
+		logging::module_logger m_lg;
 
 		static int traceback(lua_State* L);
 		static int onPanic(lua_State* L);

@@ -2,6 +2,7 @@
 #include "RenderEngine.hpp"
 #include "RenderTarget.hpp"
 #include "texture/Texture2D.hpp"
+#include "logging/log.hpp"
 
 FrameBuffer::FrameBuffer() : m_glObj(0), m_clearDepth(1.0f), m_clearStencil(0)
 {
@@ -97,10 +98,12 @@ void FrameBuffer::detachTargets()
 
 void FrameBuffer::internalSetTargets(target d, target s, target ds, target_array&& c)
 {
+	logging::module_logger lg("Graphics");
+
 	GLint mca = 0;
 	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &mca);
 	if (GLint(c.size()) >= mca) {
-		std::cout << "ERROR: maximum color attachements exceeded!" << std::endl;
+		LOG_ERROR(lg) << "Maximum framebuffer color attachements exceeded!";
 		return;
 	}
 
@@ -119,7 +122,7 @@ void FrameBuffer::internalSetTargets(target d, target s, target ds, target_array
 	setDrawAll();
 
 	if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "ERROR: Framebuffer is incomplete!" << std::endl;
+		LOG_ERROR(lg) << "Framebuffer is incomplete!";
 	}
 
 	unbind();

@@ -5,7 +5,6 @@
   "fullscreen": false,
   "windowedFullscreen": true,
   "contentRoot": "content",
-  "logContentSearch": false,
   "scriptSearchDirs": [ "scripts" ],
   "shaderIncludeDirs": [ "shaders" ],
   "deferredLightEffect": "deferred_light",

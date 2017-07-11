@@ -4,6 +4,7 @@
 #include "core/type_registry.hpp"
 #include "scripting/class_registry.hpp"
 #include "content/pooled.hpp"
+#include "logging/log.hpp"
 
 namespace
 {
@@ -153,11 +154,6 @@ void Effect::addPass(const nlohmann::json& json)
 		newPass.apply_json(json);
 
 		if (newPass.program) {
-			if (!newPass.program->isGood()) {
-				std::cout << "shader program has errors (" << newPass.name << "):" << std::endl;
-				std::cout << newPass.program->linkerLog() << std::endl;
-			}
-
 			auto p = m_passes.push_back(std::move(newPass));
 			if (!p.second) {
 				// TODO: print warning

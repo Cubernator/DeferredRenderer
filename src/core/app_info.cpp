@@ -1,12 +1,16 @@
 #include "app_info.hpp"
 
+#include "logging/log.hpp"
+
 #include "boost/filesystem/fstream.hpp"
 
 nlohmann::json app_info::s_properties(nlohmann::json::object());
 
 void app_info::load(const path& p)
 {
-	std::cout << "Loading app-info file: " << p << "..." << std::endl;
+	logging::severity_logger lg;
+
+	LOG_INFO(lg) << "Loading app-info from " << p << "...";
 	boost::filesystem::ifstream file(p);
 	if (file) {
 		try {
@@ -14,10 +18,10 @@ void app_info::load(const path& p)
 			j << file;
 			s_properties = j;
 		} catch (std::invalid_argument& e) {
-			std::cout << "ERROR: an error occured while parsing " << p << ": \"" << e.what() << "\"" << std::endl;
+			LOG_ERROR(lg) << "An error occured while parsing app-info file: \"" << e.what() << "\"";
 		}
 	} else {
-		std::cout << "ERROR: could not open " << p << std::endl;
+		LOG_ERROR(lg) << "Could not open app-info file!";
 	}
 }
 

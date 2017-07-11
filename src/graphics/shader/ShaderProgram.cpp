@@ -1,10 +1,12 @@
 #include "ShaderProgram.hpp"
 #include "Shader.hpp"
+#include "graphics/RenderEngine.hpp"
 #include "graphics/texture/Texture.hpp"
 #include "graphics/texture/texture_unit_manager.hpp"
 #include "core/type_registry.hpp"
 #include "content/pooled.hpp"
 #include "scripting/class_registry.hpp"
+#include "logging/log.hpp"
 
 #include <algorithm>
 #include <numeric>
@@ -159,7 +161,17 @@ std::unique_ptr<ShaderProgram> json_to_object<ShaderProgram>(const nlohmann::jso
 				if (s) shaders.push_back(s);
 			}
 		}
-		return std::make_unique<ShaderProgram>(shaders.begin(), shaders.end());
+
+		auto program = std::make_unique<ShaderProgram>(shaders.begin(), shaders.end());
+
+		if (!program->isGood()) {
+			auto pn = get_name(json, "<anonymous>");
+			// TODO: fix this. maybe define global loggers for each namespace...?
+			logging::module_logger lg("Graphics");
+			LOG_ERROR(lg) << "Error in shader program \"" << pn << "\": " << program->linkerLog();
+		}
+
+		return std::move(program);
 	}
 
 	return std::unique_ptr<ShaderProgram>();
