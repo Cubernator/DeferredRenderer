@@ -1,34 +1,40 @@
-#ifndef MESHRENDERER_HPP
-#define MESHRENDERER_HPP
+#ifndef GRAPHICS_MESHRENDERER_HPP
+#define GRAPHICS_MESHRENDERER_HPP
 
 #include "Renderer.hpp"
 #include "util/json_interpreter.hpp"
 
-class Mesh;
-class SubMesh;
-
-class MeshRenderer : public Renderer
+namespace hexeract
 {
-public:
-	explicit MeshRenderer(Entity* parent);
+	namespace graphics
+	{
+		class Mesh;
+		class SubMesh;
 
-	Mesh* mesh() { return m_mesh; }
-	const Mesh* mesh() const { return m_mesh; }
+		class MeshRenderer : public Renderer
+		{
+		public:
+			explicit MeshRenderer(Entity* parent);
 
-	void setMesh(Mesh* mesh) { m_mesh = mesh; }
+			Mesh* mesh() { return m_mesh; }
+			const Mesh* mesh() const { return m_mesh; }
 
-protected:
-	virtual const Drawable* getDrawable_impl(std::size_t index) const override;
-	virtual bool hasGeometry() const override;
-	virtual void apply_json_impl(const nlohmann::json& json) override;
+			void setMesh(Mesh* mesh) { m_mesh = mesh; }
 
-private:
-	Mesh* m_mesh;
+		protected:
+			virtual const Drawable* getDrawable_impl(std::size_t index) const override;
+			virtual bool hasGeometry() const override;
+			virtual void apply_json_impl(const nlohmann::json& json) override;
 
-	static json_interpreter<MeshRenderer> s_properties;
+		private:
+			Mesh* m_mesh;
 
-	// cppcheck-suppress unusedPrivateFunction
-	void extractMesh(const nlohmann::json& json);
-};
+			static json_interpreter<MeshRenderer> s_properties;
 
-#endif // MESHRENDERER_HPP
+			// cppcheck-suppress unusedPrivateFunction
+			void extractMesh(const nlohmann::json& json);
+		};
+	}
+}
+
+#endif // GRAPHICS_MESHRENDERER_HPP

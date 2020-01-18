@@ -1,16 +1,19 @@
-#ifndef OBJECT_POINTERS_HPP
-#define OBJECT_POINTERS_HPP
+#ifndef CORE_OBJECT_POINTERS_HPP
+#define CORE_OBJECT_POINTERS_HPP
 
 #include <memory>
 
-class NamedObject;
-
-struct object_destroyer
+namespace hexeract
 {
-	void operator() (NamedObject* obj) const noexcept;
-};
+	class NamedObject;
 
-template<typename T>
-using unique_obj_ptr = std::unique_ptr<T, object_destroyer>;
+	struct object_destroyer
+	{
+		void operator() (NamedObject* obj) const noexcept;
+	};
 
-#endif // OBJECT_POINTERS_HPP
+	template<typename T>
+	using unique_obj_ptr = std::unique_ptr<T, object_destroyer>;
+}
+
+#endif // CORE_OBJECT_POINTERS_HPP

@@ -1,4 +1,4 @@
-#include "texture_unit_manager.hpp"
+/*#include "texture_unit_manager.hpp"
 #include "Texture.hpp"
 
 GLuint texture_unit_manager::s_maxUnits = 0, texture_unit_manager::s_nextUnit = 0;
@@ -78,3 +78,4 @@ void texture_unit_manager::tex_unit::bind() const
 	GLuint glObj = currentTexture->glObj();
 	glBindTextures(unit, 1, &glObj);
 }
+*/

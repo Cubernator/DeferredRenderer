@@ -4,17 +4,20 @@
 #include "util/json_utils.hpp"
 #include "scripting/class_registry.hpp"
 
-NamedObject::NamedObject() : m_id(ObjectRegistry::instance()->getGUID()) { }
-
-NamedObject::~NamedObject() { }
-
-void NamedObject::setName(const std::string& name)
+namespace hexeract
 {
-	ObjectRegistry::instance()->setObjectName(this, name);
+	NamedObject::NamedObject() : m_id(instance<ObjectRegistry>()->getGUID()) { }
+
+	NamedObject::~NamedObject() { }
+
+	void NamedObject::setName(const std::string& name)
+	{
+		instance<ObjectRegistry>()->setObjectName(this, name);
+	}
+
+	SCRIPTING_REGISTER_CLASS(NamedObject);
+
+	SCRIPTING_AUTO_METHOD(NamedObject, id);
+	SCRIPTING_AUTO_METHOD(NamedObject, name);
+	SCRIPTING_AUTO_METHOD(NamedObject, setName);
 }
-
-SCRIPTING_REGISTER_CLASS(NamedObject)
-
-SCRIPTING_AUTO_METHOD(NamedObject, id)
-SCRIPTING_AUTO_METHOD(NamedObject, name)
-SCRIPTING_AUTO_METHOD(NamedObject, setName)

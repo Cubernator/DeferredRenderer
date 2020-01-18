@@ -5,9 +5,12 @@
 
 struct lua_State;
 
-namespace scripting
+namespace hexeract
 {
-	void push_json(lua_State* L, const nlohmann::json& json);
+	namespace scripting
+	{
+		void push_json(lua_State* L, const nlohmann::json& json);
+	}
 }
 
 #endif // SCRIPTING_JSON_TO_LUA_HPP

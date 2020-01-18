@@ -1,13 +1,16 @@
-#ifndef COMPONENTMODULE_HPP
-#define COMPONENTMODULE_HPP
+#ifndef CORE_COMPONENTMODULE_HPP
+#define CORE_COMPONENTMODULE_HPP
 
-class Component;
-
-class ComponentModule
+namespace hexeract
 {
-public:
-	virtual void addComponent(Component* cmpt) = 0;
-	virtual void removeComponent(Component* cmpt) = 0;
-};
+	class Component;
 
-#endif // COMPONENTMODULE_HPP
+	class ComponentModule
+	{
+	public:
+		virtual void addComponent(Component* cmpt) = 0;
+		virtual void removeComponent(Component* cmpt) = 0;
+	};
+}
+
+#endif // CORE_COMPONENTMODULE_HPP

@@ -1,5 +1,5 @@
-#ifndef SCRIPTINGENVIRONMENT_HPP
-#define SCRIPTINGENVIRONMENT_HPP
+#ifndef SCRIPTING_ENVIRONMENT_HPP
+#define SCRIPTING_ENVIRONMENT_HPP
 
 #include "path.hpp"
 #include "guid.hpp"
@@ -15,121 +15,124 @@
 #include <string>
 #include <vector>
 
-class Entity;
-
-namespace scripting
+namespace hexeract
 {
-	class Behaviour;
+	class Entity;
 
-	class Environment : public singleton<Environment>, public ComponentModule
+	namespace scripting
 	{
-	public:
-		Environment();
-		~Environment();
+		class Behaviour;
 
-		void update();
-
-		lua_State *state() { return m_L; }
-
-		void pop(int n = 1)
+		class Environment : public singleton<Environment>, public ComponentModule
 		{
-			lua_pop(m_L, n);
-		}
+		public:
+			Environment();
+			~Environment();
 
-		template<typename T>
-		void pushValue(T&& value)
-		{
-			push_value(m_L, std::forward<T>(value));
-		}
+			void update();
 
-		template<typename T>
-		T getValue(int idx = -1)
-		{
-			return get_value<T>(m_L, idx);
-		}
+			lua_State *state() { return m_L; }
 
-		bool loadModule(const std::string& name);
-
-		void addClass(const std::string& name, const std::string& base);
-		void addClass(const std::string& name);
-		void addStaticClass(const std::string& name);
-
-		template<typename Iter>
-		void addMethods(const std::string& className, Iter beginMethods, Iter endMethods)
-		{
-			lua_getglobal(m_L, className.c_str());
-
-			for (Iter it = beginMethods; it != endMethods; ++it) {
-				lua_pushcfunction(m_L, it->second);
-				set_field(m_L, -2, it->first);
+			void pop(int n = 1)
+			{
+				lua_pop(m_L, n);
 			}
 
-			pop();
-		}
-
-		void addMethods(const std::string& className, std::initializer_list<std::pair<std::string, lua_CFunction>> methods)
-		{
-			addMethods(className, methods.begin(), methods.end());
-		}
-
-		void addMethod(const std::string& className, const std::string& name, lua_CFunction f)
-		{
-			addMethods(className, { { name, f } });
-		}
-
-		void instantiateClass(const std::string& className, Object* obj);
-		void createObject(const std::string& className, Object* obj, bool pop = true)
-		{
-			instantiateClass(className, obj);
-			if (pop) {
-				this->pop();
+			template<typename T>
+			void pushValue(T&& value)
+			{
+				push_value(m_L, std::forward<T>(value));
 			}
-		}
 
-		void invalidateObject(Object* obj);
-		void pushObject(Object* obj);
+			template<typename T>
+			T getValue(int idx = -1)
+			{
+				return get_value<T>(m_L, idx);
+			}
 
-		int safeCall(int argc, int resc = LUA_MULTRET);
+			bool loadModule(const std::string& name);
 
-		template<typename... Args>
-		void callMethod(Object* obj, const std::string& methodName, int numResults, Args&&... args)
-		{
-			pushObject(obj);
+			void addClass(const std::string& name, const std::string& base);
+			void addClass(const std::string& name);
+			void addStaticClass(const std::string& name);
 
-			if (lua_istable(m_L, -1)) {
-				lua_getfield(m_L, -1, methodName.c_str());
+			template<typename Iter>
+			void addMethods(const std::string& className, Iter beginMethods, Iter endMethods)
+			{
+				lua_getglobal(m_L, className.c_str());
 
-				if (lua_isfunction(m_L, -1)) {
-					swap_top_2(m_L);
-					push_values(m_L, std::forward<Args>(args)...);
-					int ac = 1 + sizeof...(args);
-					safeCall(ac, numResults);
-				} else {
-					LOG_ERROR(m_lg) << "Could not find method: \"" << methodName << "\"!";
-					pop(2);
+				for (Iter it = beginMethods; it != endMethods; ++it) {
+					lua_pushcfunction(m_L, it->second);
+					set_field(m_L, -2, it->first);
 				}
-			} else {
-				LOG_ERROR(m_lg) << "Failed to call method: Could not find object!";
+
 				pop();
 			}
-		}
 
-		void callBehaviourMethod(Behaviour* bhv, const std::string& methodName);
+			void addMethods(const std::string& className, std::initializer_list<std::pair<std::string, lua_CFunction>> methods)
+			{
+				addMethods(className, methods.begin(), methods.end());
+			}
 
-		virtual void addComponent(Component* cmpt) final;
-		virtual void removeComponent(Component* cmpt) final;
+			void addMethod(const std::string& className, const std::string& name, lua_CFunction f)
+			{
+				addMethods(className, { { name, f } });
+			}
 
-		static void stackDump(lua_State* L);
+			void instantiateClass(const std::string& className, Object* obj);
+			void createObject(const std::string& className, Object* obj, bool pop = true)
+			{
+				instantiateClass(className, obj);
+				if (pop) {
+					this->pop();
+				}
+			}
 
-	private:
-		lua_State *m_L;
-		std::vector<Behaviour*> m_behaviours, m_addBhvs, m_removeBhvs;
+			void invalidateObject(Object* obj);
+			void pushObject(Object* obj);
 
-		logging::module_logger m_lg;
+			int safeCall(int argc, int resc = LUA_MULTRET);
 
-		static int traceback(lua_State* L);
-		static int onPanic(lua_State* L);
-	};
+			template<typename... Args>
+			void callMethod(Object* obj, const std::string& methodName, int numResults, Args&&... args)
+			{
+				pushObject(obj);
+
+				if (lua_istable(m_L, -1)) {
+					lua_getfield(m_L, -1, methodName.c_str());
+
+					if (lua_isfunction(m_L, -1)) {
+						swap_top_2(m_L);
+						push_values(m_L, std::forward<Args>(args)...);
+						int ac = 1 + sizeof...(args);
+						safeCall(ac, numResults);
+					} else {
+						LOG_ERROR(m_lg) << "Could not find method: \"" << methodName << "\"!";
+						pop(2);
+					}
+				} else {
+					LOG_ERROR(m_lg) << "Failed to call method: Could not find object!";
+					pop();
+				}
+			}
+
+			void callBehaviourMethod(Behaviour* bhv, const std::string& methodName);
+
+			virtual void addComponent(Component* cmpt) final;
+			virtual void removeComponent(Component* cmpt) final;
+
+			static void stackDump(lua_State* L);
+
+		private:
+			lua_State *m_L;
+			std::vector<Behaviour*> m_behaviours, m_addBhvs, m_removeBhvs;
+
+			logging::module_logger m_lg;
+
+			static int traceback(lua_State* L);
+			static int onPanic(lua_State* L);
+		};
+	}
 }
 
-#endif // SCRIPTINGENVIRONMENT_HPP
+#endif // SCRIPTING_ENVIRONMENT_HPP

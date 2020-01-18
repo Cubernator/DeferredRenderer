@@ -1,42 +1,42 @@
-#ifndef TRANSFORM_HPP
-#define TRANSFORM_HPP
+#ifndef CORE_TRANSFORM_HPP
+#define CORE_TRANSFORM_HPP
 
 #include "glm.hpp"
 #include "Component.hpp"
-#include "util/json_interpreter.hpp"
 
-class Transform : public Component
+namespace hexeract
 {
-public:
-	explicit Transform(Entity* parent);
+	class Transform : public Component
+	{
+	public:
+		explicit Transform(Entity* parent);
 
-	const glm::vec3& position() const { return m_position; }
-	const glm::quat& rotation() const { return m_rotation; }
-	const glm::vec3& scale() const { return m_scale; }
+		const glm::vec3& position() const { return m_position; }
+		const glm::quat& rotation() const { return m_rotation; }
+		const glm::vec3& scale() const { return m_scale; }
 
-	void setPosition(const glm::vec3& position) { m_position = position; m_dirty = true; }
-	void setRotation(const glm::quat& rotation) { m_rotation = rotation; m_dirty = true; }
-	void setScale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; }
+		void setPosition(const glm::vec3& position) { m_position = position; m_dirty = true; }
+		void setRotation(const glm::quat& rotation) { m_rotation = rotation; m_dirty = true; }
+		void setScale(const glm::vec3& scale) { m_scale = scale; m_dirty = true; }
 
-	const glm::mat4& getMatrix() const;
-	glm::mat4 getInverseMatrix() const;
-	glm::mat4 getRigidMatrix() const;
-	glm::mat4 getInverseRigidMatrix() const;
+		const glm::mat4& getMatrix() const;
+		glm::mat4 getInverseMatrix() const;
+		glm::mat4 getRigidMatrix() const;
+		glm::mat4 getInverseRigidMatrix() const;
 
-	COMPONENT_DISALLOW_MULTIPLE;
+		COMPONENT_DISALLOW_MULTIPLE;
 
-protected:
-	virtual void apply_json_impl(const nlohmann::json& json) override;
+	protected:
+		virtual void apply_json_impl(const nlohmann::json& json) override;
 
-private:
-	glm::vec3 m_position;
-	glm::quat m_rotation;
-	glm::vec3 m_scale;
+	private:
+		glm::vec3 m_position;
+		glm::quat m_rotation;
+		glm::vec3 m_scale;
 
-	mutable glm::mat4 m_cachedMatrix;
-	mutable bool m_dirty;
+		mutable glm::mat4 m_cachedMatrix;
+		mutable bool m_dirty;
+	};
+}
 
-	static json_interpreter<Transform> s_properties;
-};
-
-#endif // TRANSFORM_HPP
+#endif // CORE_TRANSFORM_HPP

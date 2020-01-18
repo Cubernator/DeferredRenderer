@@ -3,13 +3,16 @@
 
 #include "setup.hpp"
 
-namespace logging
+namespace hexeract
 {
-	class module_logger : public severity_logger
+	namespace logging
 	{
-	public:
-		module_logger(const std::string& name);
-	};
+		class module_logger : public severity_logger
+		{
+		public:
+			module_logger(const std::string& name);
+		};
+	}
 }
 
 #endif // LOGGING_MODULE_LOGGER_HPP

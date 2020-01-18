@@ -5,10 +5,10 @@ set(SOURCE_FILES
 	src/main.cpp
 	src/path.hpp
 	src/types.hpp
-	src/content/Content.cpp
-	src/content/Content.hpp
 	src/content/pooled.cpp
 	src/content/pooled.hpp
+	src/content/Registry.cpp
+	src/content/Registry.hpp
 	src/core/app_info.cpp
 	src/core/app_info.hpp
 	src/core/Component.cpp

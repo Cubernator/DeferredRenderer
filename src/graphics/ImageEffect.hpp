@@ -1,20 +1,26 @@
-#ifndef IMAGEEFFECT_HPP
-#define IMAGEEFFECT_HPP
+#ifndef GRAPHICS_IMAGEEFFECT_HPP
+#define GRAPHICS_IMAGEEFFECT_HPP
 
 #include "core/Component.hpp"
 
-class Texture2D;
-class RenderTexture;
-
-class ImageEffect : public Component
+namespace hexeract
 {
-public:
-	explicit ImageEffect(Entity* parent) : Component(parent) { }
+	namespace graphics
+	{
+		class Texture2D;
+		class RenderTexture;
 
-	virtual void apply(const Texture2D* input, const RenderTexture* output) = 0;
-	virtual bool isGood() const = 0;
+		class ImageEffect : public Component
+		{
+		public:
+			explicit ImageEffect(Entity* parent) : Component(parent) { }
 
-	COMPONENT_ALLOW_MULTIPLE;
-};
+			virtual void apply(const Texture2D* input, const RenderTexture* output) = 0;
+			virtual bool isGood() const = 0;
 
-#endif //IMAGEEFFECT_HPP
+			COMPONENT_ALLOW_MULTIPLE;
+		};
+	}
+}
+
+#endif //GRAPHICS_IMAGEEFFECT_HPP

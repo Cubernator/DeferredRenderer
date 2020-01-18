@@ -1,7 +1,7 @@
 #ifndef TEXTURE_UNIT_MANAGER_HPP
 #define TEXTURE_UNIT_MANAGER_HPP
 
-#include "GL/glew.h"
+/*#include "GL/glew.h"
 
 #include "boost/multi_index_container.hpp"
 #include "boost/multi_index/indexed_by.hpp"
@@ -43,6 +43,6 @@ private:
 	static unit_cache s_cache;
 
 	static void init();
-};
+};*/
 
 #endif // TEXTURE_UNIT_MANAGER_HPP

@@ -4,80 +4,83 @@
 #include <new>
 #include <iostream>
 
-using type_container = type_registry::type_container;
-
-
-object_type type_registry::s_empty_type;
-
-struct null_obj_importer : public object_importer
+namespace hexeract
 {
-	virtual std::unique_ptr<NamedObject> importFromFile(const path& p) const { return nullptr; }
-	virtual std::unique_ptr<NamedObject> importFromJson(const nlohmann::json& json) const { return nullptr; }
-};
-
-object_type::object_type() : id(typeid(void)), name("unknown"), importer(std::make_shared<null_obj_importer>()) { }
-object_type::object_type(std::type_index id, const std::string& name, const std::string& extension, std::shared_ptr<object_importer> importer)
-	: id(id), name(name), extension(extension), importer(importer) { }
+	using type_container = type_registry::type_container;
 
 
-object_type::operator bool() const
-{
-	return id != typeid(void);
-}
+	object_type type_registry::s_empty_type;
+
+	struct null_obj_importer : public object_importer
+	{
+		virtual std::unique_ptr<NamedObject> importFromFile(const path& p) const { return nullptr; }
+		virtual std::unique_ptr<NamedObject> importFromJson(const nlohmann::json& json) const { return nullptr; }
+	};
+
+	object_type::object_type() : id(typeid(void)), name("unknown"), importer(std::make_shared<null_obj_importer>()) { }
+	object_type::object_type(std::type_index id, const std::string& name, const std::string& extension, std::shared_ptr<object_importer> importer)
+		: id(id), name(name), extension(extension), importer(importer) { }
 
 
-void type_registry::registerObjectType(object_type type)
-{
-	s_types.insert(type);
-}
-
-const object_type& type_registry::findById(std::type_index type)
-{
-	auto& idx = s_types.get<by_id>();
-	auto it = idx.find(type);
-	if (it != idx.end()) {
-		return *it;
+	object_type::operator bool() const
+	{
+		return id != typeid(void);
 	}
-	return s_empty_type;
-}
 
-const object_type& type_registry::findByName(const std::string& name)
-{
-	auto& idx = s_types.get<by_name>();
-	auto it = idx.find(name);
-	if (it != idx.end()) {
-		return *it;
+
+	void type_registry::registerObjectType(object_type type)
+	{
+		s_types.insert(type);
 	}
-	return s_empty_type;
-}
 
-const object_type& type_registry::findByExtension(const std::string& ext)
-{
-	auto& idx = s_types.get<by_extension>();
-	auto it = idx.find(ext);
-	if (it != idx.end()) {
-		return *it;
+	const object_type& type_registry::findById(std::type_index type)
+	{
+		auto& idx = s_types.get<by_id>();
+		auto it = idx.find(type);
+		if (it != idx.end()) {
+			return *it;
+		}
+		return s_empty_type;
 	}
-	return s_empty_type;
-}
 
-const object_type& type_registry::getType(const NamedObject* obj)
-{
-	return findById(typeid(*obj));
-}
+	const object_type& type_registry::findByName(const std::string& name)
+	{
+		auto& idx = s_types.get<by_name>();
+		auto it = idx.find(name);
+		if (it != idx.end()) {
+			return *it;
+		}
+		return s_empty_type;
+	}
+
+	const object_type& type_registry::findByExtension(const std::string& ext)
+	{
+		auto& idx = s_types.get<by_extension>();
+		auto it = idx.find(ext);
+		if (it != idx.end()) {
+			return *it;
+		}
+		return s_empty_type;
+	}
+
+	const object_type& type_registry::getType(const NamedObject* obj)
+	{
+		return findById(typeid(*obj));
+	}
 
 
-static std::aligned_storage_t<sizeof(type_container), alignof(type_container)> g_types_buf;
-type_container& type_registry::s_types = reinterpret_cast<type_container&>(g_types_buf);
+	static std::aligned_storage_t<sizeof(type_container), alignof(type_container)> g_types_buf;
+	type_container& type_registry::s_types = reinterpret_cast<type_container&>(g_types_buf);
 
-static int schwarz_counter;
+	static int schwarz_counter;
 
-type_registry_initializer::type_registry_initializer()
-{
-	if (schwarz_counter++ == 0) new (&type_registry::s_types) type_container();
-}
+	type_registry_initializer::type_registry_initializer()
+	{
+		if (schwarz_counter++ == 0) new (&type_registry::s_types) type_container();
+	}
 
-type_registry_initializer::~type_registry_initializer()
-{
-	if (--schwarz_counter == 0) (&type_registry::s_types)->~type_container();
+	type_registry_initializer::~type_registry_initializer()
+	{
+		if (--schwarz_counter == 0) (&type_registry::s_types)->~type_container();
+	}
 }

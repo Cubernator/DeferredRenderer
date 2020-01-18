@@ -1,12 +1,15 @@
-#ifndef OBJECT_HPP
-#define OBJECT_HPP
+#ifndef CORE_OBJECT_HPP
+#define CORE_OBJECT_HPP
 
-class Object
+namespace hexeract
 {
-public:
-	virtual ~Object() = 0;
-};
+	class Object
+	{
+	public:
+		virtual ~Object() = 0;
+	};
 
-void destroy_object(Object* obj);
+	void destroy_object(Object* obj);
+}
 
-#endif // OBJECT_HPP
+#endif // CORE_OBJECT_HPP

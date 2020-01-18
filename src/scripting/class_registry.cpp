@@ -4,74 +4,77 @@
 #include <new>
 #include <unordered_set>
 
-namespace scripting
+namespace hexeract
 {
-	using class_container = class_registry::class_container;
-
-	static std::aligned_storage_t<sizeof(class_container), alignof(class_container)> g_classes_buf;
-	class_container& class_registry::s_classes = reinterpret_cast<class_container&>(g_classes_buf);
-
-	void class_registry::registerClass(const std::string& name, const std::string& baseName)
+	namespace scripting
 	{
-		s_classes.insert(registered_class(name, baseName));
-	}
+		using class_container = class_registry::class_container;
 
-	void class_registry::registerMethod(const std::string& className, const std::string& methodName, lua_CFunction f)
-	{
-		auto it = s_classes.find(className);
-		if (it != s_classes.end()) {
-			s_classes.modify(it, [&](registered_class& rc) {
-				rc.addMethod(methodName, f);
-			});
+		static std::aligned_storage_t<sizeof(class_container), alignof(class_container)> g_classes_buf;
+		class_container& class_registry::s_classes = reinterpret_cast<class_container&>(g_classes_buf);
+
+		void class_registry::registerClass(const std::string& name, const std::string& baseName)
+		{
+			s_classes.insert(registered_class(name, baseName));
 		}
-	}
 
-	void class_registry::applyAllClasses()
-	{
-		std::unordered_set<std::string> classes;
+		void class_registry::registerMethod(const std::string& className, const std::string& methodName, lua_CFunction f)
+		{
+			auto it = s_classes.find(className);
+			if (it != s_classes.end()) {
+				s_classes.modify(it, [&](registered_class& rc) {
+					rc.addMethod(methodName, f);
+				});
+			}
+		}
 
-		// keep iterating registered classes until all of them have been applied
-		while (classes.size() < s_classes.size()) {
-			for (const registered_class& c : s_classes) {
+		void class_registry::applyAllClasses()
+		{
+			std::unordered_set<std::string> classes;
 
-				// only apply class if base class has already been applied (or if it is static)
-				if (classes.count(c.baseName) || (c.baseName == "Object") || c.baseName.empty()) {
+			// keep iterating registered classes until all of them have been applied
+			while (classes.size() < s_classes.size()) {
+				for (const registered_class& c : s_classes) {
 
-					// try inserting class
-					auto p = classes.insert(c.name);
+					// only apply class if base class has already been applied (or if it is static)
+					if (classes.count(c.baseName) || (c.baseName == "Object") || c.baseName.empty()) {
 
-					// only apply class if it has not been applied before (if insertion was successful)
-					if (p.second) {
-						c.apply();
+						// try inserting class
+						auto p = classes.insert(c.name);
+
+						// only apply class if it has not been applied before (if insertion was successful)
+						if (p.second) {
+							c.apply();
+						}
 					}
 				}
 			}
 		}
-	}
 
-	void registered_class::apply() const
-	{
-		auto se = Environment::instance();
+		void registered_class::apply() const
+		{
+			auto se = Environment::instance();
 
-		if (baseName.empty()) {
-			se->addStaticClass(name);
-		} else {
-			se->addClass(name, baseName);
+			if (baseName.empty()) {
+				se->addStaticClass(name);
+			} else {
+				se->addClass(name, baseName);
+			}
+
+			se->addMethods(name, methods.begin(), methods.end());
 		}
 
-		se->addMethods(name, methods.begin(), methods.end());
-	}
 
+		static int schwarz_counter;
 
-	static int schwarz_counter;
+		class_registry_initializer::class_registry_initializer()
+		{
+			if (schwarz_counter++ == 0) new (&class_registry::s_classes) class_container();
+		}
 
-	class_registry_initializer::class_registry_initializer()
-	{
-		if (schwarz_counter++ == 0) new (&class_registry::s_classes) class_container();
-	}
-
-	class_registry_initializer::~class_registry_initializer()
-	{
-		if (--schwarz_counter == 0) (&class_registry::s_classes)->~class_container();
+		class_registry_initializer::~class_registry_initializer()
+		{
+			if (--schwarz_counter == 0) (&class_registry::s_classes)->~class_container();
+		}
 	}
 }

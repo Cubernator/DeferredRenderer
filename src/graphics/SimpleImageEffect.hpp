@@ -1,37 +1,44 @@
-#ifndef SIMPLEIMAGEEFFECT_HPP
-#define SIMPLEIMAGEEFFECT_HPP
+#ifndef GRAPHICS_SIMPLEIMAGEEFFECT_HPP
+#define GRAPHICS_SIMPLEIMAGEEFFECT_HPP
 
 #include "ImageEffect.hpp"
+#include "util/json_interpreter.hpp"
 
-class Material;
-
-class SimpleImageEffect : public ImageEffect
+namespace hexeract
 {
-public:
-	explicit SimpleImageEffect(Entity* parent);
+	namespace graphics
+	{
+		class Material;
 
-	Material* material() { return m_material; }
-	const Material* material() const { return m_material; }
-	void setMaterial(Material* mat) { m_material = mat; }
+		class SimpleImageEffect : public ImageEffect
+		{
+		public:
+			explicit SimpleImageEffect(Entity* parent);
 
-	bool isOutputLinear() const { return m_outputLinear; }
-	void setOutputLinear(bool val) { m_outputLinear = val; }
+			Material* material() { return m_material; }
+			const Material* material() const { return m_material; }
+			void setMaterial(Material* mat) { m_material = mat; }
 
-	virtual void apply(const Texture2D* input, const RenderTexture* output) final;
-	virtual bool isGood() const final;
+			bool isOutputLinear() const { return m_outputLinear; }
+			void setOutputLinear(bool val) { m_outputLinear = val; }
 
-	COMPONENT_ALLOW_MULTIPLE;
+			virtual void apply(const Texture2D* input, const RenderTexture* output) final;
+			virtual bool isGood() const final;
 
-private:
-	Material* m_material;
-	bool m_outputLinear;
+			COMPONENT_ALLOW_MULTIPLE;
 
-	virtual void apply_json_impl(const nlohmann::json& json) final;
+		private:
+			Material* m_material;
+			bool m_outputLinear;
 
-	// cppcheck-suppress unusedPrivateFunction
-	void extractMaterial(const nlohmann::json& json);
+			virtual void apply_json_impl(const nlohmann::json& json) final;
 
-	static json_interpreter<SimpleImageEffect> s_properties;
-};
+			// cppcheck-suppress unusedPrivateFunction
+			void extractMaterial(const nlohmann::json& json);
 
-#endif // SIMPLEIMAGEEFFECT_HPP
+			static json_interpreter<SimpleImageEffect> s_properties;
+		};
+	}
+}
+
+#endif // GRAPHICS_SIMPLEIMAGEEFFECT_HPP

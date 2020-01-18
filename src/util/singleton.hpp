@@ -3,37 +3,40 @@
 
 #include <assert.h>
 
-template<typename T>
-class singleton
+namespace hexeract
 {
-public:
-	using type = T;
-	using pointer = type*;
-
-	singleton()
+	template<typename T>
+	class singleton
 	{
-		assert(s_instance == nullptr);
-		s_instance = static_cast<pointer>(this);
-	}
+	public:
+		using type = T;
+		using pointer = type*;
 
-	~singleton()
+		singleton()
+		{
+			assert(s_instance == nullptr);
+			s_instance = static_cast<pointer>(this);
+		}
+
+		~singleton()
+		{
+			s_instance = nullptr;
+		}
+
+		static pointer instance() { return s_instance; }
+
+	private:
+		static pointer s_instance;
+	};
+
+	template<typename T>
+	typename singleton<T>::pointer singleton<T>::s_instance{ nullptr };
+
+	template<typename T>
+	typename singleton<T>::pointer instance()
 	{
-		s_instance = nullptr;
+		return singleton<T>::instance();
 	}
-
-	static pointer instance() { return s_instance; }
-
-private:
-	static pointer s_instance;
-};
-
-template<typename T>
-typename singleton<T>::pointer singleton<T>::s_instance{ nullptr };
-
-template<typename T>
-typename singleton<T>::pointer instance()
-{
-	return singleton<T>::instance();
 }
 
 #endif // SINGLETON_HPP

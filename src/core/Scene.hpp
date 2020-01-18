@@ -1,5 +1,5 @@
-#ifndef SCENE_HPP
-#define SCENE_HPP
+#ifndef CORE_SCENE_HPP
+#define CORE_SCENE_HPP
 
 #include <vector>
 #include <memory>
@@ -10,41 +10,44 @@
 #include "util/json_initializable.hpp"
 #include "util/json_interpreter.hpp"
 
-class Entity;
-
-class Scene : public NamedObject, public json_initializable<Scene>
+namespace hexeract
 {
-public:
-	Scene();
-	~Scene();
+	class Entity;
 
-	Scene(Scene&& other) = default;
-	Scene& operator=(Scene&& other) = default;
+	class Scene : public NamedObject, public json_initializable<Scene>
+	{
+	public:
+		Scene();
+		~Scene();
 
-	void addEntity(Entity* entity);
-	void removeEntity(Entity* entity);
+		Scene(Scene&& other) = default;
+		Scene& operator=(Scene&& other) = default;
 
-	const glm::vec4& backColor() const { return m_backColor; }
-	void setBackColor(const glm::vec4& c) { m_backColor = c; }
+		void addEntity(Entity* entity);
+		void removeEntity(Entity* entity);
 
-	const glm::vec4& ambientLight() const { return m_ambientLight; }
-	void setAmbientLight(const glm::vec4& c) { m_ambientLight = c; }
+		const glm::vec4& backColor() const { return m_backColor; }
+		void setBackColor(const glm::vec4& c) { m_backColor = c; }
 
-private:
-	std::vector<Entity*> m_entities;
+		const glm::vec4& ambientLight() const { return m_ambientLight; }
+		void setAmbientLight(const glm::vec4& c) { m_ambientLight = c; }
 
-	glm::vec4 m_backColor;
-	glm::vec4 m_ambientLight;
+	private:
+		std::vector<Entity*> m_entities;
 
-	static json_interpreter<Scene> s_properties;
+		glm::vec4 m_backColor;
+		glm::vec4 m_ambientLight;
 
-	void apply_json_impl(const nlohmann::json& json);
-	void extractEntities(const nlohmann::json& json);
+		static json_interpreter<Scene> s_properties;
 
-	Scene(const Scene& other) = delete;
-	Scene& operator=(const Scene& other) = delete;
+		void apply_json_impl(const nlohmann::json& json);
+		void extractEntities(const nlohmann::json& json);
 
-	friend struct json_initializable<Scene>;
-};
+		Scene(const Scene& other) = delete;
+		Scene& operator=(const Scene& other) = delete;
 
-#endif // SCENE_HPP
+		friend struct json_initializable<Scene>;
+	};
+}
+
+#endif // CORE_SCENE_HPP

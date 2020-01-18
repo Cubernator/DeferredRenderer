@@ -1,5 +1,5 @@
-#ifndef BEHAVIOUR_HPP
-#define BEHAVIOUR_HPP
+#ifndef SCRIPTING_BEHAVIOUR_HPP
+#define SCRIPTING_BEHAVIOUR_HPP
 
 #include "core\Component.hpp"
 
@@ -7,62 +7,65 @@
 
 #include <exception>
 
-namespace scripting
+namespace hexeract
 {
-	class Behaviour : public Component
+	namespace scripting
 	{
-	public:
-		explicit Behaviour(Entity* parent);
-		virtual ~Behaviour();
-
-		const std::string& script() const { return m_script; }
-		void setScript(const std::string& name);
-
-		template<typename T>
-		T getProperty(const std::string& name)
+		class Behaviour : public Component
 		{
-			if (!m_good) {
-				throw std::runtime_error("Cannot get property of bad Behaviour!");
+		public:
+			explicit Behaviour(Entity* parent);
+			virtual ~Behaviour();
+
+			const std::string& script() const { return m_script; }
+			void setScript(const std::string& name);
+
+			template<typename T>
+			T getProperty(const std::string& name)
+			{
+				if (!m_good) {
+					throw std::runtime_error("Cannot get property of bad Behaviour!");
+				}
+
+				// TODO
 			}
 
-			// TODO
-		}
+			template<typename T>
+			void setProperty(const std::string& name, T&& value)
+			{
+				if (!m_good) {
+					throw std::runtime_error("Cannot set property on bad Behaviour!");
+				}
 
-		template<typename T>
-		void setProperty(const std::string& name, T&& value)
-		{
-			if (!m_good) {
-				throw std::runtime_error("Cannot set property on bad Behaviour!");
+				lua_State* L = getState();
+
+				beginProperties(L);
+				push_value(L, std::forward<T>(value));
+				submitProperty(L, name);
+				endProperties(L);
 			}
 
-			lua_State* L = getState();
+			bool isGood() const { return m_good; }
 
-			beginProperties(L);
-			push_value(L, std::forward<T>(value));
-			submitProperty(L, name);
-			endProperties(L);
-		}
+			COMPONENT_ALLOW_MULTIPLE;
 
-		bool isGood() const { return m_good; }
+		protected:
+			virtual void apply_json_impl(const nlohmann::json& json) override;
 
-		COMPONENT_ALLOW_MULTIPLE;
+		private:
+			std::string m_script;
+			bool m_good;
+			int m_objIdx;
 
-	protected:
-		virtual void apply_json_impl(const nlohmann::json& json) override;
+			void destroyObj();
 
-	private:
-		std::string m_script;
-		bool m_good;
-		int m_objIdx;
+			void beginProperties(lua_State* L);
+			void endProperties(lua_State* L);
+			void submitProperty(lua_State* L, const std::string& name);
 
-		void destroyObj();
-
-		void beginProperties(lua_State* L);
-		void endProperties(lua_State* L);
-		void submitProperty(lua_State* L, const std::string& name);
-
-		static lua_State* getState();
-	};
+			static lua_State* getState();
+		};
+	}
 }
 
-#endif // BEHAVIOUR_HPP
+#endif // SCRIPTING_BEHAVIOUR_HPP

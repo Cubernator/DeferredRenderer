@@ -1,5 +1,5 @@
-#ifndef EFFECT_HPP
-#define EFFECT_HPP
+#ifndef GRAPHICS_EFFECT_HPP
+#define GRAPHICS_EFFECT_HPP
 
 #include "core/NamedObject.hpp"
 #include "util/import.hpp"
@@ -12,123 +12,129 @@
 #include "boost/multi_index_container.hpp"
 #include "boost/multi_index/sequenced_index.hpp"
 
-namespace mi = boost::multi_index;
-
-class ShaderProgram;
-class Material;
-
-enum light_mode
+namespace hexeract
 {
-	light_forward_base,
-	light_forward_add,
-	light_deferred,
-	light_shadow_cast
-};
+	namespace graphics
+	{
+		namespace mi = boost::multi_index;
 
-enum render_queue
-{
-	queue_background = 0,
-	queue_geometry = 1000,
-	queue_alpha_test = 2000,
-	queue_transparent = 3000,
-	queue_effect = 4000
-};
+		class ShaderProgram;
+		class Material;
 
-enum render_type
-{
-	type_opaque,
-	type_cutout,
-	type_transparent
-};
+		enum light_mode
+		{
+			light_forward_base,
+			light_forward_add,
+			light_deferred,
+			light_shadow_cast
+		};
 
-class Pass : public json_initializable<Pass>
-{
-public:
-	std::string name;
-	light_mode mode;
-	RenderState state;
-	ShaderProgram* program;
+		enum render_queue
+		{
+			queue_background = 0,
+			queue_geometry = 1000,
+			queue_alpha_test = 2000,
+			queue_transparent = 3000,
+			queue_effect = 4000
+		};
 
-	Pass();
+		enum render_type
+		{
+			type_opaque,
+			type_cutout,
+			type_transparent
+		};
 
-private:
-	static json_interpreter<Pass> s_properties;
+		class Pass : public json_initializable<Pass>
+		{
+		public:
+			std::string name;
+			light_mode mode;
+			RenderState state;
+			ShaderProgram* program;
 
-	// cppcheck-suppress unusedPrivateFunction
-	void apply_json_impl(const nlohmann::json& json);
+			Pass();
 
-	// cppcheck-suppress unusedPrivateFunction
-	void extractState(const nlohmann::json& json);
-	// cppcheck-suppress unusedPrivateFunction
-	void extractProgram(const nlohmann::json& json);
+		private:
+			static json_interpreter<Pass> s_properties;
 
-	friend struct json_initializable<Pass>;
-};
+			// cppcheck-suppress unusedPrivateFunction
+			void apply_json_impl(const nlohmann::json& json);
 
-class Effect : public NamedObject, public json_initializable<Effect>
-{
-public:
-	Effect();
+			// cppcheck-suppress unusedPrivateFunction
+			void extractState(const nlohmann::json& json);
+			// cppcheck-suppress unusedPrivateFunction
+			void extractProgram(const nlohmann::json& json);
 
-	render_type renderType() const { return m_renderType; }
-	void setRenderType(render_type val) { m_renderType = val; }
+			friend struct json_initializable<Pass>;
+		};
 
-	int queuePriority() const { return m_queuePriority; }
-	void setQueuePriority(int val) { m_queuePriority = val; }
+		class Effect : public NamedObject, public json_initializable<Effect>
+		{
+		public:
+			Effect();
 
-	std::size_t passCount() const;
+			render_type renderType() const { return m_renderType; }
+			void setRenderType(render_type val) { m_renderType = val; }
 
-	const Pass* getPass(std::size_t index) const;
-	const Pass* getPass(light_mode mode) const;
-	const Pass* getPass(const std::string& name) const;
+			int queuePriority() const { return m_queuePriority; }
+			void setQueuePriority(int val) { m_queuePriority = val; }
 
-	void applyProperties(const ShaderProgram* p, const Material* m) const;
+			std::size_t passCount() const;
 
-	shader_property_map::const_iterator begin_properties() const { return m_properties.cbegin(); }
-	shader_property_map::const_iterator end_properties() const { return m_properties.cend(); }
+			const Pass* getPass(std::size_t index) const;
+			const Pass* getPass(light_mode mode) const;
+			const Pass* getPass(const std::string& name) const;
 
-private:
-	struct by_mode { };
-	struct by_name { };
+			void applyProperties(const ShaderProgram* p, const Material* m) const;
 
-	struct pass_container_indices : public mi::indexed_by<
-		mi::sequenced<>,
-		mi::hashed_unique<mi::tag<by_name>, mi::member<Pass, std::string, &Pass::name>>,
-		mi::hashed_non_unique<mi::tag<by_mode>, mi::member<Pass, light_mode, &Pass::mode>>
-	> { };
+			shader_property_map::const_iterator begin_properties() const { return m_properties.cbegin(); }
+			shader_property_map::const_iterator end_properties() const { return m_properties.cend(); }
 
-	using pass_container = mi::multi_index_container<
-		Pass,
-		pass_container_indices
-	>;
+		private:
+			struct by_mode { };
+			struct by_name { };
 
-	render_type m_renderType;
-	int m_queuePriority;
+			struct pass_container_indices : public mi::indexed_by<
+				mi::sequenced<>,
+				mi::hashed_unique<mi::tag<by_name>, mi::member<Pass, std::string, &Pass::name>>,
+				mi::hashed_non_unique<mi::tag<by_mode>, mi::member<Pass, light_mode, &Pass::mode>>
+			> { };
 
-	shader_property_map m_properties;
-	pass_container m_passes;
+			using pass_container = mi::multi_index_container<
+				Pass,
+				pass_container_indices
+			>;
 
-	static json_interpreter<Effect> s_properties;
+			render_type m_renderType;
+			int m_queuePriority;
+
+			shader_property_map m_properties;
+			pass_container m_passes;
+
+			static json_interpreter<Effect> s_properties;
 
 
-	// cppcheck-suppress unusedPrivateFunction
-	void apply_json_impl(const nlohmann::json& json);
+			// cppcheck-suppress unusedPrivateFunction
+			void apply_json_impl(const nlohmann::json& json);
 
-	// cppcheck-suppress unusedPrivateFunction
-	void extractRenderQueue(const nlohmann::json& json);
-	// cppcheck-suppress unusedPrivateFunction
-	void extractProperties(const nlohmann::json& json);
-	// cppcheck-suppress unusedPrivateFunction
-	void extractPasses(const nlohmann::json& json);
+			// cppcheck-suppress unusedPrivateFunction
+			void extractRenderQueue(const nlohmann::json& json);
+			// cppcheck-suppress unusedPrivateFunction
+			void extractProperties(const nlohmann::json& json);
+			// cppcheck-suppress unusedPrivateFunction
+			void extractPasses(const nlohmann::json& json);
 
-	void addProperty(const nlohmann::json& json);
-	void addPass(const nlohmann::json& json);
+			void addProperty(const nlohmann::json& json);
+			void addPass(const nlohmann::json& json);
 
-	friend struct json_initializable<Effect>;
+			friend struct json_initializable<Effect>;
 
-public:
-	pass_container::const_iterator begin_passes() const { return m_passes.cbegin(); }
-	pass_container::const_iterator end_passes() const { return m_passes.cend(); }
-};
+		public:
+			pass_container::const_iterator begin_passes() const { return m_passes.cbegin(); }
+			pass_container::const_iterator end_passes() const { return m_passes.cend(); }
+		};
+	}
+}
 
-#endif // EFFECT_HPP
+#endif // GRAPHICS_EFFECT_HPP

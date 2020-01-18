@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 #endif // USE_WINMAIN
 {
 	using namespace boost::program_options;
+	using namespace hexeract;
 
 #ifdef USE_WINMAIN
 	std::vector<std::string> args = split_winmain(lpCmdLine);

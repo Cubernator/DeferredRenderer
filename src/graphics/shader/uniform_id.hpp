@@ -1,13 +1,19 @@
-#ifndef UNIFORM_ID_HPP
-#define UNIFORM_ID_HPP
+#ifndef GRAPHICS_UNIFORM_ID_HPP
+#define GRAPHICS_UNIFORM_ID_HPP
 
 #include <string>
 
-using uniform_id = std::size_t;
-
-inline uniform_id uniform_name_to_id(const std::string& name)
+namespace hexeract
 {
-	return std::hash<std::string>{}(name);
+	namespace graphics
+	{
+		using uniform_id = std::size_t;
+
+		inline uniform_id uniform_name_to_id(const std::string& name)
+		{
+			return std::hash<std::string>{}(name);
+		}
+	}
 }
 
-#endif // UNIFORM_ID_HPP
+#endif // GRAPHICS_UNIFORM_ID_HPP

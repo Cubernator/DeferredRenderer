@@ -1,5 +1,5 @@
-#ifndef COMPONENT_HPP
-#define COMPONENT_HPP
+#ifndef CORE_COMPONENT_HPP
+#define CORE_COMPONENT_HPP
 
 #include <string>
 
@@ -7,44 +7,43 @@
 #include "Object.hpp"
 #include "util/import.hpp"
 #include "util/json_initializable.hpp"
-#include "util/json_interpreter.hpp"
 
 #define COMPONENT_SET_MULTIPLE_ALLOWED(v) using multiple_allowed = boost::mpl::##v##_
 
 #define COMPONENT_ALLOW_MULTIPLE COMPONENT_SET_MULTIPLE_ALLOWED(true)
 #define COMPONENT_DISALLOW_MULTIPLE COMPONENT_SET_MULTIPLE_ALLOWED(false)
 
-
-class Entity;
-
-class Component : public Object, public json_initializable<Component>
+namespace hexeract
 {
-public:
-	explicit Component(Entity* parent);
-	virtual ~Component() = 0;
+	class Entity;
 
-	Entity* entity() { return m_parent; }
-	const Entity* entity() const { return m_parent; }
+	class Component : public Object, public json_initializable<Component>
+	{
+	public:
+		explicit Component(Entity* parent);
+		virtual ~Component() = 0;
 
-	bool isEnabled() const { return m_enabled; }
-	void setEnabled(bool val) { m_enabled = val; }
+		Entity* entity() { return m_parent; }
+		const Entity* entity() const { return m_parent; }
 
-	bool isActiveAndEnabled() const;
+		bool isEnabled() const { return m_enabled; }
+		void setEnabled(bool val) { m_enabled = val; }
 
-	COMPONENT_ALLOW_MULTIPLE;
+		bool isActiveAndEnabled() const;
 
-protected:
-	virtual void apply_json_impl(const nlohmann::json& json);
+		COMPONENT_ALLOW_MULTIPLE;
 
-	friend struct json_initializable<Component>;
+	protected:
+		virtual void apply_json_impl(const nlohmann::json& json);
 
-private:
-	Entity* m_parent;
-	bool m_enabled;
+		friend struct json_initializable<Component>;
 
-	static json_interpreter<Component> s_properties;
-};
+	private:
+		Entity* m_parent;
+		bool m_enabled;
+	};
 
-void destroy_component(Component* cmpt);
+	void destroy_component(Component* cmpt);
+}
 
-#endif // COMPONENT_HPP
+#endif // CORE_COMPONENT_HPP
